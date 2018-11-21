@@ -1,0 +1,1009 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>[译] Facebook：我们是如何构建第一个跨平台的 React Native APP - web前端开发知识 - SegmentFault 思否</title><meta name="description" content="早些时候，我们介绍过iOS版的React Native. React Native带来的是用web方式的React - 自声明式的UI组件和快速的开发迭代来完成手机平台的功能，然后为了保持速度、保真性、并达到原生的体验。今天我们很高兴发布R..."/><meta name="keywords" content="python,html5,react-native,android"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python,html5,react-native,android'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000005091857" class="hidden" />
+
+<div class="wrap" data-blogid="1200000005033079">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/front-end-bear">web前端开发知识</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="ljinkai"
+                                         data-userslug="ljinkai"
+                                         data-useravatar="https://avatar-static.segmentfault.com/221/440/2214409321-573124726c82b_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/ljinkai">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/221/440/2214409321-573124726c82b_big64" alt="ljinkai">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/ljinkai" class="mr5 "><strong>ljinkai</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">69</span>
+
+                                                                                                发布于
+                                                <a href="/blog/front-end-bear">web前端开发知识</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000005033079">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2016-05-10 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000005091857">
+                                            <a href="/a/1190000005091857"> [译] Facebook：我们是如何构建第一个跨平台的 React Native APP</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/html5/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/320/807/3208078129-1040000000089409_big64" data-placement="top"
+                                                                                data-original-title="html5"
+                                                                                data-id="1040000000089409">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/102/500/1025005915-54cb538538eea_small">
+                                                                                                                      html5
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/react-native/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/346/194/3461947483-57fcd8a38229d_big64" data-placement="top"
+                                                                                data-original-title="react-native"
+                                                                                data-id="1040000002645080">
+                                                                                                                      react-native
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/android/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/244/432/2444325787-5a263e84451ad_big64" data-placement="top"
+                                                                                data-original-title="android"
+                                                                                data-id="1040000000089658">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/287/281/287281599-5a263edae47e9_small">
+                                                                                                                      android
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                3.2k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 18 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">1</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000005091857" data-license="cc">
+                    
+<blockquote><p>英文原文(需翻墙)：<a href="https://code.facebook.com/posts/1189117404435352/" rel="nofollow noreferrer">https://code.facebook.com/posts/1189117404435352/</a></p></blockquote>
+<p>早些时候，我们介绍过<a href="https://code.facebook.com/posts/1014532261909640/react-native-bringing-modern-web-techniques-to-mobile/" rel="nofollow noreferrer">iOS版的React Native</a>. React Native带来的是用web方式的React - 自声明式的UI组件和快速的开发迭代来完成手机平台的功能，然后为了保持速度、保真性、并达到原生的体验。今天我们很高兴发布<a href="http://facebook.github.io/react-native/" rel="nofollow noreferrer">React Native的Anroid版本</a>.</p>
+<p>在Facebook我们已经应用React Native在发布的产品有超过一年的时间了。几乎是整整一年之前，我们的团队开始规划开发<a href="https://www.facebook.com/business/news/ads-manager-app" rel="nofollow noreferrer">广告管理APP</a>。我们的部门是创建一个新的APP来让数百万的Facebook广告主来管理他们的账号并能创建新的广告。在完成的时候,这不仅仅是FB的第一个全React Native APP而且是第一个跨平台的APP.在这篇文章里，我们希望能和你分享我们是如何构建这个APP,React Native是如何让我们更快的，还有这个过程中我们的经验。</p>
+<h2>选择React Native</h2>
+<p>不久前，React Native还是一项新的技术，还没有被一款正式的产品应用过。并且开发这样一个新的APP会有很大的挑战，它超过了潜在的好处。</p>
+<p>首先，我们初始的团队里有三个产品工程师已经对React很熟悉。另外，这个APP需要处理大量复杂的商业逻辑和精确的处理不同的广告格式、时区、日期格式、货币、汇率等等诸如此类。而大部分已经用JavaScript来实现了。全部用Objective-C编码并稍后用java实现Android版本的想法也并没有被赞成，而且也并不高效。第三，用React Native将会很容易来实现大部分的UI，可以实现带数据的列表、表格、图表。产品工程师可以很快的实现这些效果，用React就可以了。</p>
+<p>当然，一些特性的实现存在着挑战 - 比如，图片的编辑，用来让广告主缩放和剪切图片；地图视图，用来让广告主设定地理范围。另外一个是面包屑导航，帮助广告主来可视化的知道自己的层级位置。这些都提供机会让我们来推动这个平台的发展。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000006790224" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span><br><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000005091874" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<h2>首先实现广告工具的iOS版本</h2>
+<p>我们的团队觉得首先开发iOS版本，也是为了和React Native的iOS版本校准一致。我们从后面的几个月时间里从3个增加到8个工程师。新加入的成员对React并不熟悉 - 其中也并不熟悉JavsScript - 但是他们都渴望构建一个伟大的手机应用来服务广告主，并且他们成长的非常快。</p>
+<p>有经验React Native的iOS工程师帮助我们实现一些他们并没有在React Native中实现的特性，像提供访问相册。他们也帮助我们和其它FB已经存在的APP在使用的iOS库做关联，像认证、分析、崩溃报告、网络和推送提醒。这让我们的团队可以关注在产品上。</p>
+<p>除了上面提到的，我们可以使用以前就写好的JavaScript类库。像<a href="https://facebook.github.io/relay/" rel="nofollow noreferrer">Relay</a>,一个通过<a href="http://facebook.github.io/graphql/" rel="nofollow noreferrer">GraphQL</a>来传递数据到React应用的FB框架.另外的一系列库用来处理国际化和本地化，它能很聪明的实现时区和货币的调用。这些库的加载是在一个JSON的配置文件里，包括APP用到的iOS的本地关联文件，仅仅暴露很少的native代码。这让我们的库几乎不需要修改就能使用。</p>
+<p>我们遇到的最大的挑战就是导航。为了导航广告主的广告和活动，我们想使用面包屑导航条。指引广告的创建流程，我们需要一个导向式的导航条。在最上面，非常重要的是需要使用合适的动画和手势操作，否则这个APP看起来还是像一个经过美化的website.</p>
+<p>我们的解决方案是使用<a href="https://facebook.github.io/react-native/docs/navigator.html" rel="nofollow noreferrer">导航组件</a>，是一个用React Native来实现的可定制化的组件。本质上，它是一个追踪一系列React组件的组件。它可以在组件之间基于按钮点击和按下时进行动画切换。它也具有可插拔式的导航组件，让我们来实现iOS风格的导航视图，以面包屑的方式来导航广告和活动，指引创建流程的步骤。这个导航条组件还能获取到动画的进度以及根据需要来调整动画的频率。这意味这所有动画，包括视图和导航条都可以通过JS来处理，而且测试的结果是仍然能够达到60fps.</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000005091872" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<p>只有一种情况下动画才会卡顿，就是当JS线程被一个大的操作占用时。当我们遇到这种情况时，基本上都是执行大量的数据获取操作造成的。必然的，当导航到新页面时需要加载大量的数据。当网络足够快是，动画可以很容易的被执行。我们的解决方案是延迟数据的获取直到动画执行完毕，这时就使用到了<a href="https://facebook.github.io/react-native/docs/interactionmanager.html" rel="nofollow noreferrer">InteractionManager</a>组件，同样是React Native的一部分。我们首先动画到一个新的视图，然后再用Relay来执行数据加载进程，这样就能自动的让需要的React组件实现自动渲染了。</p>
+<h2>开发Android版本</h2>
+<p>当iOS版本的广告管理工具接近开发完成时，我们开始着手Android版本的APP.移植React Native的Android是最好的方式来完成这个工作。幸运的是，React Native团队已经在上面做了很多的工作。自然的，我们想尽可能的复用更多的代码，因为大部分的视图都很相似。当然，也有一些地方需要做Android个性化处理来和iOS版本有所区别，比如，导航的元素或者是调用本地的UI元素像日期选择、开关等等。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000005091870" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<p>幸运的是，React Native包的黑名单特性和React的抽象结构帮助我们最大化的重用代码来实现跨平台的功能。在iOS版本里，我们打包的时候忽略所有后缀名为.android.js的文件。对Android的开发，忽略掉所有后缀名为.ios.js的文件。现在我们可以实现同样的组件来同时应用Android和iOS，也可以个性化的编码在不同平台。替换掉 if/else 这种方式来判断平台，我们尝试重构每个平台的特定UI，这样就可以有Android和iOS的不同实现。在构建Android版本的过程中，大约85%的代码可以被复用。</p>
+<p>另外一个挑战是怎么管理源代码的问题。Android和iOS的代码库在Facebook两个不同仓库。广告管理工具的iOS源代码在iOS仓库，Android版本的代码在Android的代码库。举例来说，像iOS版本的代码，我们想用一些Facebook的Android的依赖库，这些库却在Android的代码库存放。另外，Android的APP所有的编译工具，自动化，以及引入的其它插件都在Android的仓库。基于上面，Android的这些app要求重构这些已经存在的iOS代码来抽象具体平台的组件来调用各自的文件。我们是可以直接合并两个版本的代码到一起。但是这种方式却是我们不能接受的。</p>
+<p>最后，我们决定指定iOS库为事实上的源代码库，因为iOS版本已经相对稳定。我们设定了定时任务许多次一天来同步iOS的JavaScript到Android的代码库。我们不鼓励在Android版本提交JavaScript代码，如果提交也是在iOS版本同步的提交一份。如果同步代码发现代码有差异，会记录一个任务用来进行后续的检查。</p>
+<p>我们让iOS仓库的JavaScropt打包成可以在Android版本上运行的代码。这样我们的产品开发人员就可以接触到尽可能多的JavaScript代码而没有原生代码，也可以直接在iOS仓库直接修改和调试两个版本的代码。但是如果要构建Android的APP还是需要在Android仓库来执行，同样的操作也会在iOS APP - 测试两个平台的不同需要大量的额外工作。为了提高JavaScript开发者的工作流程，我们同样构建了脚本来下载合适的来自整合服务器的原生文件。对于大部分开发者来说就不需要复制一份Android的代码库了 - 他们就可以在iOS代码库开发完整的JavaScript代码，并且能比在Facebook的web流程中更快速的进行迭代。</p>
+<h2>我们学到的</h2>
+<p>React Native团队开发的进程和我们的APP一起，并且和他们一起调试本地化组件和API。这些组件将会为每个构建APP的人带来帮助。尽管我们必须自己来构建一些组件，用React Native代替纯原生的方式仍然是有价值的。我们不得不需要写这些组件，虽然在未来的一段时间里也可能不会被其它团队再次使用。</p>
+<p>学到的另外一课是在分开的iOS和Android代码仓库工作是一件困难的事情，尽管使用了大量的工具和自动化。在构建APP的过程中，Facebook用过这样的模式，我们所有构建的自动化和开发进程都建立并围绕着它。然而，对于产品来说，用一份共享的JavaScript代码库，这种方式并不好。幸运的是，Facebook已经对所有平台都<a href="https://www.youtube.com/watch?v=X0VH78ye4yY" rel="nofollow noreferrer">统一了代码库</a> - 只需要一份JavaScript的拷贝，同步那样的方式已经成为了过去。</p>
+<p>另外学到的是关于测试。当做了修改，每一个工程师一定要在所有平台仔细测试，这个过程很容易出现人为的错误。但是开发一个跨平台的APP而且是用一套代码，这些是必须的。即便如此，由于测试不足导致的成本，远大于用React Native开发的成本和能重用跨平台代码的成本。请记住，这里说的不仅仅是产品工程师；同样包括React Native平台的Objective-C和Java工程师.他们的工作不是限制在原生语言。同样包括JavaScript - 举例来说，组件API和部分分享部分的实现。ISO工程师一般来说不必一定要测试修改后的Android的代码，对应Android工程师也是一样。这种文化缺陷需要我们用时间和努力来消除，随着时间的推移，我们会越来越稳定。</p>
+<p>在每次修改整合版本的时候我们也会标记问题。这些标记的东东可以获取iOS版本的问题，同样的对Android也适用，我们连续的整合版本不会在iOS修改的时候来运行Android的测试，反过来也一样。这样工程师就可以更多精力来解决问题，并且不用经常的来重启APP.</p>
+<p>随着上面说的和做的，我们的债算还完了 - 我们可以运行Facebook的第一个完全的React Native APP在两个平台上，具有原生体验，同样的JavaeScript工程师团队。他们当中有些还并不熟悉React, 但是他们在5个月之后就开发出了具有原生体验的iOS版本，之后三个月，我们又发布了Android版本。</p>
+<h2>程序员专用站立办公桌</h2>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000005033129" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<h3><a href="http://detail.koudaitong.com/show/goods?alias=3nrn1le6szqeu&amp;activity=" rel="nofollow noreferrer">点击了解详情</a></h3>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000005091857"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="[译] Facebook：我们是如何构建第一个跨平台的 React Native APP"
+ data-url="https://segmentfault.com/a/1190000005091857" data-shorturl="http://sfau.lt/b5vwMT"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000005091857"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">1 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000005091857"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">28</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000005091857" data-user-id="" data-author-id="1030000002479288 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000005091857/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181120.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181120.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542686630000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _9KZH = '17'//'YI'
++//'h5'
+'bb8'+''///*'T3a'*/'T3a'
++'d'//'PBQ'
++//'1y'
+'1y'+'c01'//'Tph'
++'Ze3'//'Ze3'
++'09c'//'w1o'
++'0'//'0'
++//'w'
+'c8b'+'78'//'W'
++'i'//'i'
++'0d'//'Kw'
++//'A'
+'A'+''///*'yp'*/'yp'
++'eac'//'k'
++/* 'u5'//'u5' */''+'9'//'Jn'
++//'PYl'
+'0'+'7'//'sJM'
++//'dR'
+'dR'+//'s'
+'f'+//'5K'
+'4'+'e4'//'d0'
++/* 'O'//'O' */''+'9V'//'9V'
++''///*'7'*/'7'
++//'EP'
+'9'+/* 'fFn'//'fFn' */''+//'tM'
+'2c', _hzzHeu = [[6,8],[9,12],[12,13],[17,18],[19,20],[25,27],[29,31]];
+
+    for (var i = 0; i < _hzzHeu.length; i ++) {
+        _9KZH = _9KZH.substring(0, _hzzHeu[i][0]) + _9KZH.substring(_hzzHeu[i][1]);
+    }
+
+    return _9KZH;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"[\u8bd1] Facebook\uff1a\u6211\u4eec\u662f\u5982\u4f55\u6784\u5efa\u7b2c\u4e00\u4e2a\u8de8\u5e73\u53f0\u7684 React Native APP","desc":"\u65e9\u4e9b\u65f6\u5019\uff0c\u6211\u4eec\u4ecb\u7ecd\u8fc7iOS\u7248\u7684React Native. React Native\u5e26\u6765\u7684\u662f\u7528web\u65b9\u5f0f\u7684React - \u81ea\u58f0\u660e\u5f0f\u7684UI\u7ec4\u4ef6\u548c\u5feb\u901f\u7684\u5f00\u53d1\u8fed\u4ee3\u6765\u5b8c\u6210\u624b\u673a\u5e73\u53f0\u7684\u529f\u80fd\uff0c\u7136\u540e\u4e3a\u4e86\u4fdd\u6301\u901f\u5ea6\u3001\u4fdd\u771f\u6027\u3001\u5e76\u8fbe\u5230\u539f\u751f\u7684\u4f53\u9a8c\u3002\u4eca\u5929\u6211\u4eec\u5f88\u9ad8\u5174\u53d1\u5e03R...","link":"https:\/\/segmentfault.com\/a\/1190000005091857","imgUrl":"https:\/\/segmentfault.com\/img\/remote\/1460000006790224"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542686631,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

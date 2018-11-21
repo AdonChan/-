@@ -1,0 +1,1416 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>python操作redis - Python全栈玩起来 - SegmentFault 思否</title><meta name="description" content="1：StrictRedis：实现大部分官方的命令2：Redis：是StrictRedis的子类，用于向后兼容旧版的redis。"/><meta name="keywords" content="redis,python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=redis,python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000015191422" class="hidden" />
+
+<div class="wrap" data-blogid="1200000009409605">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/rottengeek">Python全栈玩起来</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="rottengeek"
+                                         data-userslug="rottengeek"
+                                         data-useravatar="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/rottengeek">
+                                                    <img class="avatar-40" src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt="rottengeek">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/rottengeek" class="mr5 "><strong>rottengeek</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">322</span>
+
+                                                                                                发布于
+                                                <a href="/blog/rottengeek">Python全栈玩起来</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000009409605">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-06-05 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000015191422">
+                                            <a href="/a/1190000015191422"> python操作redis</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/redis/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/169/991/1699917814-1040000000089431_big64" data-placement="top"
+                                                                                data-original-title="redis"
+                                                                                data-id="1040000000089431">
+                                                                                                                      redis
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                1.1k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 43 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">2</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000015191422" data-license="cc">
+                    
+<h5>连接 Redis</h5>
+<h5>
+<strong>import </strong>redis</h5>
+<h4>连接方式：redis提供了2个方法</h4>
+<p>1：StrictRedis：实现大部分官方的命令<br>2：Redis：是StrictRedis的子类，用于向后兼容旧版的redis。</p>
+<h5>官方推荐使用StrictRedis方法。</h5>
+<h5>举例（普通连接）：</h5>
+<p>import redis</p>
+<p>#decode_responses=<strong>True</strong>  自动解码</p>
+<h5>r = redis.Redis(host='127.0.0.1',port=6379,password='123456',db=0,decode_responses=<strong>True</strong>) #默认数据库为0</h5>
+<h5>r = redis.StrictRedis(host='10.10.2.14',port=6379,password='123456',decode_responses=<strong>True</strong>)</h5>
+<h5>连接池：connection pool</h5>
+<p>管理对一个redis server的所有连接，避免每次建立，释放连接的开销。默认，每个redis实例都会维护一个自己的连接池，可以直接建立一个连接池，作为参数传给redis，这样可以实现多个redis实例共享一个连接池。</p>
+<p>举例（连接池）：</p>
+<h5>pool = redis.ConnectionPool(host='127.0.0.1',port=6379,password='123456',decode_responses=<strong>True</strong>)</h5>
+<h5>r = redis.Redis(connection_pool=pool)</h5>
+<h2>一 STRING 字符串的操作</h2>
+<h4>1. r.set 设置值</h4>
+<pre><code class="python">#在Redis中设置值，默认不存在则创建，存在则修改
+r.set('name', 'zhangsan')
+'''参数：
+     set(name, value, ex=None, px=None, nx=False, xx=False)
+     ex，过期时间（秒）
+     px，过期时间（毫秒）
+     nx，如果设置为True，则只有name不存在时，当前set操作才执行,同setnx(name, value)
+     xx，如果设置为True，则只有name存在时，当前set操作才执行'''</code></pre>
+<h4>2. r.get 获取值</h4>
+<pre><code class="python">r.get('name')</code></pre>
+<h4>3. mset 批量设置值</h4>
+<pre><code class="python">#批量设置值
+r.mset(name1='zhangsan', name2='lisi')
+#或
+r.mget({"name1":'zhangsan', "name2":'lisi'})</code></pre>
+<h4>4. mget(keys, *args)  批量获取</h4>
+<pre><code class="python">#批量获取
+print(r.mget("name1","name2"))
+#或
+li=["name1","name2"]
+print(r.mget(li))</code></pre>
+<h4>5. getset 设置新值，打印原值</h4>
+<pre><code class="python">#设置新值，打印原值
+getset(name, value)  
+
+print(r.getset("name1","wangwu")) #输出:zhangsan
+print(r.get("name1")) #输出:wangwu</code></pre>
+<h4>6. getrange    根据字节获取子序列</h4>
+<pre><code class="python">#根据字节获取子序列
+getrange(key, start, end) 
+
+r.set("name","zhangsan")
+print(r.getrange("name",0,3))#输出:zhan</code></pre>
+<h4>7. setrange    修改字符串内容，从指定字符串索引开始向后替换，如果新值太长时，则向后添加</h4>
+<pre><code class="python">#修改字符串内容，从指定字符串索引开始向后替换，如果新值太长时，则向后添加
+setrange(name, offset, value) 
+
+r.set("name","zhangsan")
+r.setrange("name",1,"z")
+print(r.get("name")) #输出:zzangsan
+r.setrange("name",6,"zzzzzzz")
+print(r.get("name")) #输出:zzangszzzzzzz</code></pre>
+<h4>8. strlen(name)  返回name对应值的字节长度</h4>
+<pre><code class="python">#返回name对应值的字节长度（一个汉字3个字节）
+r.set("name","zhangsan")
+print(r.strlen("name")) #输出:8</code></pre>
+<h4>9. incr    值的累加 amount为累加的值</h4>
+<pre><code class="python">#自增mount对应的值，当mount不存在时，则创建mount＝amount，否则，则自增,amount为自增数(整数)
+incr(self, name, amount=1) 
+
+print(r.incr("mount",amount=2))#输出:2
+print(r.incr("mount"))#输出:3
+print(r.incr("mount",amount=3))#输出:6
+print(r.incr("mount",amount=6))#输出:12
+print(r.get("mount")) #输出:12</code></pre>
+<h4>10. append    在name对应的值后面追加内容</h4>
+<pre><code class="python">#在name对应的值后面追加内容
+append(name, value)
+
+r.set("name","zhangsan")
+print(r.get("name"))    #输出:'zhangsan
+r.append("name","lisi")
+print(r.get("name"))    #输出:zhangsanlisi</code></pre>
+<h4>11.type    查看类型</h4>
+<pre><code class="python">r.type(name)</code></pre>
+<h4>案例</h4>
+<p>页面点击数</p>
+<p>假定我们对一系列页面需要记录点击次数。例如论坛的每个帖子都要记录点击次数，而点击次数比回帖的次数的多得多。如果使用关系数据库来存储点击，可能存在大量的行级锁争用。所以，点击数的增加使用redis的INCR命令最好不过了。</p>
+<p>​     当redis服务器启动时，可以从关系数据库读入点击数的初始值（1237这个页面被访问了34634次）</p>
+<pre><code>&gt;&gt;&gt; r.set("visit:1237:totals",34634)
+
+True</code></pre>
+<p>每当有一个页面点击，则使用INCR增加点击数即可。</p>
+<pre><code>&gt;&gt;&gt; r.incr("visit:1237:totals")
+
+34635
+
+&gt;&gt;&gt; r.incr("visit:1237:totals")
+
+34636
+
+页面载入的时候则可直接获取这个值
+
+&gt;&gt;&gt; r.get ("visit:1237:totals")
+
+'34636'</code></pre>
+<h2>二  Hash 操作</h2>
+<h5>redis中的Hash 在内存中类似于一个name对应一个dic来存储</h5>
+<h4>1. hset    name对应的hash中设置一个键值对（不存在，则创建，否则，修改）</h4>
+<pre><code class="python">#name对应的hash中设置一个键值对（不存在，则创建，否则，修改）
+hset(name, key, value)
+r.hset("dic_name","a1","aa")</code></pre>
+<h4>2. hget    在name对应的hash中根据key获取value</h4>
+<pre><code class="python">r.hset("dic_name","a1","aa")
+#在name对应的hash中根据key获取value
+hget(name,key) 
+
+print(r.hget("dic_name","a1"))#输出:aa</code></pre>
+<h4>3. hgetall    获取name对应hash的所有键值</h4>
+<pre><code class="python">#获取name对应hash的所有键值
+hgetall(name)
+
+print(r.hgetall("dic_name"))</code></pre>
+<h4>4. hmset    在name对应的hash中批量设置键值对,mapping:字典</h4>
+<pre><code class="python">#在name对应的hash中批量设置键值对,mapping:字典
+hmset(name, mapping) 
+
+dic={"a1":"aa","b1":"bb"}
+r.hmset("dic_name",dic)
+print(r.hget("dic_name","b1"))#输出:bb</code></pre>
+<h4>5. hmget    在name对应的hash中获取多个key的值</h4>
+<pre><code class="python"># 在name对应的hash中获取多个key的值
+hmget(name, keys, *args) 
+
+li=["a1","b1"]
+print(r.hmget("dic_name",li))
+print(r.hmget("dic_name","a1","b1"))</code></pre>
+<h4>6.</h4>
+<h4>hlen    获取hash中键值对的个数</h4>
+<h4>hkeys    获取hash中所有的key的值</h4>
+<h4>hvals    获取hash中所有的value的值</h4>
+<pre><code class="python">dic={"a1":"aa","b1":"bb"}
+r.hmset("dic_name",dic)
+
+#hlen(name) 获取hash中键值对的个数
+print(r.hlen("dic_name"))
+
+#hkeys(name) 获取hash中所有的key的值
+print(r.hkeys("dic_name"))   # ['a1','b1']
+
+#hvals(name) 获取hash中所有的value的值
+print(r.hvals("dic_name"))</code></pre>
+<h4>7. hexists    检查name对应的hash是否存在当前传入的key</h4>
+<pre><code class="python">#检查name对应的hash是否存在当前传入的key
+hexists(name, key)
+
+print(r.hexists("dic_name","a1"))#输出:True</code></pre>
+<h4>8. hdel        删除指定name对应的key所在的键值对</h4>
+<pre><code class="python">#删除指定name对应的key所在的键值对
+hdel(name,*keys)    
+
+r.hdel("dic_name","a1")</code></pre>
+<h4>9. hincrby    自增hash中key对应的值，不存在则创建key=amount(amount为整数)</h4>
+<pre><code class="python">#自增hash中key对应的值，不存在则创建key=amount(amount为整数)
+hincrby(name, key, amount=1)
+
+print(r.hincrby("demo","a",amount=2))</code></pre>
+<h4>10.hincrbyfloat    自增hash中key对应的值，不存在则创建key=amount(amount为浮点数)</h4>
+<h5>自增hash中key对应的值，不存在则创建key=amount(amount为浮点数)</h5>
+<h5>hincrbyfloat(name, key, amount=1.0)</h5>
+<h4>案例</h4>
+<p>使用hash类型保存多样化对象，类似二维表结构</p>
+<p>当有大量类型文档的对象，文档的内容都不一样时，（即“表”没有固定的列），可以使用hash来表达。</p>
+<pre><code class="python">&gt;&gt;&gt; r.hset('users:jdoe',  'name', "John Doe")
+
+1L
+
+&gt;&gt;&gt; r.hset('users:jdoe', 'email', 'John@test.com')
+
+1L
+
+&gt;&gt;&gt; r.hset('users:jdoe',  'phone', '1555313940')
+
+1L
+
+&gt;&gt;&gt; r.hincrby('users:jdoe', 'visits', 1)
+
+1L
+
+&gt;&gt;&gt; r.hgetall('users:jdoe')
+
+{'phone': '1555313940', 'name': 'John Doe', 'visits': '1', 'email': 'John@test.com'}
+
+&gt;&gt;&gt; r.hkeys('users:jdoe')
+
+['name', 'email', 'phone', 'visits']</code></pre>
+<h2>三  List 操作</h2>
+<h5>redis中的List在内存中按照一个name对应一个List来存储</h5>
+<h4>1. lpush     在name对应的list中添加元素，每个新的元素都添加到列表的最左边</h4>
+<pre><code class="python"># 在name对应的list中添加元素，每个新的元素都添加到列表的最左边
+lpush(name,values)
+
+r.lpush("list_name",2)
+r.lpush("list_name",3,4,5)#保存在列表中的顺序为5，4，3，2</code></pre>
+<h4>2.rpush     同lpush，但每个新的元素都添加到列表的最右边</h4>
+<pre><code class="python">#同lpush，但每个新的元素都添加到列表的最右边
+rpush(name,values)</code></pre>
+<h4>3. lpushx    在name对应的list中添加元素，只有name已经存在时，值添加到列表的最左边</h4>
+<pre><code class="python">#在name对应的list中添加元素，只有name已经存在时，值添加到列表的最左边
+ lpushx(name,value)</code></pre>
+<h4>4. rpushx    在name对应的list中添加元素，只有name已经存在时，值添加到列表的最右边</h4>
+<pre><code class="python">#在name对应的list中添加元素，只有name已经存在时，值添加到列表的最右边
+ rpushx(name,value)</code></pre>
+<h4>5. llen    name对应的list元素的个数</h4>
+<pre><code class="python"># name对应的list元素的个数
+llen(name)
+
+print(r.llen("list_name"))</code></pre>
+<h4>6. linsert    在name对应的列表的某一个值前或后插入一个新值</h4>
+<pre><code class="python"># 在name对应的列表的某一个值前或后插入一个新值
+ linsert(name, where, refvalue, value))
+r.linsert("list_name","BEFORE","2","SS")#在列表内找到第一个元素2，在它前面插入SS
+
+'''参数：
+     name: redis的name
+     where: BEFORE（前）或AFTER（后）
+     refvalue: 列表内的值
+     value: 要插入的数据'''</code></pre>
+<h4>7. r.lset    对list中的某一个索引位置重新赋值</h4>
+<pre><code class="python">#对list中的某一个索引位置重新赋值
+r.lset(name, index, varlue)
+
+r.lset("list_name",0,"bbb")</code></pre>
+<h4>8. r.lrem     删除name对应的list中的指定值</h4>
+<pre><code class="python">#删除name对应的list中的指定值
+r.lrem(name, value, num=0) 
+r.lrem("list_name",'ssss',2)
+
+''' 参数：
+    name:  redis的name
+    value: 要删除的值
+    num:   num=0 删除列表中所有的指定值；
+           num=2 从前到后，删除2个；
+           num=-2 从后向前，删除2个'''</code></pre>
+<h4>9. lpop     移除列表的左侧第一个元素，返回值则是第一个元素</h4>
+<pre><code class="python">#移除列表的左侧第一个元素，返回值则是第一个元素
+lpop(name) 
+
+print(r.lpop("list_name"))</code></pre>
+<h4>10. lindex    根据索引获取列表内元素</h4>
+<pre><code class="python">#根据索引获取列表内元素
+lindex(name, index)
+
+print(r.lindex("list_name",1))</code></pre>
+<h4>11. lrange    分片获取元素</h4>
+<pre><code class="python">#分片获取元素
+lrange(name, start, end)
+
+print(r.lrange("list_name",0,-1))</code></pre>
+<h4>12. ltrim    移除列表内没有在该索引之内的值(裁剪)</h4>
+<pre><code class="Python">#移除列表内没有在该索引之内的值
+ltrim(name, start, end)
+
+r.ltrim("list_name",0,2)</code></pre>
+<h4>13. rpoplpush(src, dst) 从一个列表取出最右边的元素，同时将其添加至另一个列表的最左边</h4>
+<pre><code class="python"># 从一个列表取出最右边的元素，同时将其添加至另一个列表的最左边
+#src 要取数据的列表
+#dst 要添加数据的列表</code></pre>
+<h2>四 Set 操作</h2>
+<h5>Set集合就是不允许重复的列表</h5>
+<h4>1. sadd(name,values)  给name对应的集合中添加元素</h4>
+<pre><code class="python">#给name对应的集合中添加元素
+r.sadd("set_name","aa")
+r.sadd("set_name","aa","bb")</code></pre>
+<h4>2. smembers(name)    获取name对应的集合的所有成员</h4>
+<pre><code class="python">#获取name对应的集合的所有成员</code></pre>
+<h4>3.  scard(name)    获取name对应的集合中的元素个数</h4>
+<pre><code class="python">#获取name对应的集合中的元素个数
+r.scard("set_name")</code></pre>
+<h4>4. sdiff(keys, *args)  在第一个name对应的集合中且不在其他name对应的集合的元素集合</h4>
+<pre><code class="python">#在第一个name对应的集合中且不在其他name对应的集合的元素集合
+r.sadd("set_name","aa","bb")
+r.sadd("set_name1","bb","cc")
+r.sadd("set_name2","bb","cc","dd")
+
+print(r.sdiff("set_name","set_name1","set_name2"))#输出:｛aa｝</code></pre>
+<h4>6. sinter(keys, *args)        获取多个name对应集合的并集</h4>
+<pre><code class="python"># 获取多个name对应集合的并集
+r.sadd("set_name","aa","bb")
+r.sadd("set_name1","bb","cc")
+r.sadd("set_name2","bb","cc","dd")
+
+print(r.sinter("set_name","set_name1","set_name2"))#输出:｛bb｝</code></pre>
+<h4>8.sismember    检查value是否是name对应的集合内的元素</h4>
+<pre><code class="Python">#检查value是否是name对应的集合内的元素
+sismember(name, value)</code></pre>
+<h4>9. smove(src, dst, value)    将某个元素从一个集合中移动到另外一个集合</h4>
+<pre><code class="python">#将某个元素从一个集合中移动到另外一个集合</code></pre>
+<h4>10. spop(name)    从集合的右侧移除一个元素，并将其返回</h4>
+<pre><code class="Python">#从集合的右侧移除一个元素，并将其返回</code></pre>
+<h4>11. srandmember(name, numbers)    从name对应的集合中随机获取numbers个元素</h4>
+<pre><code class="python"># 从name对应的集合中随机获取numbers个元素
+print(r.srandmember("set_name2",2))</code></pre>
+<h4>12. srem(name, values)    删除name对应的集合中的某些值</h4>
+<pre><code class="python">#删除name对应的集合中的某些值
+print(r.srem("set_name2","bb","dd"))</code></pre>
+<h4>13. sunion(keys, *args)    获取多个name对应的集合的并集</h4>
+<pre><code class="python">#获取多个name对应的集合的并集
+r.sunion("set_name","set_name1","set_name2")</code></pre>
+<h4>14. sunionstore(dest,keys, *args)    获取多个name对应的集合的并集，并将结果保存到dest对应的集合中</h4>
+<pre><code class="python">#获取多个name对应的集合的并集，并将结果保存到dest对应的集合中</code></pre>
+<h4>案例</h4>
+<p>社交圈子数据</p>
+<p>在社交网站中，每一个圈子(circle)都有自己的用户群。通过圈子可以找到有共同特征（比如某一体育活动、游戏、电影等爱好者）的人。当一个用户加入一个或几个圈子后，系统可以向这个用户推荐圈子中的人。<br>​ 我们定义这样两个圈子,并加入一些圈子成员。</p>
+<pre><code>&gt;&gt;&gt; r.sadd('circle:game:lol','user:debugo')
+1
+&gt;&gt;&gt; r.sadd('circle:game:lol','user:leo')
+1
+&gt;&gt;&gt; r.sadd('circle:game:lol','user:Guo')
+1
+&gt;&gt;&gt; r.sadd('circle:soccer:InterMilan','user:Guo')
+1
+&gt;&gt;&gt; r.sadd('circle:soccer:InterMilan','user:Levis')
+1
+&gt;&gt;&gt; r.sadd('circle:soccer:InterMilan','user:leo')
+1</code></pre>
+<p>获取一个圈子的成员</p>
+<pre><code>&gt;&gt;&gt; r.smembers('circle:game:lol')
+set(['user:Guo', 'user:debugo', 'user:leo'])</code></pre>
+<p>可以使用集合运算来得到几个圈子的共同成员：</p>
+<pre><code>&gt;&gt;&gt; r.sinter('circle:game:lol', 'circle:soccer:InterMilan')
+set(['user:Guo', 'user:leo'])
+&gt;&gt;&gt; r.sunion('circle:game:lol', 'circle:soccer:InterMilan')
+set(['user:Levis', 'user:Guo', 'user:debugo', 'user:leo'])
+</code></pre>
+<h2>五 有序集合 zset</h2>
+<p>有序集合：</p>
+<p>　　在集合的基础上，为每元素排序，元素的排序需要根据另外一个值来进行比较，所以，对于有序集合，每一个元素有两个值，即：值和分数，分数专门用来做排序。</p>
+<h4>1. zadd(name, <em>args, </em>*kwargs)</h4>
+<pre><code class="python"># 在name对应的有序集合中添加元素
+r.zadd("zset_name", 6,"a1", 2, "a2", 5,"a3")
+#或
+r.zadd('zset_name1', b1=10, b2=5)</code></pre>
+<h4>2. zcard(name)  获取有序集合内元素的数量</h4>
+<pre><code class="python">#获取有序集合内元素的数量</code></pre>
+<h4>3. zcount(name, min, max)  获取有序集合中分数在[min,max]之间的个数</h4>
+<pre><code class="python">#获取有序集合中分数在[min,max]之间的个数
+print(r.zcount("zset_name",1,5))</code></pre>
+<h4>4. zincrby(name, value, amount)  自增有序集合内value对应的分数</h4>
+<pre><code class="python">#自增有序集合内value对应的分数
+r.zincrby("zset_name","a1",amount=2)#自增zset_name对应的有序集合里a1对应的分数
+
+r.zincrby("zset_name","a1") # 如果不指定a1 则自动创建a1，并将score设为1，再次执行则a1的score变为2，以此类推</code></pre>
+<h4>5. zrange( name, start, end, desc=False, withscores=False, score_cast_func=float)</h4>
+<pre><code class="python"># 按照索引范围获取name对应的有序集合的元素
+aa=r.zrange("zset_name",0,1,desc=False,withscores=True,score_cast_func=int)
+print(aa)
+'''参数：
+    name    redis的name
+    start   有序集合索引起始位置
+    end     有序集合索引结束位置
+    desc    排序规则，默认按照分数从小到大排序
+    withscores  是否获取元素的分数，默认只获取元素的值
+    score_cast_func 对分数进行数据转换的函数'''</code></pre>
+<h4>6.  zrevrange(name, start, end, withscores=False, score_cast_func=float)</h4>
+<pre><code class="python">#同zrange，集合是从大到小排序的
+[(value1, score1),(value2, score2)..]</code></pre>
+<h4>7. zrank(name, value)、zrevrank(name, value)</h4>
+<pre><code class="python">#获取value值在name对应的有序集合中的排行位置（从0开始）
+print(r.zrank("zset_name", "a2"))
+
+print(r.zrevrank("zset_name", "a2"))#从大到小排序</code></pre>
+<h4>8. zscore(name, value)  获取name对应有序集合中 value 对应的分数</h4>
+<pre><code class="python">#获取name对应有序集合中 value 对应的分数
+print(r.zscore("zset_name","a1"))</code></pre>
+<h4>9. zrem(name, values)  删除name对应的有序集合中值是values的成员</h4>
+<pre><code class="python">#删除name对应的有序集合中值是values的成员
+r.zrem("zset_name","a1","a2")</code></pre>
+<h4>10. zremrangebyrank(name, min, max)  根据排行范围删除</h4>
+<pre><code class="python">#根据排行范围删除</code></pre>
+<h4>11. zremrangebyscore(name, min, max)  根据分数范围删除</h4>
+<pre><code class="python">#根据分数范围删除</code></pre>
+<h4>12. zinterstore(dest, keys, aggregate=None)</h4>
+<pre><code class="python">r.zadd("zset_name", "a1", 6, "a2", 2,"a3",5)
+r.zadd('zset_name1', a1=7,b1=10, b2=5)
+
+# 获取两个有序集合的交集并放入dest集合，如果遇到相同值不同分数，则按照aggregate进行操作
+# aggregate的值为: SUM  MIN  MAX
+r.zinterstore("zset_name2",("zset_name1","zset_name"),aggregate="MAX")
+print(r.zscan("zset_name2"))</code></pre>
+<h4>13. zunionstore(dest, keys, aggregate=None)</h4>
+<pre><code class="python">#获取两个有序集合的并集并放入dest集合，其他同zinterstore，</code></pre>
+<h3>其他常用操作</h3>
+<h4>1. delete(*names)  根据name删除redis中的任意数据类型</h4>
+<pre><code class="python">#根据name删除redis中的任意数据类型</code></pre>
+<h4>2. exists(name)  检测redis的name是否存在</h4>
+<pre><code class="python">#检测redis的name是否存在</code></pre>
+<h4>3. keys(pattern='*')  根据* ？等通配符匹配获取redis的name</h4>
+<pre><code class="python">#根据* ？等通配符匹配获取redis的name</code></pre>
+<h4>4. expire(name ,time)  为某个name设置超时时间</h4>
+<pre><code class="python"># 为某个name设置超时时间</code></pre>
+<h4>5. rename(src, dst)   重命名</h4>
+<pre><code class="python"># 重命名</code></pre>
+<h4>6. move(name, db))  将redis的某个值移动到指定的db下</h4>
+<pre><code class="python"># 将redis的某个值移动到指定的db下</code></pre>
+<h4>7. randomkey()  随机获取一个redis的name（不删除）</h4>
+<pre><code class="python">#随机获取一个redis的name（不删除）</code></pre>
+<h4>8. type(name)  获取name对应值的类型</h4>
+<pre><code class="python"># 获取name对应值的类型</code></pre>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000015191422"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="python操作redis"
+ data-url="https://segmentfault.com/a/1190000015191422" data-shorturl="http://sfau.lt/b5bbT86"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000015191422"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">2 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000015191422"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">3</span></button><br><button type="button" data-id="1190000015191422"
+                                        class="btn btn-danger btn-lg mt15 article__reward-btn">
+                                    赞赏支持
+                                </button></div><div class="mt30 mb30 text-center article__reward-info"><span class="mr10">如果觉得我的文章对你有用，请随意赞赏</span></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000015191422" data-user-id="" data-author-id="1030000009409547 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">1 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000015191653">
+            <div class="pull-left">
+                <a href="/u/kumfo" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/381/898/3818987278-5be24b47dcc99_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000015191653" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/kumfo">kumfo</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  6月6日</span>
+                </div>
+
+                <div class="fmt mb10"><p>这个挺全的，有时间再做细读。</p></div>
+
+                <form action="/api/comment/1050000015191653/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >这个挺全的，有时间再做细读。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000015191422/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542596688000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _laK1JO = //'O'
+'5'+//'c'
+'49'+/* 'hA1'//'hA1' */''+'d6f'//'P'
++''///*'aw'*/'aw'
++'1'//'ss'
++'eb0'//'4Q7'
++'b0'//'uNt'
++'897'//'1'
++'0'//'9'
++//'En'
+'c'+'849'//'DR'
++//'w'
+'d'+//'M'
+'eb'+//'iEB'
+'1'+//'g'
+'f2'+'Kh'//'Kh'
++'0'//'JG6'
++''///*'SL'*/'SL'
++'b'//'mW'
++''///*'71'*/'71'
++/* '67s'//'67s' */''+//'v'
+'v'+'e7'//'w1'
++'e'//'DP'
++//'o'
+'o'+'7'//'aNQ'
+, _uO8is5L = [[26,28],[28,29],[31,32]];
+
+    for (var i = 0; i < _uO8is5L.length; i ++) {
+        _laK1JO = _laK1JO.substring(0, _uO8is5L[i][0]) + _laK1JO.substring(_uO8is5L[i][1]);
+    }
+
+    return _laK1JO;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"python\u64cd\u4f5credis","desc":"1\uff1aStrictRedis\uff1a\u5b9e\u73b0\u5927\u90e8\u5206\u5b98\u65b9\u7684\u547d\u4ee42\uff1aRedis\uff1a\u662fStrictRedis\u7684\u5b50\u7c7b\uff0c\u7528\u4e8e\u5411\u540e\u517c\u5bb9\u65e7\u7248\u7684redis\u3002","link":"https:\/\/segmentfault.com\/a\/1190000015191422","imgUrl":"https:\/\/static.segmentfault.com\/v-5bebf0aa\/global\/img\/user-256.png"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542596689,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

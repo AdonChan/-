@@ -1,0 +1,1560 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>GAN神经网络的keras实现 - flybywind - SegmentFault 思否</title><meta name="description" content="为了方便说明和研究，我这里只是设计了一个非常简单的模型，对高斯分布样本进行生成。不过从下面的实验中，我还是发现了一些非常有用的特点，可以加深我们对GAN网络的了解。"/><meta name="keywords" content="神经网络,机器学习,python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=神经网络,机器学习,python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000012071738" class="hidden" />
+
+<div class="wrap" data-blogid="1200000004247276">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/flybywind">flybywind</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="flybywind"
+                                         data-userslug="flybywind"
+                                         data-useravatar="https://avatar-static.segmentfault.com/678/701/678701339-567cd18492e73_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/flybywind">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/678/701/678701339-567cd18492e73_big64" alt="flybywind">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/flybywind" class="mr5 "><strong>flybywind</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">1k</span>
+
+                                                                                                发布于
+                                                <a href="/blog/flybywind">flybywind</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000004247276">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2017-11-19 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000012071738">
+                                            <a href="/a/1190000012071738"> GAN神经网络的keras实现</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="神经网络"
+                                                                                data-id="1040000000636902">
+                                                                                                                      神经网络
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="机器学习"
+                                                                                data-id="1040000000089788">
+                                                                                                                      机器学习
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                4.2k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 71 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">5</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000012071738" data-license="cc">
+                    
+<h1>参考文献：</h1>
+<p>主要参考这篇文章 Generative Adversarial Networks, <a href="https://arxiv.org/abs/1406.2661" rel="nofollow noreferrer">link</a></p>
+<p>为了方便说明和研究，我这里只是设计了一个非常简单的模型，对高斯分布样本进行生成。不过从下面的实验中，我还是发现了一些非常有用的特点，可以加深我们对GAN网络的了解。</p>
+<h1>GAN原理</h1>
+<p>具体原理可以参考上面的文献，不过在这里还是大概讲一下。<br>其实GAN的原理非常简单，它有2个子网络组成，一个是Generator，即生成网络，它以噪音样本为输入，通过学习到的权重，把噪音转变（即生成）为有意义的信号；一个是Discriminator，即判别网络，他以信号为输入（可以来自generator生成的信号，也可以是真正的信号），通过学习来判别信号的真假，并输出一个0-1之间的概率。可以把Generator比喻为一个假的印钞机，而Discriminator则是验钞机，他们两个互相竞争，使得印钞机越来越真，同时验钞机也越来越准。但是最终我们是希望Generator越来越真，而Discriminator的输出都是0.5，即难以分辨～～</p>
+<p>而在训练的时候，则分两个阶段进行，第一个阶段是Discriminator的学习，此时固定Generator的权重不变，只更新Discriminator的权重。loss函数是：</p>
+<p>$$ \frac{1}{m}\sum_{i=1}^{m}[logD(x^i) + log(1 - D(G(z^i)))] $$</p>
+<p>其中m是batch_size, $x$表示真正的信号，$z$表示噪音样本。训练时分别从噪音分布和真实分布中选出m个噪音输入样本和m个真实信号样本，通过对以上的loss function最大化更新Discriminator的权重</p>
+<p>第二个阶段是对Generator进行训练，此时的loss function是：</p>
+<p>$$ \frac{1}{m}\sum_{i=1}^{m}[log(1 - D(G(z^i)))] $$</p>
+<p>不过，此时是对loss最小化来更新Generator的权重。</p>
+<p>另外，这2个阶段并不是交替进行的，而是执行K次Discriminator的更新，再执行1次Generator的更新。<br>后面的实验结果也显示，K的选择非常关键。</p>
+<h1>具体实现</h1>
+<p>主要工具是 <code>python + keras</code>，用keras实现一些常用的网络特别容易，比如MLP、word2vec、LeNet、lstm等等，github上都有详细<a href="https://github.com/fchollet/keras/tree/master/examples" rel="nofollow noreferrer">demo</a>。但是稍微复杂些的就要费些时间自己写了。不过整体看，依然比用原生tf写要方便。而且，我们还可以把keras当初是学习tf的参考代码，里面很多写法都非常值得借鉴。</p>
+<p>废话不多说了，直接上代码吧：</p>
+<h2>GANmodel</h2>
+<p>只列出最主要的代码</p>
+<pre><code class="python">
+# 这是针对GAN特殊设计的loss function
+def log_loss_discriminator(y_true, y_pred):
+    return - K.log(K.maximum(K.epsilon(), y_pred))
+    
+def log_loss_generator(y_true, y_pred):
+    return K.log(K.maximum(K.epsilon(), 1. - y_pred))
+    
+class GANModel:
+    def __init__(self, 
+                 input_dim,
+                 log_dir = None):
+        '''
+            __tensor[0]: 定义了discriminateor的表达式,  对y进行判别，true samples
+            __tensor[1]: 定义了generator的表达式, 对x进行生成，noise samples
+        '''
+        if isinstance(input_dim, list):
+            input_dim_y, input_dim_x = input_dim[0], input_dim[1]
+        elif isinstance(input_dim, int):
+            input_dim_x = input_dim_y = input_dim
+        else:
+            raise ValueError("input_dim should be list or interger, got %r" % input_dim) 
+        # 必须使用名字，方便后面分别输入2个信号
+        self.__inputs = [layers.Input(shape=(input_dim_y,), name = "y"), 
+                            layers.Input(shape=(input_dim_x,), name = "x")]
+        self.__tensors = [None, None] 
+        self.log_dir = log_dir
+        self._discriminate_layers = []
+        self._generate_layers = []
+        self.train_status = defaultdict(list)
+        
+    def add_gen_layer(self, layer):
+        self._add_layer(layer, True)
+    def add_discr_layer(self, layer):
+        self._add_layer(layer)
+    def _add_layer(self, layer, for_gen=False):
+        idx = 0
+        if for_gen:
+            self._generate_layers.append(layer)
+            idx = 1
+        else:
+            self._discriminate_layers.append(layer)
+        
+        if self.__tensors[idx] is None:
+            self.__tensors[idx] = layer(self.__inputs[idx])
+        else:
+            self.__tensors[idx] = layer(self.__tensors[idx])
+            
+    def compile_discriminateor_model(self, optimizer = optimizers.Adam()):
+        if len(self._discriminate_layers) &lt;= 0:
+            raise ValueError("you need to build discriminateor model before compile it")
+        if len(self._generate_layers) &lt;= 0:
+            raise ValueError("you need to build generator model before compile discriminateo model")
+        # 通过指定trainable = False，可以freeze权重的更新。必须放在compile之前
+        for l in self._discriminate_layers:
+            l.trainable = True
+        for l in self._generate_layers:
+            l.trainable = False
+        discriminateor_out1 = self.__tensors[0]
+        discriminateor_out2 = layers.Lambda(lambda y: 1. - y)(self._discriminate_generated())
+        # 如果输出2个信号，keras会分别在各个信号上引用loss function，然后累加，对累加的结果进行
+        # minimize 更新。双下划线的model是参与训练的模型。
+        self.__discriminateor_model = Model(self.__inputs, [discriminateor_out1, discriminateor_out2])
+        self.__discriminateor_model.compile(optimizer, 
+                                     loss = log_loss_discriminator)
+       
+        # 这个才是真正的discriminator model 
+        self.discriminateor_model = Model(self.__inputs[0], self.__tensors[0])
+        self.discriminateor_model.compile(optimizer, 
+                                     loss = log_loss_discriminator)
+        if self.log_dir is not None:
+            # 需要安装pydot和graphviz。没有的可以先注释掉
+            plot_model(self.__discriminateor_model, self.log_dir + "/gan_discriminateor_model.png", show_shapes = True) 
+        
+    def compile_generator_model(self, optimizer = optimizers.Adam()):
+        if len(self._discriminate_layers) &lt;= 0:
+            raise ValueError("you need to build discriminateor model before compile generator model")
+        if len(self._generate_layers) &lt;= 0:
+            raise ValueError("you need to build generator model before compile it")
+        
+        for l in self._discriminate_layers:
+            l.trainable = False
+        for l in self._generate_layers:
+            l.trainable = True
+              
+        out = self._discriminate_generated()
+        self.__generator_model = Model(self.__inputs[1], out)
+        self.__generator_model.compile(optimizer, 
+                                     loss = log_loss_generator)
+        # 这个才是真正的Generator模型
+        self.generator_model = Model(self.__inputs[1], self.__tensors[1])
+        if self.log_dir is not None:
+            plot_model(self.__generator_model, self.log_dir + "/gan_generator_model.png", show_shapes = True) 
+
+    def train(self, sample_list, epoch = 3, batch_size = 32, step_per = 10, plot=False):
+        '''
+        step_per: 每隔几步训练一次generator，即K
+        '''
+        sample_noise, sample_true = sample_list["x"], sample_list["y"]
+        sample_count = sample_noise.shape[0]
+        batch_count = sample_count // batch_size 
+        # 这里比较trick了，因为keras的model必须要一个y。但是gan其实是没有y的。只好伪造一个
+        # 满足keras的“无理”要求
+        psudo_y = np.ones((batch_size, ), dtype = 'float32')
+        if plot:
+            # plot the real data
+            fig = plt.figure()
+            ax = fig.add_subplot(1,1,1)
+            plt.ion()
+            plt.show() 
+        for ei in range(epoch):
+            for i in range(step_per):
+                idx = random.randint(0, batch_count-1)
+                batch_noise = sample_noise[idx * batch_size : (idx+1) * batch_size]
+                idx = random.randint(0, batch_count-1)
+                batch_sample = sample_true[idx * batch_size : (idx+1) * batch_size]
+                self.__discriminateor_model.train_on_batch({
+                    "y":  batch_sample,
+                    "x": batch_noise}, 
+                    [psudo_y, psudo_y])
+
+            idx = random.randint(0, batch_count-1)
+            batch_noise = sample_noise[idx * batch_size : (idx+1) * batch_size]
+            self.__generator_model.train_on_batch(batch_noise, psudo_y)
+            
+            if plot:
+                gen_result = self.generator_model.predict_on_batch(batch_noise)
+                self.train_status["gen_result"].append(gen_result)
+                dis_result = self.discriminateor_model.predict_on_batch(gen_result)
+                self.train_status["dis_result"].append(dis_result)
+                freq_g, bin_g = np.histogram(gen_result, density=True)
+                # norm to sum1
+                freq_g = freq_g * (bin_g[1] - bin_g[0])
+                bin_g = bin_g[:-1]
+                freq_d, bin_d = np.histogram(batch_sample, density=True)
+                freq_d = freq_d * (bin_d[1] - bin_d[0])
+                bin_d = bin_d[:-1]
+                ax.plot(bin_g, freq_g, 'go-', markersize = 4)
+                ax.plot(bin_d, freq_d, 'ko-', markersize = 8)
+                gen1d = gen_result.flatten()
+                dis1d = dis_result.flatten()
+                si = np.argsort(gen1d)
+                ax.plot(gen1d[si], dis1d[si], 'r--')
+                if (ei+1) % 20 == 0:
+                    ax.cla()
+                plt.title("epoch = %d" % (ei+1))
+                plt.pause(0.05)
+        if plot:
+            plt.ioff()
+            plt.close()</code></pre>
+<h2>main部分</h2>
+<p>只列出主要部分：从中可以看到主要模型结构和参数取值</p>
+<pre><code class="python">    step_per = 20
+    sample_size = args.batch_size * 100
+
+    # 整个测试样本集合
+    noise_dim = 4
+    signal_dim = 1
+    x = np.random.uniform(-3, 3, size = (sample_size, noise_dim))
+    y = np.random.normal(size = (sample_size, signal_dim))
+    samples = {"x": x, 
+               "y": y}
+    
+    gan = GANModel([signal_dim, noise_dim], args.log_dir)
+    gan.add_discr_layer(layers.Dense(200, activation="relu"))
+    gan.add_discr_layer(layers.Dense(50, activation="softmax"))
+    gan.add_discr_layer(layers.Lambda(lambda y: K.max(y, axis=-1, keepdims=True),
+                                 output_shape = (1,)))
+
+    gan.add_gen_layer(layers.Dense(200, activation="relu"))
+    gan.add_gen_layer(layers.Dense(100, activation="relu"))
+    gan.add_gen_layer(layers.Dense(50, activation="relu"))
+    gan.add_gen_layer(layers.Dense(signal_dim))
+    
+    gan.compile_generator_model()
+    loger.info("compile generator finished")
+    gan.compile_discriminateor_model()
+    loger.info("compile discriminator finished")
+    
+    gan.train(samples, args.epoch, args.batch_size, step_per, plot=True)</code></pre>
+<h2>实验结果</h2>
+<h3>K的影响</h3>
+<p>在论文中，作者就提到K对训练结果影响很大，<br>使用上面的step_per = 20，我得到的结果比较理想：<br><span class="img-wrap"><img src="https://segmentfault.com/img/bVYOx6?w=628&amp;h=525" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="图片描述" title="图片描述"></span></p>
+<p>可以看到，最后Generator生成的数据（绿线）和真实的高斯分布（黑线）非常接近了，导致Discriminator也变得无法辨认了（p = 0.5）。</p>
+<p>但是把step_per设为3后，结果就发散的厉害，比较难收敛：<br><span class="img-wrap"><img src="https://segmentfault.com/img/bVYOyh?w=628&amp;h=525" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="图片描述" title="图片描述"></span><br>在文章中，作者也提到，Discriminator和Generator必须匹配好，一般要多训练几次Discriminator再训练一次Generator，这是因为Discriminator是Generator的前提，如果D都没有训练好，那G的更新方向就会不准。</p>
+<h3>输入噪音维度的影响</h3>
+<p>另外，我还发现，noise_dim对结果影响也非常大。上面的noise_dim = 4, 后面我设置为1后，最后好像很难收敛到真正的高斯分布，总是比真的高斯差那么一点。<br><span class="img-wrap"><img src="https://segmentfault.com/img/bVYOyH?w=628&amp;h=525" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="图片描述" title="图片描述"></span></p>
+<p>所以，我的猜测是：Generator的输入其实可以看成是真实信号在其他维度上的映射，通过模型的学习过程，它找到了二者的映射关系，所以反过来可以认为Generator把真实信号分解到了高维空间里，此时，当然是维度越高信号被分解的越好，越容易接近真实信号。<br>而且，从信号拟合角度看，因为我实验中的高斯信号是非线性的，而使用的激活函数都是线性函数，如果噪音也是1维的，相当于用一堆线性函数去拟合非线性函数，这种情况必须要在一个更高的维度上才能实现。</p>
+<p>训练一个稳定的GAN网络是一个非常复杂的过程，所幸已经有大神在这方面做了很多探索。详细请参考<a href="https://github.com/soumith/ganhacks" rel="nofollow noreferrer">这里</a></p>
+<h2>完整代码</h2>
+<pre><code class="python"># demo_gan.py
+# -*- encoding: utf8 -*-
+'''
+GAN网络Demo
+'''
+import os
+from os import path
+import argparse
+import logging
+import traceback
+import random
+import pickle
+import numpy as np
+import tensorflow as tf
+from keras import optimizers 
+from keras import layers
+from keras import callbacks, regularizers, activations
+from keras.engine import Model
+from keras.utils.vis_utils import plot_model
+import keras.backend as K
+from collections import defaultdict
+from matplotlib import pyplot as plt
+import app_logger
+
+loger = logging.getLogger(__name__)
+
+# 注意pred不能为负数，因为pred是一个概率。所以最后一个激活函数的选择要注意
+def log_loss_discriminator(y_true, y_pred):
+    return - K.log(K.maximum(K.epsilon(), y_pred))
+    
+def log_loss_generator(y_true, y_pred):
+    return K.log(K.maximum(K.epsilon(), 1. - y_pred))
+
+class GANModel:
+    def __init__(self, 
+                 input_dim,
+                 log_dir = None):
+        '''
+            __tensor[0]: 定义了discriminateor的表达式
+            __tensor[1]: 定义了generator的表达式
+        '''
+        # discriminateor 对y进行判别，true samples
+        # generator 对x进行生成，noise samples
+        if isinstance(input_dim, list):
+            input_dim_y, input_dim_x = input_dim[0], input_dim[1]
+        elif isinstance(input_dim, int):
+            input_dim_x = input_dim_y = input_dim
+        else:
+            raise ValueError("input_dim should be list or interger, got %r" % input_dim) 
+    
+        self.__inputs = [layers.Input(shape=(input_dim_y,), name = "y"), 
+                            layers.Input(shape=(input_dim_x,), name = "x")]
+        self.__tensors = [None, None] 
+        self.log_dir = log_dir
+        self._discriminate_layers = []
+        self._generate_layers = []
+        self.train_status = defaultdict(list)
+        
+    def add_gen_layer(self, layer):
+        self._add_layer(layer, True)
+    def add_discr_layer(self, layer):
+        self._add_layer(layer)
+    def _add_layer(self, layer, for_gen=False):
+        idx = 0
+        if for_gen:
+            self._generate_layers.append(layer)
+            idx = 1
+        else:
+            self._discriminate_layers.append(layer)
+        
+        if self.__tensors[idx] is None:
+            self.__tensors[idx] = layer(self.__inputs[idx])
+        else:
+            self.__tensors[idx] = layer(self.__tensors[idx])
+            
+    def compile_discriminateor_model(self, optimizer = optimizers.Adam()):
+        if len(self._discriminate_layers) &lt;= 0:
+            raise ValueError("you need to build discriminateor model before compile it")
+        if len(self._generate_layers) &lt;= 0:
+            raise ValueError("you need to build generator model before compile discriminateo model")
+        
+        for l in self._discriminate_layers:
+            l.trainable = True
+        for l in self._generate_layers:
+            l.trainable = False
+        discriminateor_out1 = self.__tensors[0]
+        discriminateor_out2 = layers.Lambda(lambda y: 1. - y)(self._discriminate_generated())
+        self.__discriminateor_model = Model(self.__inputs, [discriminateor_out1, discriminateor_out2])
+        self.__discriminateor_model.compile(optimizer, 
+                                     loss = log_loss_discriminator)
+       
+        # 这个才是需要的discriminateor model 
+        self.discriminateor_model = Model(self.__inputs[0], self.__tensors[0])
+        self.discriminateor_model.compile(optimizer, 
+                                     loss = log_loss_discriminator)
+        #if self.log_dir is not None:
+        #    plot_model(self.__discriminateor_model, self.log_dir + "/gan_discriminateor_model.png", show_shapes = True) 
+        
+    def compile_generator_model(self, optimizer = optimizers.Adam()):
+        if len(self._discriminate_layers) &lt;= 0:
+            raise ValueError("you need to build discriminateor model before compile generator model")
+        if len(self._generate_layers) &lt;= 0:
+            raise ValueError("you need to build generator model before compile it")
+        
+        for l in self._discriminate_layers:
+            l.trainable = False
+        for l in self._generate_layers:
+            l.trainable = True
+              
+        out = self._discriminate_generated()
+        self.__generator_model = Model(self.__inputs[1], out)
+        self.__generator_model.compile(optimizer, 
+                                     loss = log_loss_generator)
+        # 这个才是真正需要的模型
+        self.generator_model = Model(self.__inputs[1], self.__tensors[1])
+        #if self.log_dir is not None:
+        #    plot_model(self.__generator_model, self.log_dir + "/gan_generator_model.png", show_shapes = True) 
+
+    def train(self, sample_list, epoch = 3, batch_size = 32, step_per = 10, plot=False):
+        '''
+        step_per: 每隔几步训练一次generator
+        '''
+        sample_noise, sample_true = sample_list["x"], sample_list["y"]
+        sample_count = sample_noise.shape[0]
+        batch_count = sample_count // batch_size 
+        psudo_y = np.ones((batch_size, ), dtype = 'float32')
+        if plot:
+            # plot the real data
+            fig = plt.figure()
+            ax = fig.add_subplot(1,1,1)
+            plt.ion()
+            plt.show() 
+        for ei in range(epoch):
+            for i in range(step_per):
+                idx = random.randint(0, batch_count-1)
+                batch_noise = sample_noise[idx * batch_size : (idx+1) * batch_size]
+                idx = random.randint(0, batch_count-1)
+                batch_sample = sample_true[idx * batch_size : (idx+1) * batch_size]
+                self.__discriminateor_model.train_on_batch({
+                    "y":  batch_sample,
+                    "x": batch_noise}, 
+                    [psudo_y, psudo_y])
+
+            idx = random.randint(0, batch_count-1)
+            batch_noise = sample_noise[idx * batch_size : (idx+1) * batch_size]
+            self.__generator_model.train_on_batch(batch_noise, psudo_y)
+            
+            if plot:
+                gen_result = self.generator_model.predict_on_batch(batch_noise)
+                self.train_status["gen_result"].append(gen_result)
+                dis_result = self.discriminateor_model.predict_on_batch(gen_result)
+                self.train_status["dis_result"].append(dis_result)
+                freq_g, bin_g = np.histogram(gen_result, density=True)
+                # norm to sum1
+                freq_g = freq_g * (bin_g[1] - bin_g[0])
+                bin_g = bin_g[:-1]
+                freq_d, bin_d = np.histogram(batch_sample, density=True)
+                freq_d = freq_d * (bin_d[1] - bin_d[0])
+                bin_d = bin_d[:-1]
+                ax.plot(bin_g, freq_g, 'go-', markersize = 4)
+                ax.plot(bin_d, freq_d, 'ko-', markersize = 8)
+                gen1d = gen_result.flatten()
+                dis1d = dis_result.flatten()
+                si = np.argsort(gen1d)
+                ax.plot(gen1d[si], dis1d[si], 'r--')
+                if (ei+1) % 20 == 0:
+                    ax.cla()
+                plt.title("epoch = %d" % (ei+1))
+                plt.pause(0.05)
+        if plot:
+            plt.ioff()
+            plt.close()
+            
+            
+    def save_model(self, path_dir):
+        self.generator_model.save(path_dir + "/gan_generator.h5")
+        self.discriminateor_model.save(path_dir + "/gan_discriminateor.h5")
+    
+    def load_model(self, path_dir):
+        from keras.models import load_model
+        custom_obj = {
+            "log_loss_discriminateor": log_loss_discriminateor,
+            "log_loss_generator": log_loss_generator}
+        self.generator_model = load_model(path_dir + "/gan_generator.h5", custom_obj)
+        self.discriminateor_model = load_model(path_dir + "/gan_discriminateor.h5", custom_obj)
+    
+    def _discriminate_generated(self):
+        # 必须每次重新生成一下 
+        disc_t = self.__tensors[1]
+        for l in self._discriminate_layers:
+            disc_t = l(disc_t)            
+        return disc_t
+    
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("""gan model demo (gaussian sample)""")
+    parser.add_argument("-m", "--model_dir")
+    parser.add_argument("-log", "--log_dir")
+    parser.add_argument("-b", "--batch_size", type = int, default = 32)
+    parser.add_argument("-log_lvl", "--log_lvl", default = "info",
+                        metavar = "可以指定INFO，DEBUG，WARN, ERROR")
+    parser.add_argument("-e", "--epoch", type = int, default = 10)
+    
+    args = parser.parse_args()
+    
+    log_lvl = {"info": logging.INFO,
+               "debug": logging.DEBUG,
+               "warn": logging.WARN,
+               "warning": logging.WARN,
+               "error": logging.ERROR,
+               "err": logging.ERROR}[args.log_lvl.lower()]
+    app_logger.init(log_lvl)
+        
+    loger.info("args: %r" % args)
+    step_per = 20
+    sample_size = args.batch_size * 100
+
+    # 整个测试样本集合
+    noise_dim = 4
+    signal_dim = 1
+    x = np.random.uniform(-3, 3, size = (sample_size, noise_dim))
+    y = np.random.normal(size = (sample_size, signal_dim))
+    samples = {"x": x, 
+               "y": y}
+    
+    gan = GANModel([signal_dim, noise_dim], args.log_dir)
+    gan.add_discr_layer(layers.Dense(200, activation="relu"))
+    gan.add_discr_layer(layers.Dense(50, activation="softmax"))
+    gan.add_discr_layer(layers.Lambda(lambda y: K.max(y, axis=-1, keepdims=True),
+                                 output_shape = (1,)))
+
+    gan.add_gen_layer(layers.Dense(200, activation="relu"))
+    gan.add_gen_layer(layers.Dense(100, activation="relu"))
+    gan.add_gen_layer(layers.Dense(50, activation="relu"))
+    gan.add_gen_layer(layers.Dense(signal_dim))
+    
+    gan.compile_generator_model()
+    loger.info("compile generator finished")
+    gan.compile_discriminateor_model()
+    loger.info("compile discriminator finished")
+    
+    gan.train(samples, args.epoch, args.batch_size, step_per, plot=True)
+    gen_results = gan.train_status["gen_result"]
+    dis_results = gan.train_status["dis_result"]
+
+    gen_result = gen_results[-1]
+    dis_result = dis_results[-1]
+    freq_g, bin_g = np.histogram(gen_result, density=True)
+    # norm to sum1
+    freq_g = freq_g * (bin_g[1] - bin_g[0])
+    bin_g = bin_g[:-1]
+    freq_d, bin_d = np.histogram(y, bins = 100, density=True)
+    freq_d = freq_d * (bin_d[1] - bin_d[0])
+    bin_d = bin_d[:-1]
+    plt.plot(bin_g, freq_g, 'go-', markersize = 4)
+    plt.plot(bin_d, freq_d, 'ko-', markersize = 8)
+    gen1d = gen_result.flatten()
+    dis1d = dis_result.flatten()
+    si = np.argsort(gen1d)
+    plt.plot(gen1d[si], dis1d[si], 'r--')
+    plt.savefig("img/gan_results.png")
+    if not path.exists(args.model_dir):
+        os.mkdir(args.model_dir)
+    gan.save_model(args.model_dir)
+
+
+# app_logger.py
+import logging
+
+def init(lvl=logging.DEBUG):
+    log_handler = logging.StreamHandler()
+    # create formatter
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s %(filename)s:%(funcName)s:%(lineno)d &gt; %(message)s')
+    log_handler.setFormatter(formatter)
+    logging.basicConfig(level = lvl, handlers = [log_handler])
+</code></pre>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000012071738"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="GAN神经网络的keras实现"
+ data-url="https://segmentfault.com/a/1190000012071738" data-shorturl="http://sfau.lt/b5YOzC"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000012071738"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">5 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000012071738"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">8</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000012071738" data-user-id="" data-author-id="1030000004187465 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">2 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000012131929">
+            <div class="pull-left">
+                <a href="/u/yongyang" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000012131929" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/yongyang">yongyang</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2017年11月23日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>Traceback (most recent call last):<br>  File "D:/code/tfcode/gan.py", line 266, in &lt;module&gt;</p>
+<pre><code>if not path.exists(args.model_dir):</code></pre>
+<p>File "C:Program FilesPython35libgenericpath.py", line 19, in exists</p>
+<pre><code>os.stat(path)</code></pre>
+<p>TypeError: stat: can't specify None for path argument<br>这个错误咋解决，求大神指教</p>
+</div>
+
+                <form action="/api/comment/1050000012131929/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >Traceback (most recent call last):
+  File &quot;D:/code/tfcode/gan.py&quot;, line 266, in &lt;module&gt;
+    if not path.exists(args.model_dir):
+  File &quot;C:\Program Files\Python35\lib\genericpath.py&quot;, line 19, in exists
+    os.stat(path)
+TypeError: stat: can&#039;t specify None for path argument
+这个错误咋解决，求大神指教</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000012151042">
+            <div class="pull-left">
+                <a href="/u/flybywind" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/678/701/678701339-567cd18492e73_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000012151042" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/flybywind">flybywind</a></strong>
+                    <span class="comments-isAuthor ">作者</span>
+                    <span class="comments-date">  ·  2017年11月24日</span>
+                </div>
+
+                <div class="fmt mb10"><p>调用的时候用-m指定模型保存的路径</p></div>
+
+                <form action="/api/comment/1050000012151042/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >调用的时候用-m指定模型保存的路径</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000012071738/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542607984000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _gSuHgFP = '7e'//'zW'
++//'k9'
+'k9'+//'tYS'
+'b8'+//'Vh'
+'d85'+''///*'yJd'*/'yJd'
++//'rTw'
+'9'+''///*'u'*/'u'
++'9'//'9'
++'Uye'//'Uye'
++//'p'
+'a9'+//'1pT'
+'dd7'+''///*'X'*/'X'
++'4fd'//'c'
++/* 'y'//'y' */''+'b'//'FGf'
++//'44'
+'44'+'8'//'iD'
++//'Uf'
+'53f'+'B'//'B'
++//'t'
+'845'+'83'//'OVk'
++//'B3L'
+'4'+'jU'//'jU'
++'8'//'tJ'
++''///*'FX'*/'FX'
++'77'//'L'
++//'av'
+'av'+'f'//'MW'
++//'Yby'
+'5', _gDk1 = [[2,4],[8,9],[8,11],[17,19],[21,22],[27,29],[30,32]];
+
+    for (var i = 0; i < _gDk1.length; i ++) {
+        _gSuHgFP = _gSuHgFP.substring(0, _gDk1[i][0]) + _gSuHgFP.substring(_gDk1[i][1]);
+    }
+
+    return _gSuHgFP;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"GAN\u795e\u7ecf\u7f51\u7edc\u7684keras\u5b9e\u73b0","desc":"\u4e3a\u4e86\u65b9\u4fbf\u8bf4\u660e\u548c\u7814\u7a76\uff0c\u6211\u8fd9\u91cc\u53ea\u662f\u8bbe\u8ba1\u4e86\u4e00\u4e2a\u975e\u5e38\u7b80\u5355\u7684\u6a21\u578b\uff0c\u5bf9\u9ad8\u65af\u5206\u5e03\u6837\u672c\u8fdb\u884c\u751f\u6210\u3002\u4e0d\u8fc7\u4ece\u4e0b\u9762\u7684\u5b9e\u9a8c\u4e2d\uff0c\u6211\u8fd8\u662f\u53d1\u73b0\u4e86\u4e00\u4e9b\u975e\u5e38\u6709\u7528\u7684\u7279\u70b9\uff0c\u53ef\u4ee5\u52a0\u6df1\u6211\u4eec\u5bf9GAN\u7f51\u7edc\u7684\u4e86\u89e3\u3002","link":"https:\/\/segmentfault.com\/a\/1190000012071738","imgUrl":"https:\/\/segmentfault.com\/img\/bVYOx6?w=628&amp;h=525"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542607984,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

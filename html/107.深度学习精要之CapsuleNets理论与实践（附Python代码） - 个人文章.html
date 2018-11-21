@@ -1,0 +1,1344 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>深度学习精要之CapsuleNets理论与实践（附Python代码） - 个人文章 - SegmentFault 思否</title><meta name="description" content="摘要： 本文对胶囊网络进行了非技术性的简要概括，分析了其两个重要属性，之后针对MNIST手写体数据集上验证多层感知机、卷积神经网络以及胶囊网络的性能。"/><meta name="keywords" content="深度学习,python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=深度学习,python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000014413132" class="hidden" />
+
+<div class="wrap" data-blogid="">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="阿里云云栖社区"
+                                         data-userslug="yunqishequ_5aa899aad5395"
+                                         data-useravatar="https://avatar-static.segmentfault.com/371/353/3713533620-5aa89a4f14a02_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/yunqishequ_5aa899aad5395">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/371/353/3713533620-5aa89a4f14a02_big64" alt="阿里云云栖社区">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/yunqishequ_5aa899aad5395" class="mr5 "><strong>阿里云云栖社区</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">1.9k</span>
+
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                            <button type="button"
+                                                                class="btn btn-xs btn-success follow-user"
+                                                                data-do="follow"
+                                                                data-type="user"
+                                                                data-id="1030000013722374">关注作者
+                                                        </button>
+                                                                                                                                                    </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-04-16 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000014413132">
+                                            <a href="/a/1190000014413132"> 深度学习精要之CapsuleNets理论与实践（附Python代码）</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="深度学习"
+                                                                                data-id="1040000000483243">
+                                                                                                                      深度学习
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                300 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 56 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000014413132" data-license="">
+                    
+<p>摘要： 本文对胶囊网络进行了非技术性的简要概括，分析了其两个重要属性，之后针对MNIST手写体数据集上验证多层感知机、卷积神经网络以及胶囊网络的性能。</p>
+<p>神经网络于上世纪50年代提出，直到最近十年里才得以发展迅速，正改变着我们世界的方方面面。从图像分类到自然语言处理，研究人员正在对不同领域建立深层神经网络模型并取得相关的突破性成果。但是随着深度学习的进一步发展，又面临着新的瓶颈——只对成熟网络模型进行加深加宽操作。直到最近，Hinton老爷子提出了新的概念——胶囊网络（Capsule Networks），它提高了传统方法的有效性和可理解性。<br><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DvN?w=768&amp;h=512" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><br>本文将讲解胶囊网络受欢迎的原因以及通过实际代码来加强和巩固对该概念的理解。</p>
+<p><strong>为什么胶囊网络受到这么多的关注？</strong></p>
+<p>对于每种网络结构而言，一般用MINST手写体数据集验证其性能。对于识别数字手写体问题，即给定一个简单的灰度图，用户需要预测它所显示的数字。这是一个非结构化的数字图像识别问题，使用深度学习算法能够获得最佳性能。本文将以这个数据集测试三个深度学习模型，即：多层感知机（MLP）、卷积神经网络（CNN）以及胶囊网络（Capsule Networks）。</p>
+<h2>多层感知机（MLP）</h2>
+<p>使用Keras建立多层感知机模型，代码如下：</p>
+<pre><code># define variables
+input_num_units = 784
+hidden_num_units = 50
+output_num_units = 10
+
+epochs = 15
+batch_size = 128
+
+# create model
+model = Sequential([
+ Dense(units=hidden_num_units, input_dim=input_num_units, activation='relu'),
+ Dense(units=output_num_units, input_dim=hidden_num_units, activation='softmax'),
+])
+
+# compile the model with necessary attributes
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])</code></pre>
+<p>打印模型参数概要：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/bV8DvZ?w=895&amp;h=197" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>在经过15次迭代训练后，结果如下：</p>
+<pre><code>Epoch 14/15
+34300/34300 [==============================] - 1s 41us/step - loss: 0.0597 - acc: 0.9834 - val_loss: 0.1227 - val_acc: 0.9635
+Epoch 15/15
+34300/34300 [==============================] - 1s 41us/step - loss: 0.0553 - acc: 0.9842 - val_loss: 0.1245 - val_acc: 0.9637</code></pre>
+<p>可以看到，该模型实在是简单！</p>
+<h2>卷积神经网络（CNN）</h2>
+<p>卷积神经网络在深度学习领域应用十分广泛，表现优异。下面构建卷积神经网络模型，代码如下：</p>
+<pre><code># define variables
+input_shape = (28, 28, 1)
+
+hidden_num_units = 50
+output_num_units = 10
+
+batch_size = 128
+
+model = Sequential([
+ InputLayer(input_shape=input_reshape),
+
+Convolution2D(25, 5, 5, activation='relu'),
+ MaxPooling2D(pool_size=pool_size),
+
+Convolution2D(25, 5, 5, activation='relu'),
+ MaxPooling2D(pool_size=pool_size),
+
+Convolution2D(25, 4, 4, activation='relu'),
+
+Flatten(),
+
+Dense(output_dim=hidden_num_units, activation='relu'),
+
+Dense(output_dim=output_num_units, input_dim=hidden_num_units, activation='softmax'),
+])
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])</code></pre>
+<p>打印模型参数概要：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/bV8Dwe?w=892&amp;h=408" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><br>从上图可以发现，CNN比MLP模型更加复杂，下面看看其性能：</p>
+<pre><code>Epoch 14/15
+34/34 [==============================] - 4s 108ms/step - loss: 0.1278 - acc: 0.9604 - val_loss: 0.0820 - val_acc: 0.9757
+Epoch 15/15
+34/34 [==============================] - 4s 110ms/step - loss: 0.1256 - acc: 0.9626 - val_loss: 0.0827 - val_acc: 0.9746</code></pre>
+<p>可以发现，CNN训练耗费的时间比较长，但其性能优异。</p>
+<h2>胶囊网络（Capsule Network）</h2>
+<p>胶囊网络的结构比CNN网络更加复杂，下面构建胶囊网络模型，代码如下：</p>
+<pre><code>def CapsNet(input_shape, n_class, routings):
+   x = layers.Input(shape=input_shape)
+
+   # Layer 1: Just a conventional Conv2D layer
+   conv1 = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid', activation='relu', name='conv1')(x)
+
+   # Layer 2: Conv2D layer with `squash` activation, then reshape to [None, num_capsule, dim_capsule]
+   primarycaps = PrimaryCap(conv1, dim_capsule=8, n_channels=32, kernel_size=9, strides=2, padding='valid')
+
+   # Layer 3: Capsule layer. Routing algorithm works here.
+   digitcaps = CapsuleLayer(num_capsule=n_class, dim_capsule=16, routings=routings,
+   name='digitcaps')(primarycaps)
+
+   # Layer 4: This is an auxiliary layer to replace each capsule with its length. Just to match the true label's shape.
+   # If using tensorflow, this will not be necessary. :)
+   out_caps = Length(name='capsnet')(digitcaps)
+
+   # Decoder network.
+   y = layers.Input(shape=(n_class,))
+   masked_by_y = Mask()([digitcaps, y]) # The true label is used to mask the output of capsule layer. For training
+   masked = Mask()(digitcaps) # Mask using the capsule with maximal length. For prediction
+
+   # Shared Decoder model in training and prediction
+   decoder = models.Sequential(name='decoder')
+   decoder.add(layers.Dense(512, activation='relu', input_dim=16*n_class))
+   decoder.add(layers.Dense(1024, activation='relu'))
+   decoder.add(layers.Dense(np.prod(input_shape), activation='sigmoid'))
+   decoder.add(layers.Reshape(target_shape=input_shape, name='out_recon'))
+
+   # Models for training and evaluation (prediction)
+   train_model = models.Model([x, y], [out_caps, decoder(masked_by_y)])
+   eval_model = models.Model(x, [out_caps, decoder(masked)])
+
+   # manipulate model
+   noise = layers.Input(shape=(n_class, 16))
+   noised_digitcaps = layers.Add()([digitcaps, noise])
+   masked_noised_y = Mask()([noised_digitcaps, y])
+   manipulate_model = models.Model([x, y, noise], decoder(masked_noised_y))
+
+   return train_model, eval_model, manipulate_model</code></pre>
+<p>打印模型参数概要：<br><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/bV8Dy3?w=888&amp;h=409" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><br>该模型耗费时间比较长，训练一段时间后，得到如下结果：</p>
+<pre><code>Epoch 14/15
+34/34 [==============================] - 108s 3s/step - loss: 0.0445 - capsnet_loss: 0.0218 - decoder_loss: 0.0579 - capsnet_acc: 0.9846 - val_loss: 0.0364 - val_capsnet_loss: 0.0159 - val_decoder_loss: 0.0522 - val_capsnet_acc: 0.9887
+Epoch 15/15
+34/34 [==============================] - 107s 3s/step - loss: 0.0423 - capsnet_loss: 0.0201 - decoder_loss: 0.0567 - capsnet_acc: 0.9859 - val_loss: 0.0362 - val_capsnet_loss: 0.0162 - val_decoder_loss: 0.0510 - val_capsnet_acc: 0.9880</code></pre>
+<p>可以发现，该网络比之前传统的网络模型效果更好，下图总结了三个实验结果：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/bV8Dzn?w=605&amp;h=482" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>这个实验也证明了胶囊网络值得我们深入的研究和讨论。</p>
+<h2>胶囊网络背后的概念</h2>
+<p>为了理解胶囊网络的概念，本文将以猫的图片为例来说明胶囊网络的潜力，首先从一个问题开始——下图中的动物是什么？</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8Dzv?w=300&amp;h=199" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>它是一只猫，你肯定猜对了吧！但是你是如何知道它是一只猫的呢？现在将这张图片进行分解：</p>
+<p><strong>情况1——简单图像</strong></p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DzD?w=300&amp;h=207" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>你是如何知道它是一只猫的呢？可能的方法是将其分解为单独的特征，如眼睛、鼻子、耳朵等。如下图所示：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DAl?w=673&amp;h=477" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>因此，本质上是把高层次的特征分解为低层次的特征。比如定义为：</p>
+<p>P(脸) = P(鼻子) &amp; ( 2 x P(胡须) ) &amp; P(嘴巴) &amp; ( 2 x P(眼睛) ) &amp; ( 2 x P(耳朵) )</p>
+<p>其中，P(脸) 定义为图像中猫脸的存在。通过迭代，可以定义更多的低级别特性，如形状和边缘，以简化过程。</p>
+<p><strong>情况2——旋转图像</strong></p>
+<p>将图像旋转30度，如下图所示：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DAp?w=300&amp;h=209" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>如果还是按照之前定义的相同特征，那么将无法识别出它是猫。这是因为底层特征的方向发生了改变，导致先前定义的特征也将发生变化。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DAt?w=678&amp;h=514" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>综上，猫识别器可能看起来像这样：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DAz?w=658&amp;h=489" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>更具体一点，表示为：</p>
+<p>P(脸) = ( P(鼻子) &amp; ( 2 x P(胡须) ) &amp; P(嘴巴) &amp; ( 2 x P(眼睛) ) &amp; ( 2 x P(耳朵) ) ) OR</p>
+<p>( P(rotated_鼻子) &amp; ( 2 x P(rotated_胡须) ) &amp; P(rotated_嘴巴) &amp; ( 2 x P(rotated_眼睛) ) &amp; ( 2 x P(rotated_耳朵) ) )</p>
+<p><strong>情况3——翻转图像</strong></p>
+<p>为了增加复杂性，下面是一个完全翻转的图像：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DAE?w=300&amp;h=215" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>可能想到的方法是靠蛮力搜索低级别特征所有可能的旋转，但这种方法耗时耗力。因此，研究人员提出，包含低级别特征本身的附加属性，比如旋转角度。这样不仅可以检测特征是否存在，还可以检测其旋转是否存在，如下图所示：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DAK?w=666&amp;h=516" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>更具体一点，表示为：</p>
+<p>P(脸) = [ P(鼻子), R(鼻子) ] &amp; [ P(胡须_1), R(胡须_1) ] &amp; [ P(胡须_2), R(胡须_2) ] &amp; [ P(嘴巴), R(嘴巴) ] &amp; …</p>
+<p>其中，旋转特征用R()表示，这一特性也被称作旋转等价性。</p>
+<p>从上述情况中可以看到，扩大想法之后能够捕捉更多低层次的特征，如尺度、厚度等，这将有助于我们更清楚地理解一个物体的形象。这就是胶囊网络在设计时设想的工作方式。</p>
+<p>胶囊网络另外一个特点是动态路由，下面以猫狗分类问题讲解这个特点。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DAM?w=300&amp;h=196" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><br>上面两只动物看起来非常相似，但存在一些差异。你可以从中发现哪只是狗吗？</p>
+<p>正如之前所做的那样，将定义图像中的特征以找出其中的差异。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DBp?w=682&amp;h=448" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><br>如图所示，定义非常低级的面部特征，比如眼睛、耳朵等，并将其结合以找到一个脸。之后，将面部和身体特征结合来完成相应的任务——判断它是一只猫或狗。</p>
+<p>现在假设有一个新的图像，以及提取的低层特征，需要根据以上信息判断出其类别。我们从中随机选取一个特征，比如眼睛，可以只根据它来判断其类别吗？</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DBs?w=671&amp;h=455" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><br>答案是否定的，因为眼睛并不是一个区分因素。下一步是分析更多的特征，比如随机挑选的下一个特征是鼻子。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DBu?w=411&amp;h=317" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><br>只有眼睛和鼻子特征并不能够完成分类任务，下一步获取所有特征，并将其结合以判断所属类别。如下图所示，通过组合眼睛、鼻子、耳朵和胡须这四个特征就能够判断其所属类别。基于以上过程，将在每个特征级别迭代地执行这一步骤，就可以将正确的信息路由到需要分类信息的特征检测器。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DBw?w=415&amp;h=319" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>在胶囊构件中，当更高级的胶囊同意较低级的胶囊输入时，较低级的胶囊将其输入到更高级胶囊中，这就是动态路由算法的精髓。</p>
+<p>胶囊网络相对于传统深度学习架构而言，在对数据方向和角度方面更鲁棒，甚至可以在相对较少的数据点上进行训练。胶囊网络存在的缺点是需要更多的训练时间和资源。</p>
+<p>胶囊网络在MNIST数据集上的代码详解</p>
+<p>首先从识别数字手写体项目下载数据集，数字手写体识别问题主要是将给定的28x28大小的图片识别出其显示的数字。在开始运行代码之前，确保安装好Keras。</p>
+<p>下面打开Jupyter Notebook软件，输入以下代码。首先导入所需的模块：</p>
+<p>然后进行随机初始化：</p>
+<pre><code># To stop potential randomness
+seed = 128
+rng = np.random.RandomState(seed)</code></pre>
+<p>下一步设置目录路径：</p>
+<pre><code>root_dir = os.path.abspath('.')
+data_dir = os.path.join(root_dir, 'data')</code></pre>
+<p>下面加载数据集，数据集是“.CSV”格式。</p>
+<pre><code>train = pd.read_csv(os.path.join(data_dir, 'train.csv'))
+test = pd.read_csv(os.path.join(data_dir, 'test.csv'))
+
+train.head()</code></pre>
+<p>展示数据表示的数字：</p>
+<pre><code>img_name = rng.choice(train.filename)
+filepath = os.path.join(data_dir, 'train', img_name)
+
+img = imread(filepath, flatten=True)
+
+pylab.imshow(img, cmap='gray')
+pylab.axis('off')
+pylab.show()</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DCt?w=353&amp;h=351" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>现在将所有图像保存为Numpy数组：</p>
+<pre><code>temp = []
+for img_name in train.filename:
+   image_path = os.path.join(data_dir, 'train', img_name)
+   img = imread(image_path, flatten=True)
+   img = img.astype('float32')
+   temp.append(img)
+ 
+train_x = np.stack(temp)
+
+train_x /= 255.0
+train_x = train_x.reshape(-1, 784).astype('float32')
+
+temp = []
+for img_name in test.filename:
+   image_path = os.path.join(data_dir, 'test', img_name)
+   img = imread(image_path, flatten=True)
+   img = img.astype('float32')
+   temp.append(img)
+ 
+test_x = np.stack(temp)
+
+test_x /= 255.0
+test_x = test_x.reshape(-1, 784).astype('float32')
+
+train_y = keras.utils.np_utils.to_categorical(train.label.values)</code></pre>
+<p>这是一个典型的机器学习问题，将数据集分成7:3。其中70%作为训练集，30%作为验证集。</p>
+<pre><code>split_size = int(train_x.shape[0]*0.7)
+
+train_x, val_x = train_x[:split_size], train_x[split_size:]
+train_y, val_y = train_y[:split_size], train_y[split_size:]</code></pre>
+<p>下面将分析三个不同深度学习模型对该数据的性能，分别是多层感知机、卷积神经网络以及胶囊网络。</p>
+<p><strong>1.多层感知机</strong></p>
+<p>定义一个三层神经网络，一个输入层、一个隐藏层以及一个输出层。输入和输出神经元的数目是固定的，输入为28x28图像，输出是代表类的10x1向量，隐层设置为50个神经元，并使用梯度下降算法训练。</p>
+<pre><code># define vars
+input_num_units = 784
+hidden_num_units = 50
+output_num_units = 10
+
+epochs = 15
+batch_size = 128
+
+# import keras modules
+
+from keras.models import Sequential
+from keras.layers import InputLayer, Convolution2D, MaxPooling2D, Flatten, Dense
+
+# create model
+model = Sequential([
+ Dense(units=hidden_num_units, input_dim=input_num_units, activation='relu'),
+ Dense(units=output_num_units, input_dim=hidden_num_units, activation='softmax'),
+])
+
+# compile the model with necessary attributes
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])</code></pre>
+<p>打印模型参数概要：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/bV8DvZ?w=895&amp;h=197" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<pre><code>trained_model = model.fit(train_x, train_y, nb_epoch=epochs, batch_size=batch_size, validation_data=(val_x, val_y))</code></pre>
+<p>在迭代15次之后，结果如下：</p>
+<pre><code>Epoch 14/15
+34300/34300 [==============================] - 1s 41us/step - loss: 0.0597 - acc: 0.9834 - val_loss: 0.1227 - val_acc: 0.9635
+Epoch 15/15
+34300/34300 [==============================] - 1s 41us/step - loss: 0.0553 - acc: 0.9842 - val_loss: 0.1245 - val_acc: 0.9637</code></pre>
+<p>结果不错，但可以继续改进。</p>
+<p><strong>2.卷积神经网络</strong></p>
+<p>把图像转换成灰度图（2D），然后将其输入到CNN模型中：</p>
+<pre><code># reshape data
+train_x_temp = train_x.reshape(-1, 28, 28, 1)
+val_x_temp = val_x.reshape(-1, 28, 28, 1)
+
+# define vars
+input_shape = (784,)
+input_reshape = (28, 28, 1)
+
+
+pool_size = (2, 2)
+
+hidden_num_units = 50
+output_num_units = 10
+
+batch_size = 128</code></pre>
+<p>下面定义CNN模型：下面定义CNN模型：</p>
+<pre><code>model = Sequential([
+ InputLayer(input_shape=input_reshape),
+
+Convolution2D(25, 5, 5, activation='relu'),
+ MaxPooling2D(pool_size=pool_size),
+
+Convolution2D(25, 5, 5, activation='relu'),
+ MaxPooling2D(pool_size=pool_size),
+
+Convolution2D(25, 4, 4, activation='relu'),
+
+Flatten(),
+
+Dense(output_dim=hidden_num_units, activation='relu'),
+
+Dense(output_dim=output_num_units, input_dim=hidden_num_units, activation='softmax'),
+])
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+#trained_model_conv = model.fit(train_x_temp, train_y, nb_epoch=epochs, batch_size=batch_size, validation_data=(val_x_temp, val_y))
+model.summary()</code></pre>
+<p>打印模型参数概要：<br><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/bV8Dwe?w=892&amp;h=408" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>通过增加数据来调整进程：</p>
+<pre><code># Begin: Training with data augmentation ---------------------------------------------------------------------#
+def train_generator(x, y, batch_size, shift_fraction=0.1):
+   train_datagen = ImageDataGenerator(width_shift_range=shift_fraction,
+   height_shift_range=shift_fraction) # shift up to 2 pixel for MNIST
+   generator = train_datagen.flow(x, y, batch_size=batch_size)
+   while 1:
+     x_batch, y_batch = generator.next()
+     yield ([x_batch, y_batch])
+ 
+# Training with data augmentation. If shift_fraction=0., also no augmentation.
+trained_model2 = model.fit_generator(generator=train_generator(train_x_temp, train_y, 1000, 0.1),
+ steps_per_epoch=int(train_y.shape[0] / 1000),
+ epochs=epochs,
+ validation_data=[val_x_temp, val_y])
+# End: Training with data augmentation -----------------------------------------------------------------------#</code></pre>
+<p>CNN模型的结果：</p>
+<pre><code>Epoch 14/15
+34/34 [==============================] - 4s 108ms/step - loss: 0.1278 - acc: 0.9604 - val_loss: 0.0820 - val_acc: 0.9757
+Epoch 15/15
+34/34 [==============================] - 4s 110ms/step - loss: 0.1256 - acc: 0.9626 - val_loss: 0.0827 - val_acc: 0.9746</code></pre>
+<p>3.胶囊网络</p>
+<p>建立胶囊网络模型，结构如图所示：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV8DEP?w=1000&amp;h=296" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>下面建立该模型，代码如下：</p>
+<pre><code>def CapsNet(input_shape, n_class, routings):
+   """
+   A Capsule Network on MNIST.
+   :param input_shape: data shape, 3d, [width, height, channels]
+   :param n_class: number of classes
+   :param routings: number of routing iterations
+   :return: Two Keras Models, the first one used for training, and the second one for evaluation.
+   `eval_model` can also be used for training.
+   """
+   x = layers.Input(shape=input_shape)
+
+   # Layer 1: Just a conventional Conv2D layer
+   conv1 = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid', activation='relu', name='conv1')(x)
+
+   # Layer 2: Conv2D layer with `squash` activation, then reshape to [None, num_capsule, dim_capsule]
+   primarycaps = PrimaryCap(conv1, dim_capsule=8, n_channels=32, kernel_size=9, strides=2, padding='valid')
+
+   # Layer 3: Capsule layer. Routing algorithm works here.
+   digitcaps = CapsuleLayer(num_capsule=n_class, dim_capsule=16, routings=routings,
+   name='digitcaps')(primarycaps)
+
+   # Layer 4: This is an auxiliary layer to replace each capsule with its length. Just to match the true label's shape.
+   # If using tensorflow, this will not be necessary. :)
+   out_caps = Length(name='capsnet')(digitcaps)
+
+   # Decoder network.
+   y = layers.Input(shape=(n_class,))
+   masked_by_y = Mask()([digitcaps, y]) # The true label is used to mask the output of capsule layer. For training
+   masked = Mask()(digitcaps) # Mask using the capsule with maximal length. For prediction
+
+   # Shared Decoder model in training and prediction
+   decoder = models.Sequential(name='decoder')
+   decoder.add(layers.Dense(512, activation='relu', input_dim=16*n_class))
+   decoder.add(layers.Dense(1024, activation='relu'))
+   decoder.add(layers.Dense(np.prod(input_shape), activation='sigmoid'))
+   decoder.add(layers.Reshape(target_shape=input_shape, name='out_recon'))
+
+   # Models for training and evaluation (prediction)
+   train_model = models.Model([x, y], [out_caps, decoder(masked_by_y)])
+   eval_model = models.Model(x, [out_caps, decoder(masked)])
+
+   # manipulate model
+   noise = layers.Input(shape=(n_class, 16))
+   noised_digitcaps = layers.Add()([digitcaps, noise])
+   masked_noised_y = Mask()([noised_digitcaps, y])
+   manipulate_model = models.Model([x, y, noise], decoder(masked_noised_y))
+   return train_model, eval_model, manipulate_model
+
+
+def margin_loss(y_true, y_pred):
+   """
+   Margin loss for Eq.(4). When y_true[i, :] contains not just one `1`, this loss should work too. Not test it.
+   :param y_true: [None, n_classes]
+   :param y_pred: [None, num_capsule]
+   :return: a scalar loss value.
+   """
+   L = y_true * K.square(K.maximum(0., 0.9 - y_pred)) + \
+   0.5 * (1 - y_true) * K.square(K.maximum(0., y_pred - 0.1))
+
+   return K.mean(K.sum(L, 1))
+model, eval_model, manipulate_model = CapsNet(input_shape=train_x_temp.shape[1:],
+ n_class=len(np.unique(np.argmax(train_y, 1))),
+ routings=3)
+# compile the model
+model.compile(optimizer=optimizers.Adam(lr=0.001),
+ loss=[margin_loss, 'mse'],
+ loss_weights=[1., 0.392],
+ metrics={'capsnet': 'accuracy'})
+
+model.summary()</code></pre>
+<p>打印模型参数概要：<br><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/bV8Dy3?w=888&amp;h=409" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>胶囊模型的结果：</p>
+<pre><code>Epoch 14/15 34/34 [==============================] - 108s 3s/step - loss: 0.0445 - capsnet_loss: 0.0218 - decoder_loss: 0.0579 - capsnet_acc: 0.9846 - val_loss: 0.0364 - val_capsnet_loss: 0.0159 - val_decoder_loss: 0.0522 - val_capsnet_acc: 0.9887 Epoch 15/15 34/34 [==============================] - 107s 3s/step - loss: 0.0423 - capsnet_loss: 0.0201 - decoder_loss: 0.0567 - capsnet_acc: 0.9859 - val_loss: 0.0362 - val_capsnet_loss: 0.0162 - val_decoder_loss: 0.0510 - val_capsnet_acc: 0.9880</code></pre>
+<p>为了便于总结分析，将以上三个实验的结构绘制出测试精度图：</p>
+<pre><code>plt.figure(figsize=(10, 8))
+plt.plot(trained_model.history['val_acc'], 'r', trained_model2.history['val_acc'], 'b', trained_model3.history['val_capsnet_acc'], 'g')
+plt.legend(('MLP', 'CNN', 'CapsNet'),
+ loc='lower right', fontsize='large')
+plt.title('Validation Accuracies')
+plt.show()</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/bV8Dzn?w=605&amp;h=482" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><br>从结果中可以看出，胶囊网络的精度优于CNN和MLP。</p>
+<p>总结</p>
+<p>本文对胶囊网络进行了非技术性的简要概括，分析了其两个重要属性，之后针对MNIST手写体数据集上验证多层感知机、卷积神经网络以及胶囊网络的性能。</p>
+<p>作者信息</p>
+<p>Faizan Shaikh，数据科学，深度学习初学者。</p>
+<p>文章原标题《Essentials of Deep Learning: Getting to know CapsuleNets (with Python codes)》，作者：Faizan Shaikh</p>
+<p>详情请<a href="http://click.aliyun.com/m/46201/" rel="nofollow noreferrer">阅读原文</a></p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000014413132"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="深度学习精要之CapsuleNets理论与实践（附Python代码）"
+ data-url="https://segmentfault.com/a/1190000014413132" data-shorturl="http://sfau.lt/b58DF2"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000014413132"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000014413132"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">0</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000014413132" data-user-id="" data-author-id="1030000013722374 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000014413132/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542600082000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _FxFaOKC = '7e'//'R'
++'4c'//'k'
++'633'//'29b'
++''///*'J2'*/'J2'
++//'fT'
+'6f'+//'kb'
+'56d'+'8e'//'5Mb'
++'1c'//'t10'
++//'3j'
+'89'+''///*'0MI'*/'0MI'
++'74'//'v1'
++'ff9'//'T5R'
++'049'//'3dJ'
++//'EB'
+'e'+'2'//'N'
++//'uw'
+'be'+//'ED'
+'5d', _Pwxyq = [];
+
+    for (var i = 0; i < _Pwxyq.length; i ++) {
+        _FxFaOKC = _FxFaOKC.substring(0, _Pwxyq[i][0]) + _FxFaOKC.substring(_Pwxyq[i][1]);
+    }
+
+    return _FxFaOKC;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u6df1\u5ea6\u5b66\u4e60\u7cbe\u8981\u4e4bCapsuleNets\u7406\u8bba\u4e0e\u5b9e\u8df5\uff08\u9644Python\u4ee3\u7801\uff09","desc":"\u6458\u8981\uff1a \u672c\u6587\u5bf9\u80f6\u56ca\u7f51\u7edc\u8fdb\u884c\u4e86\u975e\u6280\u672f\u6027\u7684\u7b80\u8981\u6982\u62ec\uff0c\u5206\u6790\u4e86\u5176\u4e24\u4e2a\u91cd\u8981\u5c5e\u6027\uff0c\u4e4b\u540e\u9488\u5bf9MNIST\u624b\u5199\u4f53\u6570\u636e\u96c6\u4e0a\u9a8c\u8bc1\u591a\u5c42\u611f\u77e5\u673a\u3001\u5377\u79ef\u795e\u7ecf\u7f51\u7edc\u4ee5\u53ca\u80f6\u56ca\u7f51\u7edc\u7684\u6027\u80fd\u3002","link":"https:\/\/segmentfault.com\/a\/1190000014413132","imgUrl":"https:\/\/segmentfault.com\/img\/bV8DvN?w=768&amp;h=512"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542600082,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

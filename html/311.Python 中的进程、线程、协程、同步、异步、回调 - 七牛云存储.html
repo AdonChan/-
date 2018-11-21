@@ -1,0 +1,1914 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>Python 中的进程、线程、协程、同步、异步、回调 - 七牛云存储 - SegmentFault 思否</title><meta name="description" content="进程和线程究竟是什么东西？传统网络服务模型是如何工作的？协程和线程的关系和区别有哪些？IO过程在什么时间发生？"/><meta name="keywords" content="python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000001813992" class="hidden" />
+
+<div class="wrap" data-blogid="1200000000512552">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/portal_qiniu_com">七牛云存储</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="七牛云"
+                                         data-userslug="portal_qiniu_com"
+                                         data-useravatar="https://avatar-static.segmentfault.com/329/463/3294639264-5791ab5fa6b0b_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/portal_qiniu_com">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/329/463/3294639264-5791ab5fa6b0b_big64" alt="七牛云">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/portal_qiniu_com" class="mr5 "><strong>七牛云</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">1.3k</span>
+
+                                                                                                发布于
+                                                <a href="/blog/portal_qiniu_com">七牛云存储</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000000512552">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2014-11-18 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000001813992">
+                                            <a href="/a/1190000001813992"> Python 中的进程、线程、协程、同步、异步、回调</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                50.8k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 33 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">39</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000001813992" data-license="cc">
+                    
+<p>进程和线程究竟是什么东西？传统网络服务模型是如何工作的？协程和线程的关系和区别有哪些？IO过程在什么时间发生？</p>
+
+<p>在刚刚结束的 PyCon2014 上海站，来自七牛云存储的 Python 高级工程师许智翔带来了关于 Python 的分享《Python中的进程、线程、协程、同步、异步、回调》。</p>
+
+<h2>一、上下文切换技术</h2>
+
+<h3>简述</h3>
+
+<p>在进一步之前，让我们先回顾一下各种上下文切换技术。</p>
+
+<p>不过首先说明一点术语。当我们说“上下文”的时候，指的是程序在执行中的一个状态。通常我们会用调用栈来表示这个状态——栈记载了每个调用层级执行到哪里，还有执行时的环境情况等所有有关的信息。</p>
+
+<p>当我们说“上下文切换”的时候，表达的是一种从一个上下文切换到另一个上下文执行的技术。而“调度”指的是决定哪个上下文可以获得接下去的CPU时间的方法。</p>
+
+<h3>进程</h3>
+
+<p>进程是一种古老而典型的上下文系统，每个进程有独立的地址空间，资源句柄，他们互相之间不发生干扰。</p>
+
+<p>每个进程在内核中会有一个数据结构进行描述，我们称其为进程描述符。这些描述符包含了系统管理进程所需的信息，并且放在一个叫做任务队列的队列里面。</p>
+
+<p>很显然，当新建进程时，我们需要分配新的进程描述符，并且分配新的地址空间(和父地址空间的映射保持一致，但是两者同时进入COW状态)。这些过程需要一定的开销。</p>
+
+<h3>进程状态</h3>
+
+<p>忽略去linux内核复杂的状态转移表，我们实际上可以把进程状态归结为三个最主要的状态：就绪态，运行态，睡眠态。这就是任何一本系统书上都有的三态转换图。</p>
+
+<p>就绪和执行可以互相转换，基本这就是调度的过程。而当执行态程序需要等待某些条件(最典型就是IO)时，就会陷入睡眠态。而条件达成后，一般会自动进入就绪。</p>
+
+<h3>阻塞</h3>
+
+<p>当进程需要在某个文件句柄上做IO，这个fd又没有数据给他的时候，就会发生阻塞。具体来说，就是记录XX进程阻塞在了XX fd上，然后将进程标记为睡眠态，并调度出去。当fd上有数据时(例如对端发送的数据到达)，就会唤醒阻塞在fd上的进程。进程会随后进入就绪队列，等待合适的时间被调度。</p>
+
+<p>阻塞后的唤醒也是一个很有意思的话题。当多个上下文阻塞在一个fd上(虽然不多见，但是后面可以看到一个例子)，而且fd就绪时，应该唤醒多少个上下文呢？传统上应当唤醒所有上下文，因为如果仅唤醒一个，而这个上下文又不能消费所有数据时，就会使得其他上下文处于无谓的死锁中。</p>
+
+<p>但是有个著名的例子——accept，也是使用读就绪来表示收到的。如果试图用多个线程来accept会发生什么？当有新连接时，所有上下文都会就绪，但是只有第一个可以实际获得fd，其他的被调度后又立刻阻塞。这就是惊群问题thundering herd problem。</p>
+
+<p>现代linux内核已经解决了这个问题，方法惊人的简单——accept方法加锁。</p>
+
+<pre><code>(inet_connection_sock.c:inet_csk_wait_for_connect)
+</code></pre>
+
+<h3>线程</h3>
+
+<p>线程是一种轻量进程，实际上在linux内核中，两者几乎没有差别，除了一点——线程并不产生新的地址空间和资源描述符表，而是复用父进程的。<br>
+但是无论如何，线程的调度和进程一样，必须陷入内核态。</p>
+
+<h2>二、传统网络服务模型</h2>
+
+<h3>进程模型</h3>
+
+<p>为每个客户分配一个进程。优点是业务隔离，在一个进程中出现的错误不至于影响整个系统，甚至其他进程。Oracle传统上就是进程模型。缺点是进程的分配和释放有非常高的成本。因此Oracle需要连接池来保持连接减少新建和释放，同时尽量复用连接而不是随意的新建连接。</p>
+
+<h3>线程模型</h3>
+
+<p>为每客户分配一个线程。优点是更轻量，建立和释放速度更快，而且多个上下文间的通讯速度非常快。缺点是一个线程出现问题容易将整个系统搞崩溃。</p>
+
+<h3>一个例子</h3>
+
+<pre><code>py_http_fork_thread.py
+</code></pre>
+
+<p>在这个例子中，线程模式和进程模式可以轻易的互换。</p>
+
+<p>如何工作的：</p>
+
+<ol>
+<li>父进程监听服务端口</li>
+<li>在有新连接建立的时候，父进程执行fork，产生一个子进程副本</li>
+<li>如果子进程需要的话，可以exec(例如CGI)</li>
+<li>父进程执行(理论上应当先执行子进程，因为exec执行的快可以避免COW)到accept后，发生阻塞</li>
+<li>上下文调度，内核调度器选择下一个上下文，如无意外，应当就是刚刚派生的子进程</li>
+<li>子进程进程进入读取处理状态，阻塞在read调用上，所有上下文均进入睡眠态</li>
+<li>随着SYN或者数据报文到来，CPU会唤醒对应fd上阻塞的上下文(wait_queue)，切换到就绪态，并加入调度队列</li>
+<li>上下文继续执行到下一个阻塞调用，或者因为时间片耗尽被挂起</li>
+</ol>
+<h3>评价</h3>
+
+<ul>
+<li>同步模型，编写自然，每个上下文可以当作其他上下文不存在一样的操作，每次读取数据可以当作必然能读取到。</li>
+<li>进程模型自然的隔离了连接。即使程序复杂且易崩溃，也只影响一个连接而不是在整个系统。</li>
+<li>生成和释放开销很大(效率测试的进程fork和线程模式开销测试)，需要考虑复用。</li>
+<li>进程模式的多客户通讯比较麻烦，尤其在共享大量数据的时候。</li>
+</ul>
+<h3>性能</h3>
+
+<p>thread模式，虚拟机：</p>
+
+<pre><code>1: 909.27 2: 3778.38 3: 4815.37 4: 5000.04 10: 4998.16 50: 4881.93 100: 4603.24 200: 3445.12 500: 1778.26 (出现错误)
+</code></pre>
+
+<p>fork模式，虚拟机：</p>
+
+<pre><code>1: 384.14 2: 435.67 3: 435.17 4: 437.54 10: 383.11 50: 364.03 100: 320.51 (出现错误)
+</code></pre>
+
+<p>thread模式，物理机：</p>
+
+<pre><code>1: 6942.78 2: 6891.23 3: 6584.38 4: 6517.23 10: 6178.50 50: 4926.91 100: 2377.77
+</code></pre>
+
+<p>注意在python中，虽然有GIL，但是一个线程陷入到网络IO的时候，GIL是解锁的。因此从调用开始到调用结束，减去CPU切换到其他上下文的时间，是可以多线程的。现象是，在此种状况下可以观测到短暂的python CPU用量超过100%。</p>
+
+<p>如果执行多个上下文，可以充分利用这段时间。所观测到的结果就是，只能单核的python，在小范围内，其随着并发数上升，性能居然会跟着上升。如果将这个过程转移到一台物理机上执行，那么基本不能得出这样的结论。这主要是因为虚拟机上内核陷入的开销更高。</p>
+
+<h2>三、C10K 问题</h2>
+
+<h3>描述</h3>
+
+<p>当同时连接数在10K左右时，传统模型就不再适用。实际上在效率测试报告的线程切换开销一节可以看到，超过1K后性能就差的一塌糊涂了。</p>
+
+<h3>进程模型的问题：</h3>
+
+<p>在C10K的时候，启动和关闭这么多进程是不可接受的开销。事实上单纯的进程fork模型在C1K时就应当抛弃了。</p>
+
+<p>Apache的prefork模型，是使用预先分配(pre)的进程池。这些进程是被复用的。但即便是复用，本文所描述的很多问题仍不可避免。</p>
+
+<h3>线程模式的问题</h3>
+
+<p>从任何测试都可以表明，线程模式比进程模式更耐久一些，性能更好。但是在面对C10K还是力不从心的。问题是，线程模式的问题出在哪里呢？</p>
+
+<h3>内存？</h3>
+
+<p>有些人可能认为线程模型的失败首先在于内存。如果你这么认为，一定是因为你查阅了非常老的资料，并且没仔细思考过。</p>
+
+<p>你可能看到资料说，一个线程栈会消耗8M内存(linux默认值，ulimit可以看到)，512个线程栈就会消耗4G内存，而10K个线程就是80G。所以首先要考虑调整栈深度，并考虑爆栈问题。</p>
+
+<p>听起来很有道理，问题是——linux的栈是通过缺页来分配内存的(How does stack allocation work in Linux?)，不是所有栈地址空间都分配了内存。因此，8M是最大消耗，实际的内存消耗只会略大于实际需要的内存(内部损耗，每个在4k以内)。但是内存一旦被分配，就很难回收(除非线程结束)，这是线程模式的缺陷。</p>
+
+<p>这个问题提出的前提是，32位下地址空间有限。虽然10K个线程不一定会耗尽内存，但是512个线程一定会耗尽地址空间。然而这个问题对于目前已经成为主流的64位系统来说根本不存在。</p>
+
+<h3>内核陷入开销？</h3>
+
+<p>所谓内核陷入开销，就是指CPU从非特权转向特权，并且做输入检查的一些开销。这些开销在不同的系统上差异很大。</p>
+
+<p>线程模型主要通过陷入切换上下文，因此陷入开销大听起来有点道理。实际上，这也是不成立的。线程在什么时候发生陷入切换？正常情况下，应当是IO阻塞的时候。同样的IO量，难道其他模型就不需要陷入了么？只是非阻塞模型有很大可能直接返回，并不发生上下文切换而已。</p>
+
+<p>效率测试报告的基础调用开销一节，证实了当代操作系统上内核陷入开销是非常惊人的小的(10个时钟周期这个量级)。</p>
+
+<h3>线程模型的问题在于切换成本高</h3>
+
+<p>熟悉linux内核的应该知道，近代linux调度器经过几个阶段的发展。</p>
+
+<ol>
+<li>linux2.4的调度器</li>
+<li>O(1)调度器</li>
+<li>CFS</li>
+</ol>
+<p>实际上直到O(1)，调度器的调度复杂度才和队列长度无关。在此之前，过多的线程会使得开销随着线程数增长(不保证线性)。</p>
+
+<p>O(1)调度器看起来似乎是完全不随着线程的影响。但是这个调度器有显著的缺点——难于理解和维护，并且在一些情况下会导致交互式程序响应缓慢。<br>
+CFS使用红黑树管理就绪队列。每次调度，上下文状态转换，都会查询或者变更红黑树。红黑树的开销大约是O(logm)，其中m大约为活跃上下文数(准确的说是同优先级上下文数)，大约和活跃的客户数相当。</p>
+
+<p>因此，每当线程试图读写网络，并遇到阻塞时，都会发生O(logm)级别的开销。而且每次收到报文，唤醒阻塞在fd上的上下文时，同样要付出O(logm)级别的开销。</p>
+
+<h3>分析</h3>
+
+<p>O(logm)的开销看似并不大，但是却是一个无法接受的开销。因为IO阻塞是一个经常发生的事情。每次IO阻塞，都会发生开销。而且决定活跃线程数的是用户，这不是我们可控制的。更糟糕的是，当性能下降，响应速度下降时。同样的用户数下，活跃上下文会上升(因为响应变慢了)。这会进一步拉低性能。</p>
+
+<p>问题的关键在于，http服务并不需要对每个用户完全公平，偶尔某个用户的响应时间大大的延长了是可以接受的。在这种情况下，使用红黑树去组织待处理fd列表（其实是上下文列表），并且反复计算和调度，是无谓的开销。</p>
+
+<h2>四、多路复用</h2>
+
+<h3>简述</h3>
+
+<p>要突破C10K问题，必须减少系统内活跃上下文数(其实未必，例如换一个调度器，例如使用RT的SCHED_RR)，因此就要求一个上下文同时处理多个链接。而要做到这点，就必须在每次系统调用读取或写入数据时立刻返回。否则上下文持续阻塞在调用上，如何能够复用？这要求fd处于非阻塞状态，或者数据就绪。</p>
+
+<p>上文所说的所有IO操作，其实都特指了他的阻塞版本。所谓阻塞，就是上下文在IO调用上等待直到有合适的数据为止。这种模式给人一种“只要读取数据就必定能读到”的感觉。而非阻塞调用，就是上下文立刻返回。如果有数据，带回数据。如果没有数据，带回错误(EAGAIN)。因此，“虽然发生错误，但是不代表出错”。</p>
+
+<p>但是即使有了非阻塞模式，依然绕不过就绪通知问题。如果没有合适的就绪通知技术，我们只能在多个fd中盲目的重试，直到碰巧读到一个就绪的fd为止。这个效率之差可想而知。</p>
+
+<p>在就绪通知技术上，有两种大的模式——就绪事件通知和异步IO。其差别简要来说有两点。就绪通知维护一个状态，由用户读取。而异步IO由系统调用用户的回调函数。就绪通知在数据就绪时就生效，而异步IO直到数据IO完成才发生回调。</p>
+
+<p>linux下的主流方案一直是就绪通知，其内核态异步IO方案甚至没有被封装到glibc里去。围绕就绪通知，linux总共提出过三种解决方案。我们绕过select和poll方案，看看epoll方案的特性。</p>
+
+<p>另外提一点。有趣的是，当使用了epoll后(更准确说只有在LT模式下)，fd是否为非阻塞其实已经不重要了。因为epoll保证每次去读取的时候都能读到数据，因此不会阻塞在调用上。</p>
+
+<h3>epoll</h3>
+
+<p>用户可以新建一个epoll文件句柄，并且将其他fd和这个"epoll fd"关联。此后可以通过epoll fd读取到所有就绪的文件句柄。</p>
+
+<p>epoll有两大模式，ET和LT。LT模式下，每次读取就绪句柄都会读取出完整的就绪句柄。而ET模式下，只给出上次到这次调用间新就绪的句柄。换个说法，如果ET模式下某次读取出了一个句柄，这个句柄从未被读取完过——也就是从没有从就绪变为未就绪。那么这个句柄就永远不会被新的调用返回，哪怕上面其实充满了数据——因为句柄无法经历从非就绪变为就绪的过程。</p>
+
+<p>类似CFS，epoll也使用了红黑树——不过是用于组织加入epoll的所有fd。epoll的就绪列表使用的是双向队列。这方便系统将某个fd加入队列中，或者从队列中解除。</p>
+
+<p>要进一步了解epoll的具体实现，可以参考这篇linux下poll和epoll内核源码剖析。</p>
+
+<h3>性能</h3>
+
+<p>如果使用非阻塞函数，就不存在阻塞IO导致上下文切换了，而是变为时间片耗尽被抢占（大部分情况下如此），因此读写的额外开销被消除。而epoll的常规操作，都是O(1)量级的。而epoll wait的复制动作，则和当前需要返回的fd数有关(在LT模式下几乎就等同于上面的m，而ET模式下则会大大减少)。</p>
+
+<p>但是epoll存在一点细节问题。epoll fd的管理使用红黑树，因此在加入和删除时需要O(logn)复杂度(n为总连接数)，而且关联操作还必须每个fd调用一次。因此在大连接量下频繁建立和关闭连接仍然有一定性能问题(超短连接)。不过关联操作调用毕竟比较少。如果确实是超短连接，tcp连接和释放开销就很难接受了，所以对总体性能影响不大。</p>
+
+<h3>固有缺陷</h3>
+
+<p>原理上说，epoll实现了一个wait_queue的回调函数，因此原理上可以监听任何能够激活wait_queue的对象。但是epoll的最大问题是无法用于普通文件，因为普通文件始终是就绪的——虽然在读取的时候不是这样。</p>
+
+<p>这导致基于epoll的各种方案，一旦读到普通文件上下文仍然会阻塞。golang为了解决这个问题，在每次调用syscall的时候，会独立的启动一个线程，在独立的线程中进行调用。因此golang在IO普通文件的时候网络不会阻塞。</p>
+
+<h2>五、事件通知机制下的几种程序设计模型</h2>
+
+<h3>简述</h3>
+
+<p>使用通知机制的一大缺憾就是，用户进行IO操作后会陷入茫然——IO没有完成，所以当前上下文不能继续执行。但是由于复用线程的要求，当前线程还需要接着执行。所以，在如何进行异步编程上，又分化出数种方案。</p>
+
+<h3>用户态调度</h3>
+
+<p>首先需要知道的一点就是，异步编程大多数情况下都伴随着用户态调度问题——即使不使用上下文技术。</p>
+
+<p>因为系统不会自动根据fd的阻塞状况来唤醒合适的上下文了，所以这个工作必须由其他人——一般就是某种框架——来完成。</p>
+
+<p>你可以想像一个fd映射到对象的大map表，当我们从epoll中得知某个fd就绪后，需要唤醒某种对象，让他处理fd对应的数据。</p>
+
+<p>当然，实际情况会更加复杂一些。原则上所有不占用CPU时间的等待都需要中断执行，陷入睡眠，并且交由某种机构管理，等待合适的机会被唤醒。例如sleep，或是文件IO，还有lock。更精确的说，所有在内核里面涉及到wait_queue的，在框架里面都需要做这种机制——也就是把内核的调度和等待搬到用户态来。</p>
+
+<p>当然，其实也有反过来的方案——就是把程序扔到内核里面去。其中最著名的实例大概是微软的http服务器了。</p>
+
+<p>这个所谓的“可唤醒可中断对象”，用的最多的就是协程。</p>
+
+<h3>协程</h3>
+
+<p>协程是一种编程组件，可以在不陷入内核的情况进行上下文切换。如此一来，我们就可以把协程上下文对象关联到fd，让fd就绪后协程恢复执行。<br>
+当然，由于当前地址空间和资源描述符的切换无论如何需要内核完成，因此协程所能调度的，只有在同一进程中的不同上下文而已。</p>
+
+<h3>如何做到</h3>
+
+<p>这是如何做到的呢？</p>
+
+<p>我们在内核里实行上下文切换的时候，其实是将当前所有寄存器保存到内存中，然后从另一块内存中载入另一组已经被保存的寄存器。对于图灵机来说，当前状态寄存器意味着机器状态——也就是整个上下文。其余内容，包括栈上内存，堆上对象，都是直接或者间接的通过寄存器来访问的。</p>
+
+<p>但是请仔细想想，寄存器更换这种事情，似乎不需要进入内核态么。事实上我们在用户态切换的时候，就是用了类似方案。</p>
+
+<p>C coroutine的实现，基本大多是保存现场和恢复之类的过程。python则是保存当前thread的top frame(greenlet)。</p>
+
+<p>但是非常悲剧的，纯用户态方案(setjmp/longjmp)在多数系统上执行的效率很高，但是并不是为了协程而设计的。setjmp并没有拷贝整个栈(大多数的coroutine方案也不应该这么做)，而是只保存了寄存器状态。这导致新的寄存器状态和老寄存器状态共享了同一个栈，从而在执行时互相破坏。而完整的coroutine方案应当在特定时刻新建一个栈。</p>
+
+<p>而比较好的方案(makecontext/swapcontext)则需要进入内核(sigprocmask)，这导致整个调用的性能非常低。</p>
+
+<h3>协程与线程的关系</h3>
+
+<p>首先我们可以明确，协程不能调度其他进程中的上下文。而后，每个协程要获得CPU，都必须在线程中执行。因此，协程所能利用的CPU数量，和用于处理协程的线程数量直接相关。</p>
+
+<p>作为推论，在单个线程中执行的协程，可以视为单线程应用。这些协程，在未执行到特定位置(基本就是阻塞操作)前，是不会被抢占，也不会和其他CPU上的上下文发生同步问题的。因此，一段协程代码，中间没有可能导致阻塞的调用，执行在单个线程中。那么这段内容可以被视为同步的。</p>
+
+<p>我们经常可以看到某些协程应用，一启动就是数个进程。这并不是跨进程调度协程。一般来说，这是将一大群fd分给多个进程，每个进程自己再做fd-协程对应调度。</p>
+
+<p>基于就绪通知的协程框架</p>
+
+<ol>
+<li>首先需要包装read/write，在发生read的时候检查返回。如果是EAGAIN，那么将当前协程标记为阻塞在对应fd上，然后执行调度函数。</li>
+<li>调度函数需要执行epoll(或者从上次的返回结果缓存中取数据，减少内核陷入次数)，从中读取一个就绪的fd。如果没有，上下文应当被阻塞到至少有一个fd就绪。</li>
+<li>查找这个fd对应的协程上下文对象，并调度过去。</li>
+<li>当某个协程被调度到时，他多半应当在调度器返回的路上——也就是read/write读不到数据的时候。因此应当再重试读取，失败的话返回1。</li>
+<li>如果读取到数据了，直接返回。</li>
+</ol>
+<p>这样，异步的数据读写动作，在我们的想像中就可以变为同步的。而我们知道同步模型会极大降低我们的编程负担。</p>
+
+<h3>CPS模型</h3>
+
+<p>其实这个模型有个更流行的名字——回调模型。之所以扯上CPS这么高大上的玩意，主要是里面涉及不少有趣的话题。</p>
+
+<p>首先是回调模型的大致过程。在IO调用的时候，同时传入一个函数，作为返回函数。当IO结束时，调用传入的函数来处理下面的流程。这个模型听起来挺简单的。</p>
+
+<p>然后是CPS。用一句话来描述这个模型——他把一切操作都当作了IO，无论干什么，结果要通过回调函数来返回。从这个角度来说，IO回调模型只能被视作CPS的一个特例。</p>
+
+<p>例如，我们需要计算1+2*3，在cps里面就需要这么写：</p>
+
+<pre><code>mul(lambda x: add(pprint.pprint, x, 1), 2, 3)
+</code></pre>
+
+<p>其中mul和add在python里面如下定义：</p>
+
+<pre><code>add = lambda f, *nums: f(sum(nums))
+mul = lambda f, *nums: f(reduce(lambda x,y: x*y, nums))
+</code></pre>
+
+<p>而且由于python没有TCO，所以这样的写法会产生非常多的frame。</p>
+
+<p>但是要正确理解这个模型，你需要仔细思考一下以下几个问题：</p>
+
+<ol>
+<li>函数的调用过程为什么必须是一个栈？</li>
+<li>IO过程在什么时间发生？调用发生时，还是回调时？</li>
+<li>回调函数从哪里调用？如果当时利用工具去看上下文的话，调用栈是什么样子的？</li>
+</ol>
+<h3>函数组件和返回值</h3>
+
+<p>不知道你是否思考过为什么函数调用层级(上下文栈)会被表述为一个栈——是否有什么必要性，必须将函数调用的过程定义为一个栈呢？</p>
+
+<p>原因就是返回值和同步顺序。对于大部分函数，我们需要得到函数计算的返回值。而要得到返回值，调用者就必须阻塞直到被调用者返回为止。因此调用者的执行状态就必须被保存，等到被调用者返回后继续——从这点来说，调用其实是最朴素的上下文切换手段。而对于少部分无需返回的函数，我们又往往需要他的顺序外部效应——例如干掉了某个进程，开了一个灯，或者仅仅是在环境变量里面添加了一项内容。而顺序外部效应同样需要等待被调用者返回以表明这个外部效应已经发生。</p>
+
+<p>那么，如果我们不需要返回值也不需要顺序的外部效应呢？例如启动一个背景程序将数据发送到对端，无需保证发送成功的情况下。或者是开始一个数据抓取行为，无需保证抓取的成功。</p>
+
+<p>通常这种需求我们就凑合着用一个同步调用混过去了——反正问题也不严重。但是对于阻塞相当严重的情况而言，很多人还是会考虑到将这个行为做成异步过程。目前最流行的异步调用分解工具就是mq——不仅异步，而且分布。当然，还有一个更简单的非分布方案——开一个coroutine。</p>
+
+<p>而CPS则是另一个方向——函数的返回值可以不返回调用者，而是返回给第三者。</p>
+
+<h3>IO 过程在什么时间发生</h3>
+
+<p>其实这个问题的核心在于——整个回调模型是基于多路复用的还是基于异步IO的？</p>
+
+<p>原则上两者都可以。你可以监听fd就绪，也可以监听IO完成。当然，即使监听IO完成，也不代表使用了内核态异步接口。很可能只是用epoll封装的而已。</p>
+
+<h3>回调函数的上下文环境</h3>
+
+<p>这个问题则需要和上面提到的“用户态调度框架”结合起来说。IO回调注册的实质是将回调函数绑定到某个fd上——就如同将coroutine绑定上去那样。只是coroutine允许你顺序的执行，而callback则会切碎函数。当然，大部分实现中，使用callback也有好处——coroutine的最小切换开销也在50ns，而call本身则只有2ns。</p>
+
+<h3>状态机模型</h3>
+
+<p>状态机模型是一个更难于理解和编程的模型，其本质是每次重入。</p>
+
+<p>想像你是一个周期失忆的病人(就像“一周的朋友”那样)。那么你如何才能完成一项需要跨越周期的工作呢？例如刺绣，种植作物，或者——交一个男朋友。</p>
+
+<p>当然，类比到失忆病人的例子上必须有一点限制。正常的生活技能，还有一些常识性的东西必须不能在周期失忆范围内。例如重新学习认字什么的可没人受的了。</p>
+
+<p>答案就是——做笔记。每次重复失忆后，你需要阅读自己的笔记，观察上次做到哪个步骤，下一个步骤是什么。这需要将一个工作分解为很多步骤，在每个步骤内“重入”直到步骤完成，转移到下一个状态。</p>
+
+<p>同理，在状态机模型解法里，每次执行都需要推演合适的状态，直到工作完成。这个模型已经很少用到了，因为相比回调函数来说，状态机模型更难理解和使用，性能差异也不大。</p>
+
+<p>最后顺带一提，交一个男友的方案和其他几个略有不同，主要靠颜好高冷反差萌，一般人就不要尝试挑战了。。。当然一般人也不会一周失忆一次，毕竟生活不是韩剧也不是日本动漫。。。</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000001813992"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="Python 中的进程、线程、协程、同步、异步、回调"
+ data-url="https://segmentfault.com/a/1190000001813992" data-shorturl="http://sfau.lt/b5hL36"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000001813992"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">39 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000001813992"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">322</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000001813992" data-user-id="" data-author-id="1030000000264054 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">13 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000002423325">
+            <div class="pull-left">
+                <a href="/u/diabloneo" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/135/653/1356532926-54ca4a0552d5e_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002423325" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/diabloneo">diabloneo</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2014年12月14日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>看完发现和Python关系不大啊。</p>
+</div>
+
+                <form action="/api/comment/1050000002423325/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >看完发现和Python关系不大啊。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value">+1</span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002428809">
+            <div class="pull-left">
+                <a href="/u/rainyluo" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002428809" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/rainyluo">rainyluo</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2014年12月17日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>写的不错啊,深入浅出.小白学习了.</p>
+</div>
+
+                <form action="/api/comment/1050000002428809/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >写的不错啊,深入浅出.小白学习了.</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002431902">
+            <div class="pull-left">
+                <a href="/u/kendazheng" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002431902" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/kendazheng">kendazheng</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2014年12月18日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>看tornado和gevent源码有帮助吧</p>
+</div>
+
+                <form action="/api/comment/1050000002431902/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >看tornado和gevent源码有帮助吧</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002565178">
+            <div class="pull-left">
+                <a href="/u/tolerious" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/317/586/3175861643-56b330c9af737_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002565178" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/tolerious">tolerious</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2015年02月25日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>的确貌似跟python关系没多大的感觉，跟Linux C底层关系比较大的赶脚</p>
+</div>
+
+                <form action="/api/comment/1050000002565178/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >的确貌似跟python关系没多大的感觉，跟Linux C底层关系比较大的赶脚</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002587436">
+            <div class="pull-left">
+                <a href="/u/loftysoul" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/128/620/1286205216-5445d48cbea80_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002587436" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/loftysoul">LoftySoul</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2015年03月09日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>shell当时讲的时候就没怎么听懂...翻译成文章还是诸多疑惑啊...慢慢领悟吧</p>
+</div>
+
+                <form action="/api/comment/1050000002587436/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >shell当时讲的时候就没怎么听懂...翻译成文章还是诸多疑惑啊...慢慢领悟吧</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002595058">
+            <div class="pull-left">
+                <a href="/u/yunfeiflying" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002595058" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/yunfeiflying">yunfeiflying</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2015年03月13日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>去看看tornado的源码吧，看完了你就懂了</p>
+</div>
+
+                <form action="/api/comment/1050000002595058/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >去看看tornado的源码吧，看完了你就懂了</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002595067">
+            <div class="pull-left">
+                <a href="/u/yunfeiflying" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002595067" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/yunfeiflying">yunfeiflying</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2015年03月13日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>关于状态机的，我写了一篇入门的<a rel="nofollow" href="http://yunjianfei.iteye.com/blog/2061790">http://yunjianfei.iteye.com/blog/2061790</a></p>
+</div>
+
+                <form action="/api/comment/1050000002595067/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >关于状态机的，我写了一篇入门的http://yunjianfei.iteye.com/blog/2061790
+</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002805018">
+            <div class="pull-left">
+                <a href="/u/amghost" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/178/292/1782925500-5600ca3d49df1_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002805018" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/amghost">amghost</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2015年05月29日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>感觉文章的标题组织优点问题。。</p>
+</div>
+
+                <form action="/api/comment/1050000002805018/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >感觉文章的标题组织优点问题。。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002908759">
+            <div class="pull-left">
+                <a href="/u/whatcall" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/127/054/1270549176-54b5286f5e39b_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002908759" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/whatcall">whatcall</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2015年06月16日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>感觉文章面向的读者要求比较高，因为讲的东西比较多，很多概念被当做是常识在叙述引用，所以不适合用作入门。</p>
+</div>
+
+                <form action="/api/comment/1050000002908759/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >感觉文章面向的读者要求比较高，因为讲的东西比较多，很多概念被当做是常识在叙述引用，所以不适合用作入门。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000003037042">
+            <div class="pull-left">
+                <a href="/u/fbw" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000003037042" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/fbw">JackPy</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2015年07月31日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>什么是CPS 模型？ 还是 CSP 模型？</p>
+</div>
+
+                <form action="/api/comment/1050000003037042/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >什么是CPS 模型？ 还是 CSP 模型？</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006908965">
+            <div class="pull-left">
+                <a href="/u/dispensable" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006908965" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/dispensable">dispensable</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月14日</span>
+                </div>
+
+                <div class="fmt mb10"><p>写的真好，把相关的内容全串联起来了，就是觉得有点虎头蛇尾，结尾匆匆忙忙，如果可以对比分析下这几个模型，结合python的几个web框架讲解下就更好了。总之，瑕不掩瑜</p></div>
+
+                <form action="/api/comment/1050000006908965/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >写的真好，把相关的内容全串联起来了，就是觉得有点虎头蛇尾，结尾匆匆忙忙，如果可以对比分析下这几个模型，结合python的几个web框架讲解下就更好了。总之，瑕不掩瑜</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006930518">
+            <div class="pull-left">
+                <a href="/u/portal_qiniu_com" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/329/463/3294639264-5791ab5fa6b0b_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006930518" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/portal_qiniu_com">七牛云</a></strong>
+                    <span class="comments-isAuthor ">作者</span>
+                    <span class="comments-date">  ·  2016年09月18日</span>
+                </div>
+
+                <div class="fmt mb10"><p>谢谢建议～</p></div>
+
+                <form action="/api/comment/1050000006930518/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >谢谢建议～</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000011656162">
+            <div class="pull-left">
+                <a href="/u/hotea" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/154/456/1544565489-568526680acd1_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000011656162" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/hotea">好铁</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2017年10月21日</span>
+                </div>
+
+                <div class="fmt mb10"><p>语言用到了高阶，都会涉及操作系统</p></div>
+
+                <form action="/api/comment/1050000011656162/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >语言用到了高阶，都会涉及操作系统</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000001813992/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181120.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181120.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542692641000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _NsCBh = 'b1a'//'V8'
++'f65'//'SR'
++'a9f'//'r2o'
++//'1'
+'4f'+//'G5'
+'9c'+//'aDn'
+'f8e'+//'zlz'
+'9e5'+'213'//'dT'
++'Z'//'Z'
++'ca'//'oa'
++//'p9U'
+'6f'+//'hhl'
+'e2f'+'e54'//'S05'
+, _Qdo23LM = [[22,23]];
+
+    for (var i = 0; i < _Qdo23LM.length; i ++) {
+        _NsCBh = _NsCBh.substring(0, _Qdo23LM[i][0]) + _NsCBh.substring(_Qdo23LM[i][1]);
+    }
+
+    return _NsCBh;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"Python \u4e2d\u7684\u8fdb\u7a0b\u3001\u7ebf\u7a0b\u3001\u534f\u7a0b\u3001\u540c\u6b65\u3001\u5f02\u6b65\u3001\u56de\u8c03","desc":"\u8fdb\u7a0b\u548c\u7ebf\u7a0b\u7a76\u7adf\u662f\u4ec0\u4e48\u4e1c\u897f\uff1f\u4f20\u7edf\u7f51\u7edc\u670d\u52a1\u6a21\u578b\u662f\u5982\u4f55\u5de5\u4f5c\u7684\uff1f\u534f\u7a0b\u548c\u7ebf\u7a0b\u7684\u5173\u7cfb\u548c\u533a\u522b\u6709\u54ea\u4e9b\uff1fIO\u8fc7\u7a0b\u5728\u4ec0\u4e48\u65f6\u95f4\u53d1\u751f\uff1f","link":"https:\/\/segmentfault.com\/a\/1190000001813992","imgUrl":"https:\/\/avatar-static.segmentfault.com\/329\/463\/3294639264-5791ab5fa6b0b_huge256"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542692642,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

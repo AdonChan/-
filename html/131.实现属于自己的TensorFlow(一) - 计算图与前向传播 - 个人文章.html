@@ -1,0 +1,1316 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>实现属于自己的TensorFlow(一) - 计算图与前向传播 - 个人文章 - SegmentFault 思否</title><meta name="description" content="前段时间因为课题需要使用了一段时间TensorFlow，感觉这种框架很有意思，除了可以搭建复杂的神经网络，也可以优化其他自己需要的计算模型，所以一直想自己学习一下写一个类似的图计算框架。前几天组会开完决定着..."/><meta name="keywords" content="tensorflow,神经网络,机器学习,人工智能,python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=tensorflow,神经网络,机器学习,人工智能,python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000013166842" class="hidden" />
+
+<div class="wrap" data-blogid="">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="shaozhengjiang"
+                                         data-userslug="shaozhengjiang"
+                                         data-useravatar="https://avatar-static.segmentfault.com/400/830/4008301825-56b0bf5b2be72_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/shaozhengjiang">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/400/830/4008301825-56b0bf5b2be72_big64" alt="shaozhengjiang">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/shaozhengjiang" class="mr5 "><strong>shaozhengjiang</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">1</span>
+
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                            <button type="button"
+                                                                class="btn btn-xs btn-success follow-user"
+                                                                data-do="follow"
+                                                                data-type="user"
+                                                                data-id="1030000004065827">关注作者
+                                                        </button>
+                                                                                                                                                    </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-02-06 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000013166842">
+                                            <a href="/a/1190000013166842"> 实现属于自己的TensorFlow(一) - 计算图与前向传播</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/tensorflow/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="tensorflow"
+                                                                                data-id="1040000003984725">
+                                                                                                                      tensorflow
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="神经网络"
+                                                                                data-id="1040000000636902">
+                                                                                                                      神经网络
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="机器学习"
+                                                                                data-id="1040000000089788">
+                                                                                                                      机器学习
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="人工智能"
+                                                                                data-id="1040000000089791">
+                                                                                                                      人工智能
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                533 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 42 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">1</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000013166842" data-license="">
+                    
+<p>前段时间因为课题需要使用了一段时间TensorFlow，感觉这种框架很有意思，除了可以搭建复杂的神经网络，也可以优化其他自己需要的计算模型，所以一直想自己学习一下写一个类似的图计算框架。前几天组会开完决定着手实现一个模仿TensorFlow接口的简陋版本图计算框架以学习计算图程序的编写以及前向传播和反向传播的实现。目前实现了前向传播和反向传播以及梯度下降优化器，并写了个优化线性模型的例子。</p>
+<p>代码放在了GitHub上，取名<em>SimpleFlow</em>, 仓库链接: <a href="https://github.com/PytLab/simpleflow" rel="nofollow noreferrer">https://github.com/PytLab/sim...</a></p>
+<p>&lt;!-- more --&gt;</p>
+<p>虽然前向传播反向传播这些原理了解起来并不是很复杂，但是真正着手写起来才发现,里面还是有很多细节需要学习和处理才能对实际的模型进行优化(例如Loss函数对每个计算节点矩阵求导的处理)。其中SimpleFlow的代码并没有考虑太多的东西比如<code>dtype</code>和张量<code>size</code>的检查等，因为只是为了实现主要图计算功能并没有考虑任何的优化, 内部张量运算使用的Numpy的接口(毕竟是学习和练手的目的嘛)。好久时间没更新博客了，在接下来的几篇里面我将把实现的过程的细节总结一下，希望可以给后面学习的童鞋做个参考。</p>
+<h1>正文</h1>
+<p>本文主要介绍计算图以及前向传播的实现, 主要涉及<strong>图的构建</strong>以及通过对构建好的图进行<strong>后序遍历</strong>然后进行前向传播计算得到具体节点上的输出值。</p>
+<p>先贴上一个简单的实现效果吧:</p>
+<pre><code class="python">import simpleflow as sf
+
+# Create a graph
+with sf.Graph().as_default():
+    a = sf.constant(1.0, name='a')
+    b = sf.constant(2.0, name='b')
+    result = sf.add(a, b, name='result')
+
+    # Create a session to compute
+    with tf.Session() as sess:
+        print(sess.run(result))</code></pre>
+<h2>计算图(Computational Graph)</h2>
+<p>计算图是计算代数中的一个基础处理方法，我们可以通过一个有向图来表示一个给定的数学表达式，并可以根据图的特点快速方便对表达式中的变量进行求导。而神经网络的本质就是一个多层复合函数, 因此也可以通过一个图来表示其表达式。</p>
+<p>本部分主要总结计算图的实现，在计算图这个有向图中，每个节点代表着一种特定的运算例如求和，乘积，向量乘积，平方等等... 例如求和表达式$f(x, y) = x + y$使用有向图表示为:</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000013228943?w=1024&amp;h=666" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<p>表达式$f(x, y, z) = z(x+y)$使用有向图表示为:</p>
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/remote/1460000013228944?w=1446&amp;h=844" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<p>与TensorFlow的实现不同，为了简化，在SimpleFlow中我并没有定义<code>Tensor</code>类来表示计算图中节点之间的数据流动，而是<strong>直接定义节点的类型</strong>，其中主要定义了四种类型来表示图中的节点:</p>
+<ol>
+<li>
+<code>Operation</code>: 操作节点主要接受一个或者两个输入节点然后进行简单的操作运算，例如上图中的加法操作和乘法操作等。</li>
+<li>
+<code>Variable</code>: 没有输入节点的节点，此节点包含的数据在运算过程中是可以变化的。</li>
+<li>
+<code>Constant</code>: 类似<code>Variable</code>节点，也没有输入节点，此节点中的数据在图的运算过程中不会发生变化</li>
+<li>
+<code>Placeholder</code>: 同样没有输入节点，此节点的数据是通过图建立好以后通过用户传入的</li>
+</ol>
+<p>其实图中的所有节点都可以看成是某种操作，其中<code>Variable</code>, <code>Constant</code>, <code>Placeholder</code>都是一种特殊的操作，只是相对于普通的<code>Operation</code>而言，他们没有输入，但是都会有输出（像上图中的$x$, $y$节点，他们本身输出自身的值到$+$节点中去），通常会输出到<code>Operation</code>节点，进行进一步的计算。</p>
+<p>下面我们主要介绍如何实现计算图的基本组件: 节点和边。</p>
+<h3>
+<code>Operation</code>节点</h3>
+<p>节点表示操作，边代表节点接收和输出的数据，操作节点需要含有以下属性:</p>
+<ol>
+<li>
+<code>input_nodes</code>: 输入节点，里面存放与当前节点相连接的输入节点的引用</li>
+<li>
+<code>output_nodes</code>: 输出节点, 存放以当前节点作为输入的节点，也就是当前节点的去向</li>
+<li>
+<code>output_value</code>: 存储当前节点的数值, 如果是<code>Add</code>节点，此变量就存储两个输入节点<code>output_value</code>的和</li>
+<li>
+<code>name</code>: 当前节点的名称</li>
+<li>
+<code>graph</code>: 此节点所属的图</li>
+</ol>
+<p>下面我们定义了<code>Operation</code>基类用于表示图中的操作节点(详见<a href="https://github.com/PytLab/simpleflow/blob/master/simpleflow/operations.py)" rel="nofollow noreferrer">https://github.com/PytLab/sim...</a>:</p>
+<pre><code class="Python">class Operation(object):
+    ''' Base class for all operations in simpleflow.
+
+    An operation is a node in computational graph receiving zero or more nodes
+    as input and produce zero or more nodes as output. Vertices could be an
+    operation, variable or placeholder.
+    '''
+    def __init__(self, *input_nodes, name=None):
+        ''' Operation constructor.
+
+        :param input_nodes: Input nodes for the operation node.
+        :type input_nodes: Objects of `Operation`, `Variable` or `Placeholder`.
+
+        :param name: The operation name.
+        :type name: str.
+        '''
+        # Nodes received by this operation.
+        self.input_nodes = input_nodes
+
+        # Nodes that receive this operation node as input.
+        self.output_nodes = []
+
+        # Output value of this operation in session execution.
+        self.output_value = None
+
+        # Operation name.
+        self.name = name
+
+        # Graph the operation belongs to.
+        self.graph = DEFAULT_GRAPH
+
+        # Add this operation node to destination lists in its input nodes.
+        for node in input_nodes:
+            node.output_nodes.append(self)
+
+        # Add this operation to default graph.
+        self.graph.operations.append(self)
+
+    def compute_output(self):
+        ''' Compute and return the output value of the operation.
+        '''
+        raise NotImplementedError
+
+    def compute_gradient(self, grad=None):
+        ''' Compute and return the gradient of the operation wrt inputs.
+        '''
+        raise NotImplementedError</code></pre>
+<p>在初始化方法中除了定义上面提到的属性外，还需要进行两个操作:</p>
+<ol>
+<li>将当前节点的引用添加到他输入节点的<code>output_nodes</code>这样可以在输入节点中找到当前节点。</li>
+<li>将当前节点的引用添加到图中，方便后面对图中的资源进行回收等操作</li>
+</ol>
+<p>另外，每个操作节点还有两个必须的方法: <code>comput_output</code>和<code>compute_gradient</code>. 他们分别负责根据输入节点的值计算当前节点的输出值和根据操作属性和当前节点的值计算梯度。关于梯度的计算将在后续的文章中详细介绍，本文只对节点输出值的计算进行介绍。</p>
+<p>下面我以<strong>求和</strong>操作为例来说明具体操作节点的实现:</p>
+<pre><code class="python">class Add(Operation):
+    ''' An addition operation.
+    '''
+    def __init__(self, x, y, name=None):
+        ''' Addition constructor.
+
+        :param x: The first input node.
+        :type x: Object of `Operation`, `Variable` or `Placeholder`.
+
+        :param y: The second input node.
+        :type y: Object of `Operation`, `Variable` or `Placeholder`.
+
+        :param name: The operation name.
+        :type name: str.
+        '''
+        super(self.__class__, self).__init__(x, y, name=name)
+
+    def compute_output(self):
+        ''' Compute and return the value of addition operation.
+        '''
+        x, y = self.input_nodes
+        self.output_value = np.add(x.output_value, y.output_value)
+        return self.output_value</code></pre>
+<p>可见，计算当前节点<code>output_value</code>的值的<strong>前提条件</strong>就是<strong>他的输入节点的值在此之前已经计算得到了</strong>。</p>
+<h3>
+<code>Variable</code>节点</h3>
+<p>与<code>Operation</code>节点类似，<code>Variable</code>节点也需要<code>output_value</code>, <code>output_nodes</code>等属性，但是它没有输入节点，也就没有<code>input_nodes</code>属性了，而是需要在创建的时候确定一个初始值<code>initial_value</code>:</p>
+<pre><code class="python">class Variable(object):
+    ''' Variable node in computational graph.
+    '''
+    def __init__(self, initial_value=None, name=None, trainable=True): 
+        ''' Variable constructor.
+
+        :param initial_value: The initial value of the variable.
+        :type initial_value: number or a ndarray.
+
+        :param name: Name of the variable.
+        :type name: str.
+        '''
+        # Variable initial value.
+        self.initial_value = initial_value
+
+        # Output value of this operation in session execution.
+        self.output_value = None
+
+        # Nodes that receive this variable node as input.
+        self.output_nodes = []
+
+        # Variable name.
+        self.name = name
+
+        # Graph the variable belongs to.
+        self.graph = DEFAULT_GRAPH
+
+        # Add to the currently active default graph.
+        self.graph.variables.append(self)
+        if trainable:
+            self.graph.trainable_variables.append(self)
+
+    def compute_output(self):
+        ''' Compute and return the variable value.
+        '''
+        if self.output_value is None:
+            self.output_value = self.initial_value
+        return self.output_value</code></pre>
+<h3>
+<code>Constant</code>节点和<code>Placeholder</code>节点</h3>
+<p><code>Constant</code>和<code>Placeholder</code>节点与<code>Variable</code>节点类似，具体实现详见: <a href="https://github.com/PytLab/simpleflow/blob/master/simpleflow/operations.py" rel="nofollow noreferrer">https://github.com/PytLab/sim...</a></p>
+<h3>计算图对象</h3>
+<p>在定义了图中的节点后我们需要将定义好的节点放入到一个图中统一保管，因此就需要定义一个<code>Graph</code>类来存放创建的节点，方便统一操作图中节点的资源。</p>
+<pre><code class="python">class Graph(object):
+    ''' Graph containing all computing nodes.
+    '''
+    def __init__(self):
+        ''' Graph constructor.
+        '''
+        self.operations, self.constants, self.placeholders = [], [], []
+        self.variables, self.trainable_variables = [], []</code></pre>
+<p>为了提供一个默认的图，在导入simpleflow模块的时候创建一个全局变量来引用默认的图:</p>
+<pre><code class="python">from .graph import Graph
+
+# Create a default graph.
+import builtins
+DEFAULT_GRAPH = builtins.DEFAULT_GRAPH = Graph()</code></pre>
+<p>为了模仿TensorFlow的接口，我们给<code>Graph</code>添加上下文管理器协议方法使其成为一个上下文管理器, 同时也添加一个<code>as_default</code>方法:</p>
+<pre><code class="python">class Graph(object):
+    #...
+
+    def __enter__(self):
+        ''' Reset default graph.
+        '''
+        global DEFAULT_GRAPH
+        self.old_graph = DEFAULT_GRAPH
+        DEFAULT_GRAPH = self
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        ''' Recover default graph.
+        '''
+        global DEFAULT_GRAPH
+        DEFAULT_GRAPH = self.old_graph
+
+    def as_default(self):
+        ''' Set this graph as global default graph.
+        '''
+        return self</code></pre>
+<p>这样在进入<code>with</code>代码块之前先保存旧的默认图对象然后将当前图赋值给全局图对象，这样<code>with</code>代码块中的节点默认会添加到当前的图中。最后退出<code>with</code>代码块时再对图进行恢复即可。这样我们可以按照TensorFlow的方式来在某个图中创建节点.</p>
+<p>Ok，根据上面的实现我们已经可以创建一个计算图了:</p>
+<pre><code class="python">import simpleflow as sf
+
+with sf.Graph().as_default():
+    a = sf.constant([1.0, 2.0], name='a')
+    b = sf.constant(2.0, name='b')
+    c = a * b</code></pre>
+<h2>前向传播(Feedforward)</h2>
+<p>实现了计算图和图中的节点，我们需要对计算图进行计算, 本部分对计算图的前向传播的实现进行总结。</p>
+<h3>会话</h3>
+<p>首先，我们需要实现一个<code>Session</code>来对一个已经创建好的计算图进行计算，因为当我们创建我们之前定义的节点的时候其实只是创建了一个空节点，节点中并没有数值可以用来计算，也就是<code>output_value</code>是空的。为了模仿TensorFlow的接口，我们在这里也把session定义成一个上下文管理器:</p>
+<pre><code class="python">class Session(object):
+    ''' A session to compute a particular graph.
+    '''
+    def __init__(self):
+        ''' Session constructor.
+        '''
+        # Graph the session computes for.
+        self.graph = DEFAULT_GRAPH
+
+    def __enter__(self):
+        ''' Context management protocal method called before `with-block`.
+        '''
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        ''' Context management protocal method called after `with-block`.
+        '''
+        self.close()
+
+    def close(self):
+        ''' Free all output values in nodes.
+        '''
+        all_nodes = (self.graph.constants + self.graph.variables +
+                     self.graph.placeholders + self.graph.operations +
+                     self.graph.trainable_variables)
+        for node in all_nodes:
+            node.output_value = None
+
+    def run(self, operation, feed_dict=None):
+        ''' Compute the output of an operation.'''
+        # ...</code></pre>
+<h3>计算某个节点的输出值</h3>
+<p>上面我们已经可以构建出一个计算图了，计算图中的每个节点与其相邻的节点有方向的联系起来，现在我们需要根据图中节点的关系来推算出某个节点的值。那么如何计算呢? 还是以我们刚才$f(x, y, z) = z(x + y)$的计算图为例,<br><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.com/img/remote/1460000013228944?w=1446&amp;h=844" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<p>若我们需要计算橙色$\\times$运算节点的输出值，我们需要计算与它相连的两个输入节点的输出值，进而需要计算绿色$+$的输入节点的输出值。我们可以通过后序遍历来获取计算一个节点所需的所有节点的输出值。为了方便实现，后序遍历我直接使用了递归的方式来实现:</p>
+<pre><code class="python">def _get_prerequisite(operation):
+    ''' Perform a post-order traversal to get a list of nodes to be computed in order.
+    '''
+    postorder_nodes = []
+
+    # Collection nodes recursively.
+    def postorder_traverse(operation):
+        if isinstance(operation, Operation):
+            for input_node in operation.input_nodes:
+                postorder_traverse(input_node)
+        postorder_nodes.append(operation)
+
+    postorder_traverse(operation)
+
+    return postorder_nodes</code></pre>
+<p>通过此函数我们可以获取计算一个节点值所需要所有节点列表，再依次计算列表中节点的输出值，最后便可以轻易的计算出当前节点的输出值了。</p>
+<pre><code class="python">class Session(object):
+    # ...
+    def run(self, operation, feed_dict=None):
+        ''' Compute the output of an operation.
+
+        :param operation: A specific operation to be computed.
+        :type operation: object of `Operation`, `Variable` or `Placeholder`.
+
+        :param feed_dict: A mapping between placeholder and its actual value for the session.
+        :type feed_dict: dict.
+        '''
+        # Get all prerequisite nodes using postorder traversal.
+        postorder_nodes = _get_prerequisite(operation)
+
+        for node in postorder_nodes:
+            if type(node) is Placeholder:
+                node.output_value = feed_dict[node]
+            else:  # Operation and variable
+                node.compute_output()
+
+        return operation.output_value</code></pre>
+<h2>例子</h2>
+<p>上面我们实现了计算图以及前向传播，我们就可以创建计算图计算表达式的值了, 如下:</p>
+<p>$$
+f = \left[ \begin{matrix}
+1 &amp; 2 &amp; 3 \\
+3 &amp; 4 &amp; 5 \\
+\end{matrix} \right] \times
+\left[ \begin{matrix}
+9 &amp; 8 \\
+7 &amp; 6 \\
+10 &amp; 11 \\
+\end{matrix} \right] + 3 = 
+\left[ \begin{matrix}
+54 &amp; 54 \\
+106 &amp; 104 \\
+\end{matrix} \right]
+$$</p>
+<pre><code class="python">import simpleflow as sf
+
+# Create a graph
+with sf.Graph().as_default():
+    w = sf.constant([[1, 2, 3], [3, 4, 5]], name='w')
+    x = sf.constant([[9, 8], [7, 6], [10, 11]], name='x')
+    b = sf.constant(1.0, 'b')
+    result = sf.matmul(w, x) + b
+
+    # Create a session to compute
+    with sf.Session() as sess:
+        print(sess.run(result))</code></pre>
+<p>输出值:</p>
+<pre><code class="python">array([[  54.,   54.],
+       [ 106.,  104.]])</code></pre>
+<h1>总结</h1>
+<p>本文使用Python实现了计算图以及计算图的前向传播，并模仿TensorFlow的接口创建了<code>Session</code>以及<code>Graph</code>对象。下篇中将继续总结计算图节点计算梯度的方法以及反向传播和梯度下降优化器的实现。</p>
+<p>最后再附上simpleflow项目的链接, 欢迎相互学习和交流: <a href="https://github.com/PytLab/simpleflow" rel="nofollow noreferrer">https://github.com/PytLab/sim...</a></p>
+<h1>参考</h1>
+<ul>
+<li><a href="http://www.deepideas.net/deep-learning-from-scratch-i-computational-graphs/" rel="nofollow noreferrer">Deep Learning From Scratch</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Tree_traversal#Post-order" rel="nofollow noreferrer">https://en.wikipedia.org/wiki...</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/25496760" rel="nofollow noreferrer">https://zhuanlan.zhihu.com/p/...</a></li>
+<li><a href="http://blog.csdn.net/magic_anthony/article/details/77531552" rel="nofollow noreferrer">http://blog.csdn.net/magic_an...</a></li>
+</ul>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000013166842"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="实现属于自己的TensorFlow(一) - 计算图与前向传播"
+ data-url="https://segmentfault.com/a/1190000013166842" data-shorturl="http://sfau.lt/b53psA"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000013166842"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">1 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000013166842"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">0</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000013166842" data-user-id="" data-author-id="1030000004065827 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000013166842/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542603256000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _GLJ16 = //'YD'
+'1'+/* 'zpO'//'zpO' */''+'6'//'6'
++/* '8Ap'//'8Ap' */''+'a64'//'ECt'
++'6'//'Qu'
++'f'//'P'
++'164'//'fpG'
++//'iAL'
+'d25'+/* 'iD'//'iD' */''+//'W'
+'W'+//'l'
+'1'+'d7'//'GB'
++'944'//'Nq'
++'eb2'//'k'
++'4'//'9'
++''///*'v4'*/'v4'
++//'Y'
+'b8'+'c55'//'N'
++//'LM'
+'LM'+//'R'
+'f'+//'1y'
+'8c'+//'xU'
+'2'+//'6U'
+'6U'+''///*'mI'*/'mI'
++//'A8'
+'A8'+''///*'d4M'*/'d4M'
++'5'//'HA'
+, _R2TsF = [[1,2],[12,13],[27,29],[31,33],[31,33]];
+
+    for (var i = 0; i < _R2TsF.length; i ++) {
+        _GLJ16 = _GLJ16.substring(0, _R2TsF[i][0]) + _GLJ16.substring(_R2TsF[i][1]);
+    }
+
+    return _GLJ16;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u5b9e\u73b0\u5c5e\u4e8e\u81ea\u5df1\u7684TensorFlow(\u4e00) - \u8ba1\u7b97\u56fe\u4e0e\u524d\u5411\u4f20\u64ad","desc":"\u524d\u6bb5\u65f6\u95f4\u56e0\u4e3a\u8bfe\u9898\u9700\u8981\u4f7f\u7528\u4e86\u4e00\u6bb5\u65f6\u95f4TensorFlow\uff0c\u611f\u89c9\u8fd9\u79cd\u6846\u67b6\u5f88\u6709\u610f\u601d\uff0c\u9664\u4e86\u53ef\u4ee5\u642d\u5efa\u590d\u6742\u7684\u795e\u7ecf\u7f51\u7edc\uff0c\u4e5f\u53ef\u4ee5\u4f18\u5316\u5176\u4ed6\u81ea\u5df1\u9700\u8981\u7684\u8ba1\u7b97\u6a21\u578b\uff0c\u6240\u4ee5\u4e00\u76f4\u60f3\u81ea\u5df1\u5b66\u4e60\u4e00\u4e0b\u5199\u4e00\u4e2a\u7c7b\u4f3c\u7684\u56fe\u8ba1\u7b97\u6846\u67b6\u3002\u524d\u51e0\u5929\u7ec4\u4f1a\u5f00\u5b8c\u51b3\u5b9a\u7740...","link":"https:\/\/segmentfault.com\/a\/1190000013166842","imgUrl":"https:\/\/segmentfault.com\/img\/remote\/1460000013228943?w=1024&amp;h=666"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542603257,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

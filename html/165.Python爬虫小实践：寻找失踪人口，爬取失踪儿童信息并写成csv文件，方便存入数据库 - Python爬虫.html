@@ -1,0 +1,1856 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>Python爬虫小实践：寻找失踪人口，爬取失踪儿童信息并写成csv文件，方便存入数据库 - Python爬虫 - SegmentFault 思否</title><meta name="description" content="前两天有人私信我，让我爬这个网站，[链接]上的失踪儿童信息，准备根据失踪儿童的失踪时的地理位置来更好的寻找失踪儿童，这种事情本就应该义不容辞,如果对网站服务器造成负荷，还请谅解。"/><meta name="keywords" content="java,c++,python,javascript,php"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=java,c++,python,javascript,php'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000011692301" class="hidden" />
+
+<div class="wrap" data-blogid="1200000011700036">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/555211">Python爬虫</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="Edision"
+                                         data-userslug="edision_59ed65179ad60"
+                                         data-useravatar="https://avatar-static.segmentfault.com/265/831/2658312921-59f9354f43ffd_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/edision_59ed65179ad60">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/265/831/2658312921-59f9354f43ffd_big64" alt="Edision">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/edision_59ed65179ad60" class="mr5 "><strong>Edision</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">10</span>
+
+                                                                                                发布于
+                                                <a href="/blog/555211">Python爬虫</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000011700036">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2017-10-24 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000011692301">
+                                            <a href="/a/1190000011692301"> Python爬虫小实践：寻找失踪人口，爬取失踪儿童信息并写成csv文件，方便存入数据库</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/java/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/512/342/51234253-1040000000089449_big64" data-placement="top"
+                                                                                data-original-title="java"
+                                                                                data-id="1040000000089449">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/868/271/868271510-54cb382abb7a1_small">
+                                                                                                                      java
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/c%2B%2B/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/368/178/3681786295-1040000000089741_big64" data-placement="top"
+                                                                                data-original-title="c++"
+                                                                                data-id="1040000000089741">
+                                                                                                                      c++
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/javascript/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/195/823/1958237468-1040000000089436_big64" data-placement="top"
+                                                                                data-original-title="javascript"
+                                                                                data-id="1040000000089436">
+                                                                                                                      javascript
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/php/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/188/805/188805810-1040000000089387_big64" data-placement="top"
+                                                                                data-original-title="php"
+                                                                                data-id="1040000000089387">
+                                                                                                                      php
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                1.1k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 121 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000011692301" data-license="cc">
+                    
+<p>前两天有人私信我，让我爬这个网站，<a href="http://bbs.baobeihuijia.com/forum-191-1.html" rel="nofollow noreferrer">http://bbs.baobeihuijia.com/f...</a>上的失踪儿童信息，准备根据失踪儿童的失踪时的地理位置来更好的寻找失踪儿童，这种事情本就应该义不容辞,如果对网站服务器造成负荷，还请谅解。</p>
+<p>这次依然是用第三方爬虫包BeautifulSoup，还有Selenium+Chrome，Selenium+PhantomJS来爬取信息。<br>通过分析网站的框架，依然分三步来进行。</p>
+<p>步骤一：获取<a href="http://bbs.baobeihuijia.com/forum-191-1.html" rel="nofollow noreferrer">http://bbs.baobeihuijia.com/f...</a>这个版块上的所有分页页面链接<br>步骤二：获取每一个分页链接上所发的帖子的链接<br>步骤三：获取每一个帖子链接上要爬取的信息，编号，姓名，性别，出生日期，失踪时身高，失踪时间，失踪地点，以及是否报案</p>
+<p>起先用的BeautifulSoup，但是被管理员设置了网站重定向，然后就采用selenium的方式，在这里还是对网站管理员说一声抱歉。</p>
+<p>1、获取<a href="http://bbs.baobeihuijia.com/forum-191-1.html" rel="nofollow noreferrer">http://bbs.baobeihuijia.com/f...</a>这个版块上的所有分页页面链接</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVXdRc?w=687&amp;h=723" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="图片描述" title="图片描述"></span></p>
+<p>通过分析：发现分页的页面链接处于&lt;div class="pg"&gt;下，所以写了以下的代码<br>BeautifulSoup形式：</p>
+<pre><code>[python] view plain copy
+1.def GetALLPageUrl(siteUrl):  
+2.    #设置代理IP访问  
+3.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+4.    proxy_handler=urllib.request.ProxyHandler({'https':'111.76.129.200:808'})  
+5.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+6.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+7.    urllib.request.install_opener(opener)  
+8.    #获取网页信息  
+9.    req=request.Request(siteUrl,headers=headers1 or headers2 or headers3)  
+10.    html=urlopen(req)  
+11.    bsObj=BeautifulSoup(html.read(),"html.parser")  
+12.    html.close()  
+13.    #http://bbs.baobeihuijia.com/forum-191-1.html变成http://bbs.baobeihuijia.com，以便组成页面链接  
+14.    siteindex=siteUrl.rfind("/")  
+15.    tempsiteurl=siteUrl[0:siteindex+1]#http://bbs.baobeihuijia.com/  
+16.    tempbianhaoqian=siteUrl[siteindex+1:-6]#forum-191-  
+17.  
+18.    #爬取想要的信息  
+19.    bianhao=[]#存储页面编号  
+20.    pageUrl=[]#存储页面链接  
+21.    templist1=bsObj.find("div",{"class":"pg"})  
+22.    for templist2 in templist1.findAll("a",href=re.compile("forum-([0-9]+)-([0-9]+).html")):  
+23.        lianjie=templist2.attrs['href']  
+24.        #print(lianjie)  
+25.        index1=lianjie.rfind("-")#查找-在字符串中的位置  
+26.        index2=lianjie.rfind(".")#查找.在字符串中的位置  
+27.        tempbianhao=lianjie[index1+1:index2]  
+28.        bianhao.append(int(tempbianhao))  
+29.    bianhaoMax=max(bianhao)#获取页面的最大编号  
+30.  
+31.    for i in range(1,bianhaoMax+1):  
+32.        temppageUrl=tempsiteurl+tempbianhaoqian+str(i)+".html"#组成页面链接  
+33.        #print(temppageUrl)  
+34.        pageUrl.append(temppageUrl)  
+35.    return pageUrl#返回页面链接列表  
+
+Selenium形式：
+
+[python] view plain copy
+1.#得到当前板块所有的页面链接  
+2.#siteUrl为当前版块的页面链接  
+3.def GetALLPageUrl(siteUrl):  
+4.    #设置代理IP访问  
+5.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+6.    proxy_handler=urllib.request.ProxyHandler({'post':'123.207.143.51:8080'})  
+7.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+8.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+9.    urllib.request.install_opener(opener)  
+10.  
+11.    try:  
+12.        #掉用第三方包selenium打开浏览器登陆  
+13.        #driver=webdriver.Chrome()#打开chrome  
+14.       driver=webdriver.Chrome()#打开无界面浏览器Chrome  
+15.       #driver=webdriver.PhantomJS()#打开无界面浏览器PhantomJS  
+16.       driver.set_page_load_timeout(10)  
+17.       #driver.implicitly_wait(30)  
+18.       try:  
+19.           driver.get(siteUrl)#登陆两次  
+20.           driver.get(siteUrl)  
+21.       except TimeoutError:  
+22.           driver.refresh()  
+23.  
+24.       #print(driver.page_source)  
+25.       html=driver.page_source#将浏览器执行后的源代码赋给html  
+26.        #获取网页信息  
+27.    #抓捕网页解析过程中的错误  
+28.       try:  
+29.           #req=request.Request(tieziUrl,headers=headers5)  
+30.           #html=urlopen(req)  
+31.           bsObj=BeautifulSoup(html,"html.parser")  
+32.           #print(bsObj.find('title').get_text())  
+33.           #html.close()  
+34.       except UnicodeDecodeError as e:  
+35.           print("-----UnicodeDecodeError url",siteUrl)  
+36.       except urllib.error.URLError as e:  
+37.           print("-----urlError url:",siteUrl)  
+38.       except socket.timeout as e:  
+39.           print("-----socket timout:",siteUrl)  
+40.  
+41.  
+42.  
+43.       while(bsObj.find('title').get_text() == "页面重载开启"):  
+44.           print("当前页面不是重加载后的页面，程序会尝试刷新一次到跳转后的页面\n")  
+45.           driver.get(siteUrl)  
+46.           html=driver.page_source#将浏览器执行后的源代码赋给html  
+47.           bsObj=BeautifulSoup(html,"html.parser")  
+48.    except Exception as e:  
+49.  
+50.        driver.close() # Close the current window.  
+51.        driver.quit()#关闭chrome浏览器  
+52.        #time.sleep()  
+53.  
+54.    driver.close() # Close the current window.  
+55.    driver.quit()#关闭chrome浏览器  
+56.  
+57.  
+58.    #http://bbs.baobeihuijia.com/forum-191-1.html变成http://bbs.baobeihuijia.com，以便组成页面链接  
+59.    siteindex=siteUrl.rfind("/")  
+60.    tempsiteurl=siteUrl[0:siteindex+1]#http://bbs.baobeihuijia.com/  
+61.    tempbianhaoqian=siteUrl[siteindex+1:-6]#forum-191-  
+62.  
+63.    #爬取想要的信息  
+64.    bianhao=[]#存储页面编号  
+65.    pageUrl=[]#存储页面链接  
+66.  
+67.    templist1=bsObj.find("div",{"class":"pg"})  
+68.    #if templist1==None:  
+69.        #return  
+70.    for templist2 in templist1.findAll("a",href=re.compile("forum-([0-9]+)-([0-9]+).html")):  
+71.        if templist2==None:  
+72.            continue  
+73.        lianjie=templist2.attrs['href']  
+74.        #print(lianjie)  
+75.        index1=lianjie.rfind("-")#查找-在字符串中的位置  
+76.        index2=lianjie.rfind(".")#查找.在字符串中的位置  
+77.        tempbianhao=lianjie[index1+1:index2]  
+78.        bianhao.append(int(tempbianhao))  
+79.    bianhaoMax=max(bianhao)#获取页面的最大编号  
+80.  
+81.    for i in range(1,bianhaoMax+1):  
+82.        temppageUrl=tempsiteurl+tempbianhaoqian+str(i)+".html"#组成页面链接  
+83.        print(temppageUrl)  
+84.        pageUrl.append(temppageUrl)  
+85.    return pageUrl#返回页面链接列表  
+</code></pre>
+<p>2.获取每一个分页链接上所发的帖子的链接</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVXdRo?w=998&amp;h=758" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="图片描述" title="图片描述"></span></p>
+<p>每个帖子的链接都位于href下<br>所以写了以下的代码：<br>BeautifulSoup形式：</p>
+<pre><code>[python] view plain copy
+1.#得到当前版块页面所有帖子的链接  
+2.def GetCurrentPageTieziUrl(PageUrl):  
+3.    #设置代理IP访问  
+4.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+5.    proxy_handler=urllib.request.ProxyHandler({'post':'121.22.252.85:8000'})  
+6.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+7.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+8.    urllib.request.install_opener(opener)  
+9.    #获取网页信息  
+10.    req=request.Request(PageUrl,headers=headers1 or headers2 or headers3)  
+11.    html=urlopen(req)  
+12.    bsObj=BeautifulSoup(html.read(),"html.parser")  
+13.    html.close()  
+14.    #http://bbs.baobeihuijia.com/forum-191-1.html变成http://bbs.baobeihuijia.com，以便组成帖子链接  
+15.    siteindex=PageUrl.rfind("/")  
+16.    tempsiteurl=PageUrl[0:siteindex+1]#http://bbs.baobeihuijia.com/  
+17.    #print(tempsiteurl)  
+18.    TieziUrl=[]  
+19.    #爬取想要的信息  
+20.    for templist1 in bsObj.findAll("tbody",id=re.compile("normalthread_([0-9]+)")) :  
+21.        for templist2 in templist1.findAll("a",{"class":"s xst"}):  
+22.            tempteiziUrl=tempsiteurl+templist2.attrs['href']#组成帖子链接  
+23.            print(tempteiziUrl)  
+24.            TieziUrl.append(tempteiziUrl)  
+25.    return TieziUrl#返回帖子链接列表  
+
+Selenium形式：
+
+[python] view plain copy
+1.#得到当前版块页面所有帖子的链接  
+2.def GetCurrentPageTieziUrl(PageUrl):  
+3.    #设置代理IP访问  
+4.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+5.    proxy_handler=urllib.request.ProxyHandler({'post':'110.73.30.157:8123'})  
+6.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+7.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+8.    urllib.request.install_opener(opener)  
+9.  
+10.    try:  
+11.        #掉用第三方包selenium打开浏览器登陆  
+12.        #driver=webdriver.Chrome()#打开chrome  
+13.       driver=webdriver.Chrome()#打开无界面浏览器Chrome  
+14.       #driver=webdriver.PhantomJS()#打开无界面浏览器PhantomJS  
+15.       driver.set_page_load_timeout(10)  
+16.       try:  
+17.           driver.get(PageUrl)#登陆两次  
+18.           driver.get(PageUrl)  
+19.       except TimeoutError:  
+20.           driver.refresh()  
+21.  
+22.       #print(driver.page_source)  
+23.       html=driver.page_source#将浏览器执行后的源代码赋给html  
+24.        #获取网页信息  
+25.    #抓捕网页解析过程中的错误  
+26.       try:  
+27.           #req=request.Request(tieziUrl,headers=headers5)  
+28.           #html=urlopen(req)  
+29.           bsObj=BeautifulSoup(html,"html.parser")  
+30.           #html.close()  
+31.       except UnicodeDecodeError as e:  
+32.           print("-----UnicodeDecodeError url",PageUrl)  
+33.       except urllib.error.URLError as e:  
+34.           print("-----urlError url:",PageUrl)  
+35.       except socket.timeout as e:  
+36.           print("-----socket timout:",PageUrl)  
+37.  
+38.       n=0  
+39.       while(bsObj.find('title').get_text() == "页面重载开启"):  
+40.           print("当前页面不是重加载后的页面，程序会尝试刷新一次到跳转后的页面\n")  
+41.           driver.get(PageUrl)  
+42.           html=driver.page_source#将浏览器执行后的源代码赋给html  
+43.           bsObj=BeautifulSoup(html,"html.parser")  
+44.           n=n+1  
+45.           if n==10:  
+46.               driver.close() # Close the current window.  
+47.               driver.quit()#关闭chrome浏览器  
+48.               return 1  
+49.  
+50.    except Exception as e:  
+51.        driver.close() # Close the current window.  
+52.        driver.quit()#关闭chrome浏览器  
+53.        time.sleep(1)  
+54.  
+55.    driver.close() # Close the current window.  
+56.    driver.quit()#关闭chrome浏览器  
+57.  
+58.  
+59.    #http://bbs.baobeihuijia.com/forum-191-1.html变成http://bbs.baobeihuijia.com，以便组成帖子链接  
+60.    siteindex=PageUrl.rfind("/")  
+61.    tempsiteurl=PageUrl[0:siteindex+1]#http://bbs.baobeihuijia.com/  
+62.    #print(tempsiteurl)  
+63.    TieziUrl=[]  
+64.    #爬取想要的信息  
+65.    for templist1 in bsObj.findAll("tbody",id=re.compile("normalthread_([0-9]+)")) :  
+66.        if templist1==None:  
+67.            continue  
+68.        for templist2 in templist1.findAll("a",{"class":"s xst"}):  
+69.            if templist2==None:  
+70.                continue  
+71.            tempteiziUrl=tempsiteurl+templist2.attrs['href']#组成帖子链接  
+72.            print(tempteiziUrl)  
+73.            TieziUrl.append(tempteiziUrl)  
+74.    return TieziUrl#返回帖子链接列表  </code></pre>
+<p>3.获取每一个帖子链接上要爬取的信息，编号，姓名，性别，出生日期，失踪时身高，失踪时间，失踪地点，以及是否报案，并写入CSV中</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVXdRv?w=903&amp;h=722" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="图片描述" title="图片描述"></span></p>
+<p>通过查看每一个帖子的链接，发现其失踪人口信息都在&lt;ul&gt;标签下，所以编写了以下的代码<br>BeautifulSoup形式：</p>
+<pre><code>[python] view plain copy
+1.#得到当前页面失踪人口信息  
+2.#pageUrl为当前帖子页面链接  
+3.def CurrentPageMissingPopulationInformation(tieziUrl):  
+4.    #设置代理IP访问  
+5.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+6.    proxy_handler=urllib.request.ProxyHandler({'post':'210.136.17.78:8080'})  
+7.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+8.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+9.    urllib.request.install_opener(opener)  
+10.    #获取网页信息  
+11.    req=request.Request(tieziUrl,headers=headers1 or headers2 or headers3)  
+12.    html=urlopen(req)  
+13.    bsObj=BeautifulSoup(html.read(),"html.parser")  
+14.    html.close()  
+15.    #查找想要的信息  
+16.    templist1=bsObj.find("td",{"class":"t_f"}).ul  
+17.    if templist1==None:#判断是否不包含ul字段，如果不，跳出函数  
+18.        return  
+19.    mycsv=['NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL']#初始化提取信息列表  
+20.    for templist2 in templist1.findAll("font",size=re.compile("^([0-9]+)*$")):  
+21.        if len(templist2)==0:  
+22.            continue  
+23.        tempText=templist2.get_text()  
+24.        #print(tempText[0:4])  
+25.        if "宝贝回家编号" in tempText[0:6]:  
+26.            print(tempText)  
+27.            index=tempText.find("：")  
+28.            tempText=tempText[index+1:]  
+29.            #mycsv.append(tempText)  
+30.            if len(tempText)==0:  
+31.                tempText="NULL"  
+32.            mycsv[0]=tempText  
+33.        if "寻亲编号" in tempText[0:6]:  
+34.            print(tempText)  
+35.            index=tempText.find("：")  
+36.            tempText=tempText[index+1:]  
+37.            if len(tempText)==0:  
+38.                tempText="NULL"  
+39.            #mycsv.append(tempText)  
+40.            mycsv[0]=tempText  
+41.        if "登记编号" in tempText[0:6]:  
+42.            print(tempText)  
+43.            index=tempText.find("：")  
+44.            tempText=tempText[index+1:]  
+45.            if len(tempText)==0:  
+46.                tempText="NULL"  
+47.            #mycsv.append(tempText)  
+48.            mycsv[0]=tempText  
+49.        if "姓" in tempText[0:6]:  
+50.            print(tempText)  
+51.            index=tempText.find("：")  
+52.            tempText=tempText[index+1:]  
+53.            #mycsv.append(tempText)  
+54.            mycsv[1]=tempText  
+55.        if"性" in tempText[0:6]:  
+56.            print(tempText)  
+57.            index=tempText.find("：")  
+58.            tempText=tempText[index+1:]  
+59.            #mycsv.append(tempText)  
+60.            mycsv[2]=tempText  
+61.        if "出生日期" in tempText[0:6]:  
+62.            print(tempText)  
+63.            index=tempText.find("：")  
+64.            tempText=tempText[index+1:]  
+65.            #mycsv.append(tempText)  
+66.            mycsv[3]=tempText  
+67.        if "失踪时身高" in tempText[0:6]:  
+68.            print(tempText)  
+69.            index=tempText.find("：")  
+70.            tempText=tempText[index+1:]  
+71.            #mycsv.append(tempText)  
+72.            mycsv[4]=tempText  
+73.        if "失踪时间" in tempText[0:6]:  
+74.            print(tempText)  
+75.            index=tempText.find("：")  
+76.            tempText=tempText[index+1:]  
+77.            #mycsv.append(tempText)  
+78.            mycsv[5]=tempText  
+79.        if "失踪日期" in tempText[0:6]:  
+80.            print(tempText)  
+81.            index=tempText.find("：")  
+82.            tempText=tempText[index+1:]  
+83.            #mycsv.append(tempText)  
+84.            mycsv[5]=tempText  
+85.        if "失踪地点" in tempText[0:6]:  
+86.            print(tempText)  
+87.            index=tempText.find("：")  
+88.            tempText=tempText[index+1:]  
+89.            #mycsv.append(tempText)  
+90.            mycsv[6]=tempText  
+91.        if "是否报案" in tempText[0:6]:  
+92.            print(tempText)  
+93.            index=tempText.find("：")  
+94.            tempText=tempText[index+1:]  
+95.            #mycsv.append(tempText)  
+96.            mycsv[7]=tempText  
+97.    try:  
+98.        writer.writerow((str(mycsv[0]),str(mycsv[1]),str(mycsv[2]),str(mycsv[3]),str(mycsv[4]),str(mycsv[5]),str(mycsv[6]),str(mycsv[7])))#写入CSV文件  
+99.    finally:  
+100.        time.sleep(1)#设置爬完之后的睡眠时间，这里先设置为1秒 </code></pre>
+<p> </p>
+<p>Selenium形式：</p>
+<pre><code>[python] view plain copy
+1.#得到当前页面失踪人口信息  
+2.#pageUrl为当前帖子页面链接  
+3.def CurrentPageMissingPopulationInformation(tieziUrl):  
+4.    #设置代理IP访问  
+5.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+6.    proxy_handler=urllib.request.ProxyHandler({'post':'128.199.169.17:80'})  
+7.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+8.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+9.    urllib.request.install_opener(opener)  
+10.  
+11.    try:  
+12.        #掉用第三方包selenium打开浏览器登陆  
+13.        #driver=webdriver.Chrome()#打开chrome  
+14.       driver=webdriver.Chrome()#打开无界面浏览器Chrome  
+15.       #driver=webdriver.PhantomJS()#打开无界面浏览器PhantomJS  
+16.       driver.set_page_load_timeout(10)  
+17.       #driver.implicitly_wait(30)  
+18.       try:  
+19.           driver.get(tieziUrl)#登陆两次  
+20.           driver.get(tieziUrl)  
+21.       except TimeoutError:  
+22.           driver.refresh()  
+23.  
+24.       #print(driver.page_source)  
+25.       html=driver.page_source#将浏览器执行后的源代码赋给html  
+26.        #获取网页信息  
+27.    #抓捕网页解析过程中的错误  
+28.       try:  
+29.           #req=request.Request(tieziUrl,headers=headers5)  
+30.           #html=urlopen(req)  
+31.           bsObj=BeautifulSoup(html,"html.parser")  
+32.           #html.close()  
+33.       except UnicodeDecodeError as e:  
+34.           print("-----UnicodeDecodeError url",tieziUrl)  
+35.       except urllib.error.URLError as e:  
+36.           print("-----urlError url:",tieziUrl)  
+37.       except socket.timeout as e:  
+38.           print("-----socket timout:",tieziUrl)  
+39.  
+40.  
+41.       while(bsObj.find('title').get_text() == "页面重载开启"):  
+42.           print("当前页面不是重加载后的页面，程序会尝试刷新一次到跳转后的页面\n")  
+43.           driver.get(tieziUrl)  
+44.           html=driver.page_source#将浏览器执行后的源代码赋给html  
+45.           bsObj=BeautifulSoup(html,"html.parser")  
+46.    except Exception as e:  
+47.        driver.close() # Close the current window.  
+48.        driver.quit()#关闭chrome浏览器  
+49.        time.sleep(0.5)  
+50.  
+51.    driver.close() # Close the current window.  
+52.    driver.quit()#关闭chrome浏览器  
+53.  
+54.  
+55.    #查找想要的信息  
+56.    templist1=bsObj.find("td",{"class":"t_f"}).ul  
+57.    if templist1==None:#判断是否不包含ul字段，如果不，跳出函数  
+58.        print("当前帖子页面不包含ul字段")  
+59.        return 1  
+60.    mycsv=['NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL']#初始化提取信息列表  
+61.    for templist2 in templist1.findAll("font",size=re.compile("^([0-9]+)*$")):  
+62.        tempText=templist2.get_text()  
+63.        #print(tempText[0:4])  
+64.        if "宝贝回家编号" in tempText[0:6]:  
+65.            print(tempText)  
+66.            index=tempText.find("：")  
+67.            tempText=tempText[index+1:]  
+68.            #mycsv.append(tempText)  
+69.            if len(tempText)==0:  
+70.                tempText="NULL"  
+71.            mycsv[0]=tempText  
+72.        if "寻亲编号" in tempText[0:6]:  
+73.            print(tempText)  
+74.            index=tempText.find("：")  
+75.            tempText=tempText[index+1:]  
+76.            if len(tempText)==0:  
+77.                tempText="NULL"  
+78.            #mycsv.append(tempText)  
+79.            mycsv[0]=tempText  
+80.        if "登记编号" in tempText[0:6]:  
+81.            print(tempText)  
+82.            index=tempText.find("：")  
+83.            tempText=tempText[index+1:]  
+84.            if len(tempText)==0:  
+85.                tempText="NULL"  
+86.            #mycsv.append(tempText)  
+87.            mycsv[0]=tempText  
+88.        if "姓" in tempText[0:6]:  
+89.            print(tempText)  
+90.            index=tempText.find("：")  
+91.            tempText=tempText[index+1:]  
+92.            #mycsv.append(tempText)  
+93.            mycsv[1]=tempText  
+94.        if"性" in tempText[0:6]:  
+95.            print(tempText)  
+96.            index=tempText.find("：")  
+97.            tempText=tempText[index+1:]  
+98.            #mycsv.append(tempText)  
+99.            mycsv[2]=tempText  
+100.        if "出生日期" in tempText[0:6]:  
+101.            print(tempText)  
+102.            index=tempText.find("：")  
+103.            tempText=tempText[index+1:]  
+104.            #mycsv.append(tempText)  
+105.            mycsv[3]=tempText  
+106.        if "失踪时身高" in tempText[0:6]:  
+107.            print(tempText)  
+108.            index=tempText.find("：")  
+109.            tempText=tempText[index+1:]  
+110.            #mycsv.append(tempText)  
+111.            mycsv[4]=tempText  
+112.        if "失踪时间" in tempText[0:6]:  
+113.            print(tempText)  
+114.            index=tempText.find("：")  
+115.            tempText=tempText[index+1:]  
+116.            #mycsv.append(tempText)  
+117.            mycsv[5]=tempText  
+118.        if "失踪日期" in tempText[0:6]:  
+119.            print(tempText)  
+120.            index=tempText.find("：")  
+121.            tempText=tempText[index+1:]  
+122.            #mycsv.append(tempText)  
+123.            mycsv[5]=tempText  
+124.        if "失踪地点" in tempText[0:6]:  
+125.            print(tempText)  
+126.            index=tempText.find("：")  
+127.            tempText=tempText[index+1:]  
+128.            #mycsv.append(tempText)  
+129.            mycsv[6]=tempText  
+130.        if "是否报案" in tempText[0:6]:  
+131.            print(tempText)  
+132.            index=tempText.find("：")  
+133.            tempText=tempText[index+1:]  
+134.            #mycsv.append(tempText)  
+135.            mycsv[7]=tempText  
+136.    try:  
+137.        writer.writerow((str(mycsv[0]),str(mycsv[1]),str(mycsv[2]),str(mycsv[3]),str(mycsv[4]),str(mycsv[5]),str(mycsv[6]),str(mycsv[7])))#写入CSV文件  
+138.        csvfile.flush()#马上将这条数据写入csv文件中  
+139.    finally:  
+140.        print("当前帖子信息写入完成\n")  
+141.        time.sleep(5)#设置爬完之后的睡眠时间，这里先设置为1秒  
+</code></pre>
+<p>现附上所有代码，此代码仅供参考，不能用于商业用途，网络爬虫易给网站服务器造成巨大负荷，任何人使用本代码所引起的任何后果，本人不予承担法律责任。贴出代码的初衷是供大家学习爬虫，大家只是研究下网络框架即可，不要使用此代码去加重网站负荷，本人由于不当使用，已被封IP，前车之鉴，爬取失踪人口信息只是为了从空间上分析人口失踪的规律，由此给网站造成的什么不便，请见谅。</p>
+<p>附上所有代码：</p>
+<pre><code>[python] view plain copy
+1.#__author__ = 'Administrator'  
+2.#coding=utf-8  
+3.import io  
+4.import os  
+5.import sys  
+6.import math  
+7.import urllib  
+8.from urllib.request import  urlopen  
+9.from urllib.request import urlretrieve  
+10.from urllib  import request  
+11.from bs4 import BeautifulSoup  
+12.import re  
+13.import time  
+14.import socket  
+15.import csv  
+16.from selenium import webdriver  
+17.  
+18.socket.setdefaulttimeout(5000)#设置全局超时函数  
+19.  
+20.  
+21.  
+22.sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='gb18030')  
+23.#sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf-8')  
+24.#设置不同的headers,伪装为不同的浏览器  
+25.headers1={'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}  
+26.headers2={'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36'}  
+27.headers3={'User-Agent':'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11'}  
+28.headers4={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400'}  
+29.headers5={'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',  
+30.'Connection':'keep-alive',  
+31.'Host':'bbs.baobeihuijia.com',  
+32.'Referer':'http://bbs.baobeihuijia.com/forum-191-1.html',  
+33.'Upgrade-Insecure-Requests':'1',  
+34.'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'}  
+35.  
+36.headers6={'Host': 'bbs.baobeihuijia.com',  
+37.'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0',  
+38.'Accept': 'textml,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',  
+39.'Connection': 'keep-alive',  
+40.'Upgrade-Insecure-Requests':' 1'  
+41.}  
+42.#得到当前页面失踪人口信息  
+43.#pageUrl为当前帖子页面链接  
+44.def CurrentPageMissingPopulationInformation(tieziUrl):  
+45.    #设置代理IP访问  
+46.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+47.    proxy_handler=urllib.request.ProxyHandler({'post':'128.199.169.17:80'})  
+48.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+49.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+50.    urllib.request.install_opener(opener)  
+51.  
+52.    try:  
+53.        #掉用第三方包selenium打开浏览器登陆  
+54.        #driver=webdriver.Chrome()#打开chrome  
+55.       driver=webdriver.Chrome()#打开无界面浏览器Chrome  
+56.       #driver=webdriver.PhantomJS()#打开无界面浏览器PhantomJS  
+57.       driver.set_page_load_timeout(10)  
+58.       #driver.implicitly_wait(30)  
+59.       try:  
+60.           driver.get(tieziUrl)#登陆两次  
+61.           driver.get(tieziUrl)  
+62.       except TimeoutError:  
+63.           driver.refresh()  
+64.  
+65.       #print(driver.page_source)  
+66.       html=driver.page_source#将浏览器执行后的源代码赋给html  
+67.        #获取网页信息  
+68.    #抓捕网页解析过程中的错误  
+69.       try:  
+70.           #req=request.Request(tieziUrl,headers=headers5)  
+71.           #html=urlopen(req)  
+72.           bsObj=BeautifulSoup(html,"html.parser")  
+73.           #html.close()  
+74.       except UnicodeDecodeError as e:  
+75.           print("-----UnicodeDecodeError url",tieziUrl)  
+76.       except urllib.error.URLError as e:  
+77.           print("-----urlError url:",tieziUrl)  
+78.       except socket.timeout as e:  
+79.           print("-----socket timout:",tieziUrl)  
+80.  
+81.  
+82.       while(bsObj.find('title').get_text() == "页面重载开启"):  
+83.           print("当前页面不是重加载后的页面，程序会尝试刷新一次到跳转后的页面\n")  
+84.           driver.get(tieziUrl)  
+85.           html=driver.page_source#将浏览器执行后的源代码赋给html  
+86.           bsObj=BeautifulSoup(html,"html.parser")  
+87.    except Exception as e:  
+88.        driver.close() # Close the current window.  
+89.        driver.quit()#关闭chrome浏览器  
+90.        time.sleep(0.5)  
+91.  
+92.    driver.close() # Close the current window.  
+93.    driver.quit()#关闭chrome浏览器  
+94.  
+95.  
+96.    #查找想要的信息  
+97.    templist1=bsObj.find("td",{"class":"t_f"}).ul  
+98.    if templist1==None:#判断是否不包含ul字段，如果不，跳出函数  
+99.        print("当前帖子页面不包含ul字段")  
+100.        return 1  
+101.    mycsv=['NULL','NULL','NULL','NULL','NULL','NULL','NULL','NULL']#初始化提取信息列表  
+102.    for templist2 in templist1.findAll("font",size=re.compile("^([0-9]+)*$")):  
+103.        tempText=templist2.get_text()  
+104.        #print(tempText[0:4])  
+105.        if "宝贝回家编号" in tempText[0:6]:  
+106.            print(tempText)  
+107.            index=tempText.find("：")  
+108.            tempText=tempText[index+1:]  
+109.            #mycsv.append(tempText)  
+110.            if len(tempText)==0:  
+111.                tempText="NULL"  
+112.            mycsv[0]=tempText  
+113.        if "寻亲编号" in tempText[0:6]:  
+114.            print(tempText)  
+115.            index=tempText.find("：")  
+116.            tempText=tempText[index+1:]  
+117.            if len(tempText)==0:  
+118.                tempText="NULL"  
+119.            #mycsv.append(tempText)  
+120.            mycsv[0]=tempText  
+121.        if "登记编号" in tempText[0:6]:  
+122.            print(tempText)  
+123.            index=tempText.find("：")  
+124.            tempText=tempText[index+1:]  
+125.            if len(tempText)==0:  
+126.                tempText="NULL"  
+127.            #mycsv.append(tempText)  
+128.            mycsv[0]=tempText  
+129.        if "姓" in tempText[0:6]:  
+130.            print(tempText)  
+131.            index=tempText.find("：")  
+132.            tempText=tempText[index+1:]  
+133.            #mycsv.append(tempText)  
+134.            mycsv[1]=tempText  
+135.        if"性" in tempText[0:6]:  
+136.            print(tempText)  
+137.            index=tempText.find("：")  
+138.            tempText=tempText[index+1:]  
+139.            #mycsv.append(tempText)  
+140.            mycsv[2]=tempText  
+141.        if "出生日期" in tempText[0:6]:  
+142.            print(tempText)  
+143.            index=tempText.find("：")  
+144.            tempText=tempText[index+1:]  
+145.            #mycsv.append(tempText)  
+146.            mycsv[3]=tempText  
+147.        if "失踪时身高" in tempText[0:6]:  
+148.            print(tempText)  
+149.            index=tempText.find("：")  
+150.            tempText=tempText[index+1:]  
+151.            #mycsv.append(tempText)  
+152.            mycsv[4]=tempText  
+153.        if "失踪时间" in tempText[0:6]:  
+154.            print(tempText)  
+155.            index=tempText.find("：")  
+156.            tempText=tempText[index+1:]  
+157.            #mycsv.append(tempText)  
+158.            mycsv[5]=tempText  
+159.        if "失踪日期" in tempText[0:6]:  
+160.            print(tempText)  
+161.            index=tempText.find("：")  
+162.            tempText=tempText[index+1:]  
+163.            #mycsv.append(tempText)  
+164.            mycsv[5]=tempText  
+165.        if "失踪地点" in tempText[0:6]:  
+166.            print(tempText)  
+167.            index=tempText.find("：")  
+168.            tempText=tempText[index+1:]  
+169.            #mycsv.append(tempText)  
+170.            mycsv[6]=tempText  
+171.        if "是否报案" in tempText[0:6]:  
+172.            print(tempText)  
+173.            index=tempText.find("：")  
+174.            tempText=tempText[index+1:]  
+175.            #mycsv.append(tempText)  
+176.            mycsv[7]=tempText  
+177.    try:  
+178.        writer.writerow((str(mycsv[0]),str(mycsv[1]),str(mycsv[2]),str(mycsv[3]),str(mycsv[4]),str(mycsv[5]),str(mycsv[6]),str(mycsv[7])))#写入CSV文件  
+179.        csvfile.flush()#马上将这条数据写入csv文件中  
+180.    finally:  
+181.        print("当前帖子信息写入完成\n")  
+182.        time.sleep(5)#设置爬完之后的睡眠时间，这里先设置为1秒  
+183.  
+184.  
+185.#得到当前板块所有的页面链接  
+186.#siteUrl为当前版块的页面链接  
+187.def GetALLPageUrl(siteUrl):  
+188.    #设置代理IP访问  
+189.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+190.    proxy_handler=urllib.request.ProxyHandler({'post':'123.207.143.51:8080'})  
+191.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+192.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+193.    urllib.request.install_opener(opener)  
+194.  
+195.    try:  
+196.        #掉用第三方包selenium打开浏览器登陆  
+197.        #driver=webdriver.Chrome()#打开chrome  
+198.       driver=webdriver.Chrome()#打开无界面浏览器Chrome  
+199.       #driver=webdriver.PhantomJS()#打开无界面浏览器PhantomJS  
+200.       driver.set_page_load_timeout(10)  
+201.       #driver.implicitly_wait(30)  
+202.       try:  
+203.           driver.get(siteUrl)#登陆两次  
+204.           driver.get(siteUrl)  
+205.       except TimeoutError:  
+206.           driver.refresh()  
+207.  
+208.       #print(driver.page_source)  
+209.       html=driver.page_source#将浏览器执行后的源代码赋给html  
+210.        #获取网页信息  
+211.    #抓捕网页解析过程中的错误  
+212.       try:  
+213.           #req=request.Request(tieziUrl,headers=headers5)  
+214.           #html=urlopen(req)  
+215.           bsObj=BeautifulSoup(html,"html.parser")  
+216.           #print(bsObj.find('title').get_text())  
+217.           #html.close()  
+218.       except UnicodeDecodeError as e:  
+219.           print("-----UnicodeDecodeError url",siteUrl)  
+220.       except urllib.error.URLError as e:  
+221.           print("-----urlError url:",siteUrl)  
+222.       except socket.timeout as e:  
+223.           print("-----socket timout:",siteUrl)  
+224.  
+225.  
+226.  
+227.       while(bsObj.find('title').get_text() == "页面重载开启"):  
+228.           print("当前页面不是重加载后的页面，程序会尝试刷新一次到跳转后的页面\n")  
+229.           driver.get(siteUrl)  
+230.           html=driver.page_source#将浏览器执行后的源代码赋给html  
+231.           bsObj=BeautifulSoup(html,"html.parser")  
+232.    except Exception as e:  
+233.  
+234.        driver.close() # Close the current window.  
+235.        driver.quit()#关闭chrome浏览器  
+236.        #time.sleep()  
+237.  
+238.    driver.close() # Close the current window.  
+239.    driver.quit()#关闭chrome浏览器  
+240.  
+241.  
+242.    #http://bbs.baobeihuijia.com/forum-191-1.html变成http://bbs.baobeihuijia.com，以便组成页面链接  
+243.    siteindex=siteUrl.rfind("/")  
+244.    tempsiteurl=siteUrl[0:siteindex+1]#http://bbs.baobeihuijia.com/  
+245.    tempbianhaoqian=siteUrl[siteindex+1:-6]#forum-191-  
+246.  
+247.    #爬取想要的信息  
+248.    bianhao=[]#存储页面编号  
+249.    pageUrl=[]#存储页面链接  
+250.  
+251.    templist1=bsObj.find("div",{"class":"pg"})  
+252.    #if templist1==None:  
+253.        #return  
+254.    for templist2 in templist1.findAll("a",href=re.compile("forum-([0-9]+)-([0-9]+).html")):  
+255.        if templist2==None:  
+256.            continue  
+257.        lianjie=templist2.attrs['href']  
+258.        #print(lianjie)  
+259.        index1=lianjie.rfind("-")#查找-在字符串中的位置  
+260.        index2=lianjie.rfind(".")#查找.在字符串中的位置  
+261.        tempbianhao=lianjie[index1+1:index2]  
+262.        bianhao.append(int(tempbianhao))  
+263.    bianhaoMax=max(bianhao)#获取页面的最大编号  
+264.  
+265.    for i in range(1,bianhaoMax+1):  
+266.        temppageUrl=tempsiteurl+tempbianhaoqian+str(i)+".html"#组成页面链接  
+267.        print(temppageUrl)  
+268.        pageUrl.append(temppageUrl)  
+269.    return pageUrl#返回页面链接列表  
+270.  
+271.#得到当前版块页面所有帖子的链接  
+272.def GetCurrentPageTieziUrl(PageUrl):  
+273.    #设置代理IP访问  
+274.    #代理IP可以上http://http.zhimaruanjian.com/获取  
+275.    proxy_handler=urllib.request.ProxyHandler({'post':'110.73.30.157:8123'})  
+276.    proxy_auth_handler=urllib.request.ProxyBasicAuthHandler()  
+277.    opener = urllib.request.build_opener(urllib.request.HTTPHandler, proxy_handler)  
+278.    urllib.request.install_opener(opener)  
+279.  
+280.    try:  
+281.        #掉用第三方包selenium打开浏览器登陆  
+282.        #driver=webdriver.Chrome()#打开chrome  
+283.       driver=webdriver.Chrome()#打开无界面浏览器Chrome  
+284.       #driver=webdriver.PhantomJS()#打开无界面浏览器PhantomJS  
+285.       driver.set_page_load_timeout(10)  
+286.       try:  
+287.           driver.get(PageUrl)#登陆两次  
+288.           driver.get(PageUrl)  
+289.       except TimeoutError:  
+290.           driver.refresh()  
+291.  
+292.       #print(driver.page_source)  
+293.       html=driver.page_source#将浏览器执行后的源代码赋给html  
+294.        #获取网页信息  
+295.    #抓捕网页解析过程中的错误  
+296.       try:  
+297.           #req=request.Request(tieziUrl,headers=headers5)  
+298.           #html=urlopen(req)  
+299.           bsObj=BeautifulSoup(html,"html.parser")  
+300.           #html.close()  
+301.       except UnicodeDecodeError as e:  
+302.           print("-----UnicodeDecodeError url",PageUrl)  
+303.       except urllib.error.URLError as e:  
+304.           print("-----urlError url:",PageUrl)  
+305.       except socket.timeout as e:  
+306.           print("-----socket timout:",PageUrl)  
+307.  
+308.       n=0  
+309.       while(bsObj.find('title').get_text() == "页面重载开启"):  
+310.           print("当前页面不是重加载后的页面，程序会尝试刷新一次到跳转后的页面\n")  
+311.           driver.get(PageUrl)  
+312.           html=driver.page_source#将浏览器执行后的源代码赋给html  
+313.           bsObj=BeautifulSoup(html,"html.parser")  
+314.           n=n+1  
+315.           if n==10:  
+316.               driver.close() # Close the current window.  
+317.               driver.quit()#关闭chrome浏览器  
+318.               return 1  
+319.  
+320.    except Exception as e:  
+321.        driver.close() # Close the current window.  
+322.        driver.quit()#关闭chrome浏览器  
+323.        time.sleep(1)  
+324.  
+325.    driver.close() # Close the current window.  
+326.    driver.quit()#关闭chrome浏览器  
+327.  
+328.  
+329.    #http://bbs.baobeihuijia.com/forum-191-1.html变成http://bbs.baobeihuijia.com，以便组成帖子链接  
+330.    siteindex=PageUrl.rfind("/")  
+331.    tempsiteurl=PageUrl[0:siteindex+1]#http://bbs.baobeihuijia.com/  
+332.    #print(tempsiteurl)  
+333.    TieziUrl=[]  
+334.    #爬取想要的信息  
+335.    for templist1 in bsObj.findAll("tbody",id=re.compile("normalthread_([0-9]+)")) :  
+336.        if templist1==None:  
+337.            continue  
+338.        for templist2 in templist1.findAll("a",{"class":"s xst"}):  
+339.            if templist2==None:  
+340.                continue  
+341.            tempteiziUrl=tempsiteurl+templist2.attrs['href']#组成帖子链接  
+342.            print(tempteiziUrl)  
+343.            TieziUrl.append(tempteiziUrl)  
+344.    return TieziUrl#返回帖子链接列表  
+345.  
+346.  
+347.  
+348.#CurrentPageMissingPopulationInformation("http://bbs.baobeihuijia.com/thread-213126-1-1.html")  
+349.#GetALLPageUrl("http://bbs.baobeihuijia.com/forum-191-1.html")  
+350.#GetCurrentPageTieziUrl("http://bbs.baobeihuijia.com/forum-191-1.html")  
+351.  
+352.if __name__ == '__main__':  
+353.    csvfile=open("E:/MissingPeople.csv","w+",newline="",encoding='gb18030')  
+354.    writer=csv.writer(csvfile)  
+355.    writer.writerow(('宝贝回家编号','姓名','性别','出生日期','失踪时身高','失踪时间','失踪地点','是否报案'))  
+356.    pageurl=GetALLPageUrl("https://bbs.baobeihuijia.com/forum-191-1.html")#寻找失踪宝贝  
+357.    #pageurl=GetALLPageUrl("http://bbs.baobeihuijia.com/forum-189-1.html")#被拐宝贝回家  
+358.    time.sleep(5)  
+359.    print("所有页面链接获取成功！\n")  
+360.    n=0  
+361.    for templist1 in pageurl:  
+362.        #print(templist1)  
+363.        tieziurl=GetCurrentPageTieziUrl(templist1)  
+364.        time.sleep(5)  
+365.        print("当前页面"+str(templist1)+"所有帖子链接获取成功！\n")  
+366.        if tieziurl ==1:  
+367.            print("不能得到当前帖子页面！\n")  
+368.            continue  
+369.        else:  
+370.            for templist2 in tieziurl:  
+371.            #print(templist2)  
+372.               n=n+1  
+373.               print("\n正在收集第"+str(n)+"条信息！")  
+374.               time.sleep(5)  
+375.               tempzhi=CurrentPageMissingPopulationInformation(templist2)  
+376.               if tempzhi==1:  
+377.                  print("\n第"+str(n)+"条信息为空！")  
+378.                  continue  
+379.    print('')  
+380.    print("信息爬取完成！请放心的关闭程序！")  
+381.    csvfile.close()  
+</code></pre>
+<p>写成的CSV文件截图：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVXdMG?w=1366&amp;h=736" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="图片描述" title="图片描述"></span></p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000011692301"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="Python爬虫小实践：寻找失踪人口，爬取失踪儿童信息并写成csv文件，方便存入数据库"
+ data-url="https://segmentfault.com/a/1190000011692301" data-shorturl="http://sfau.lt/b5XdRF"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000011692301"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000011692301"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">4</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000011692301" data-user-id="" data-author-id="1030000011674424 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000011692301/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542608864000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _7aV = 'e'//'0'
++/* '2PB'//'2PB' */''+//'mRE'
+'24'+'b96'//'6'
++'79'//'Ejz'
++//'2W'
+'2'+//'c'
+'3'+//'iw'
+'e4'+//'OL'
+'be'+//'KiF'
+'3d'+''///*'Cu'*/'Cu'
++//'Mev'
+'0'+'d7c'//'SwD'
++'e'//'9bh'
++'c'//'YGk'
++''///*'3X'*/'3X'
++//'I'
+'d9'+//'bm'
+'b6b'+'7'//'D'
++//'9kd'
+'9kd'+//'NiV'
+'5'+'c6'//'Uw'
++'W9'//'W9'
++'7'//'v'
+, _O5o4U = [[28,31],[31,33]];
+
+    for (var i = 0; i < _O5o4U.length; i ++) {
+        _7aV = _7aV.substring(0, _O5o4U[i][0]) + _7aV.substring(_O5o4U[i][1]);
+    }
+
+    return _7aV;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"Python\u722c\u866b\u5c0f\u5b9e\u8df5\uff1a\u5bfb\u627e\u5931\u8e2a\u4eba\u53e3\uff0c\u722c\u53d6\u5931\u8e2a\u513f\u7ae5\u4fe1\u606f\u5e76\u5199\u6210csv\u6587\u4ef6\uff0c\u65b9\u4fbf\u5b58\u5165\u6570\u636e\u5e93","desc":"\u524d\u4e24\u5929\u6709\u4eba\u79c1\u4fe1\u6211\uff0c\u8ba9\u6211\u722c\u8fd9\u4e2a\u7f51\u7ad9\uff0c[\u94fe\u63a5]\u4e0a\u7684\u5931\u8e2a\u513f\u7ae5\u4fe1\u606f\uff0c\u51c6\u5907\u6839\u636e\u5931\u8e2a\u513f\u7ae5\u7684\u5931\u8e2a\u65f6\u7684\u5730\u7406\u4f4d\u7f6e\u6765\u66f4\u597d\u7684\u5bfb\u627e\u5931\u8e2a\u513f\u7ae5\uff0c\u8fd9\u79cd\u4e8b\u60c5\u672c\u5c31\u5e94\u8be5\u4e49\u4e0d\u5bb9\u8f9e,\u5982\u679c\u5bf9\u7f51\u7ad9\u670d\u52a1\u5668\u9020\u6210\u8d1f\u8377\uff0c\u8fd8\u8bf7\u8c05\u89e3\u3002","link":"https:\/\/segmentfault.com\/a\/1190000011692301","imgUrl":"https:\/\/segmentfault.com\/img\/bVXdRc?w=687&amp;h=723"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542608865,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

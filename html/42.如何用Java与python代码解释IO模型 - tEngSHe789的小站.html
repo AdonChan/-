@@ -1,0 +1,1461 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>如何用Java与python代码解释IO模型 - tEngSHe789的小站 - SegmentFault 思否</title><meta name="description" content="前天刚好看了点《UNIX网络编程》，比较头大。现在我来整理一下所学所得，并用于个人备忘。如果有不对，请批评。"/><meta name="keywords" content="python,java"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python,java'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000016232318" class="hidden" />
+
+<div class="wrap" data-blogid="1200000015906158">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/tengshe789">tEngSHe789的小站</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="tengshe789"
+                                         data-userslug="tengshe789"
+                                         data-useravatar="https://avatar-static.segmentfault.com/207/513/2075131461-5b446b8e51dbe_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/tengshe789">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/207/513/2075131461-5b446b8e51dbe_big64" alt="tengshe789">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/tengshe789" class="mr5 "><strong>tengshe789</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">27</span>
+
+                                                                                                发布于
+                                                <a href="/blog/tengshe789">tEngSHe789的小站</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000015906158">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-09-01 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000016232318">
+                                            <a href="/a/1190000016232318"> 如何用Java与python代码解释IO模型</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/java/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/512/342/51234253-1040000000089449_big64" data-placement="top"
+                                                                                data-original-title="java"
+                                                                                data-id="1040000000089449">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/868/271/868271510-54cb382abb7a1_small">
+                                                                                                                      java
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                90 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 70 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000016232318" data-license="cc">
+                    
+<p>前天刚好看了点《UNIX网络编程》，比较头大。现在我来整理一下所学所得，并用于个人备忘。如果有不对，请批评。</p>
+<p>想要解锁更多新姿势？请访问<a href="https://blog.tengshe789.tech/" rel="nofollow noreferrer">https://blog.tengshe789.tech/</a></p>
+<h1>IO模型介绍</h1>
+<p>IO模型是什么？很多书籍或者百度百度百科，都没有给出明确的解释，我也不敢乱下定义。以我愚见，IO模型，是通过根据前人主观意识的思考而构成客观阐述IO复杂操作逻辑的物件。</p>
+<p>要知道，应用程序使用系统资源的一个过程，<strong>进程无法直接操作IO设备的</strong>，因为用户进程不能直接访问磁盘，所以要通过内核的系统调用读取，这个内核读取的过程就是用户进程等待的过程，等待内核读取后将数据从内核内存复制到进程内存。因此操作系统设立一个IO模型进行规范，就非常有必要了。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232321?w=720&amp;h=204" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="应用程序使用系统资源" title="应用程序使用系统资源"></span></p>
+<p>为了更好地了解IO模型，我们需要事先回顾下：同步、异步、阻塞、非阻塞</p>
+<p><strong>同步与异步</strong>：描述的是用户线程与内核的交互方式，同步指用户线程发起IO请求后需要等待或者轮询内核IO操作完成后才能继续执行；而异步是指用户线程发起IO请求后仍然继续执行，当内核IO操作完成后会通知用户线程，或者调用用户线程注册的回调函数。</p>
+<p><strong>阻塞与非阻塞</strong>：描述是用户线程调用内核IO操作的方式，阻塞是指IO操作需要彻底完成后才返回到用户空间；而非阻塞是指IO操作被调用后立即返回给用户一个状态值，无需等到IO操作彻底完成。</p>
+<p>IO模型一共有5类：</p>
+<ul>
+<li>blocking-IO           BIO（阻塞IO）</li>
+<li>non-blocking IO      NIO（非阻塞IO）</li>
+<li>IO multiplexing      IO多路复用</li>
+<li>signal driven IO     信号驱动IO</li>
+<li>asynchronous IO    AIO（异步IO）<p>由于signal driven IO（信号驱动IO）在实际中并不常用，所以主要介绍其余四种IO Model。</p>
+</li>
+</ul>
+<h1>BIO（blocking io）</h1>
+<p>先来看看读操作流程</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232322" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="1535200521414" title="1535200521414"></span></p>
+<p>从图中可以看出，用户进程调用了recvfrom这个系统调用，kernel就开始了IO的第一个阶段：准备数据。</p>
+<p>对于network io来说，很多时候数据在一开始还没有到达（比如，还没有收到一个完整的UDP包），这个时候kernel就要等待足够的数据到来。</p>
+<p>而在用户进程这边，整个进程会被阻塞。当kernel一直等到数据准备好了，它就会将数据从kernel中拷贝到用户内存，然后kernel返回结果，用户进程才解除block的状态，重新运行起来。</p>
+<p><strong>也就是说，blocking IO的特点就是在IO执行的两个阶段（等待数据和拷贝数据两个阶段）都被block了。</strong></p>
+<h2>JAVA 阻塞 demo</h2>
+<p>下面的例子主要使用Socket通道进行编程。服务端如下：</p>
+<pre><code class="java">/**
+ * @program: socketTest
+ * @description: one thread demo for bio version
+ * @author: tEngSHe789
+ * @create: 2018-08-26 21:17
+ **/
+public class Server {
+    public static void main(String[] args) {
+        try {
+            ServerSocket serverSocket=new ServerSocket(8888);
+            System.out.println("服务端Start....");
+            //等待客户端就绪 -&gt; 堵塞
+            while (true){
+                Socket socket = serverSocket.accept();
+                System.out.println("发现客户端连接");
+                InputStream is=socket.getInputStream();
+                byte[] b =new byte[1024];
+                //等待客户端发送请求 -&gt; 堵塞
+                while (true) {
+                    int data = is.read(b);
+                    String info=null;
+                    if (data!=-1){
+                        info=new String(b,0,data,"GBK");
+                    }
+                    System.out.println(info);
+                }
+
+            }
+        } catch (IOException e) {
+        }
+    }
+}</code></pre>
+<p>客户端</p>
+<pre><code class="java">/**
+ * @program: socketTest
+ * @description: one thread demo for bio version
+ * @author: tEngSHe789
+ **/
+public class Client {
+    public static void main(String[] args) {
+        try {
+            Socket socket=new Socket("127.0.0.1",8888);
+            OutputStream os = socket.getOutputStream();
+            System.out.println("正在发送数据");
+            os.write("这是来自客户端的信息".getBytes());
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+<h2>PY 阻塞 demo</h2>
+<p>服务端</p>
+<pre><code class="python">import socket
+
+s = socket.socket()
+s.bind(('127.0.0.1',8888))
+print('服务端启动....')
+# 等待客户端就绪 -&gt; 堵塞
+s.listen()
+# 等待客户端发送请求 -&gt; 堵塞
+conn,addr = s.accept()
+msg = conn.recv(1024).decode('utf-8')
+print(msg)
+conn.close()
+s.close()
+</code></pre>
+<p>客户端</p>
+<pre><code class="python">import socket
+
+s = socket.socket()
+s.connect(('127.0.0.1',8888))
+print('客户端已启动....')
+s.send('正在发送数据'.encode('utf-8'))
+s.close()</code></pre>
+<h1>NIO（non blocking io）</h1>
+<p>NIO就不一样了，recvform系统调用调用之后，进程并没有被阻塞，内核马上返回给进程，如果数据还没准备好，此时会返回一个error。进程在返回之后，可以干点别的事情，然后再发起recvform系统调用。重复上面的过程，循环往复的进行recvform系统调用。这个过程通常被称之为轮询。</p>
+<p>轮询检查内核数据，直到数据准备好，再拷贝数据到进程，进行数据处理。需要注意，拷贝数据整个过程，进程仍然是属于阻塞的状态。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232323" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="1535201598609" title="1535201598609"></span></p>
+<h2>JAVA 与NIO</h2>
+<p>Java NIO(New IO)是一个可以替代标准Java IO API的IO API（从Java 1.4开始)，Java NIO提供了与标准IO不同的IO工作方式。</p>
+<p>在java中，标准的IO基于字节流和字符流进行操作的，而NIO是基于通道（Channel）和缓冲区（Buffer）进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。</p>
+<p>我们先看看Buffer类</p>
+<h3>Buffer类</h3>
+<p>Java NIO中的Buffer主要用于与NIO通道进行交互，数据是从通道读入到缓冲区，从缓冲区写入通道中的。概念上，缓冲区可以看成包在一个对象内的数组，下面看一个图</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232324" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="新创建的ByteBuffer" title="新创建的ByteBuffer"></span></p>
+<p>这是一个新创建的容量为10的ByteBuffer逻辑图，他有四个属性来提供关于其包含的数据元素信息，分别是：</p>
+<p>1）容量（capacity）：表示Buffer最大数据容量，缓冲区容量不能为负，并且建立后不能修改。</p>
+<p>2）限制（limit）：也叫上界。<strong>第一个不应该读取或者写入的数据的索引</strong>，即位于limit后的数据不可以读写。缓冲区的限制不能为负，并且不能大于其容量（capacity）。</p>
+<p>3）位置（position）：下一个要读取或写入的数据的索引。缓冲区的位置不能为负，并且不能大于其限制（limit）。</p>
+<p>4）标记（mark）与重置（reset）：标记是一个索引，通过Buffer中的mark()方法指定Buffer中一个特定的position，之后可以通过调用reset()方法恢复到这个position。</p>
+<p>从这幅图可以看到，他的容量（capacity）和限制（limit）设置为10，位置设置为0，每个缓冲区容量是固定的，标记是未定义的，其他三个属性可以通过使用缓冲区解决。</p>
+<h4>缓冲区存储数据支持的数据类型</h4>
+<p>支持七种数据类型，他们是：<br>1.byteBuffer<br>2.charBuffer<br>3.shortBuffer<br>4.IntBuffer<br>5.LongBuffer<br>6.FloatBuffer<br>7.DubooBuffer</p>
+<h4>基本用法</h4>
+<p>使用Buffer读写数据一般遵循以下四个步骤：</p>
+<p>(1) 写入数据到Buffer，一般有可以从Channel读取到缓冲区中，也可以调用put方法写入。</p>
+<p>(2) 调用flip()方法，切换数据模式。</p>
+<p>(3) 从Buffer中读取数据，一般从缓冲区读取数据写入到通道中，也可以调用get方法读取。</p>
+<p>(4) 调用clear()方法或者compact()方法。</p>
+<h4>缓冲区API</h4>
+<p>首先，用allocate 指定缓冲区大小1024</p>
+<pre><code class="java">ByteBuffer byteBuffer=ByteBuffer.allocate(1024);</code></pre>
+<h5>存储或填充</h5>
+<p>我们可以用put 存入数据到缓冲区</p>
+<pre><code class="java">byteBuffer.put("tengshe789".getBytes());</code></pre>
+<p>当调用put时，会指出下一个元素应当被插入的位置，位置（position）指向的是下一个元素。如果指向的位置超过限制（limit），则抛出<code>BufferOverFlowException</code>异常。</p>
+<h5>翻转</h5>
+<p>Flip将一个能够继续添加数据元素的填充状态的缓冲区翻转成一个准备读出元素的释放状态</p>
+<pre><code class="java">byteBuffer.flip();</code></pre>
+<p>具体有什么用呢？</p>
+<p>对于已经写满了缓冲区，如果将缓冲区内容传递给一个通道，以使内容能被全部写出。</p>
+<p>但如果通道现在在缓冲区上执行get，那么它将从我们刚刚插入的有用数据之外取出未定义数据。通过翻转将位置值重新设为 0，通道就会从正确位置开始获取。</p>
+<p>例如我们定义了一个容量是10的buffer，并填入hello，如下图所示  </p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232325" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="1535636182144" title="1535636182144"></span></p>
+<p>翻转后如下图所示 </p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232326" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="1535636206735" title="1535636206735"></span></p>
+<h5>重读</h5>
+<p>Rewind与 flip相似，但不影响上界属性。它只是将位置值设回 0。可以使用 rewind()后退，重读已经被翻转的缓冲区中的数据。</p>
+<pre><code class="java">byteBuffer.rewind();</code></pre>
+<h5>获取</h5>
+<p>翻转完了，就可以用get获取缓冲区数据了</p>
+<pre><code class="java">byte[] b= new byte[byteBuffer.limit()];
+byteBuffer.get(b);</code></pre>
+<p>当调用get时，会指出下一个元素应当被索引的位置，位置（position）返回时会+1s。如果指向的位置超过限制（limit），则抛出<code>BufferUnderFlowException</code>异常。如果提供的索引超过范围，也会抛出<code>IndexOutOfBoundsException</code>异常</p>
+<h5>释放</h5>
+<p>remaining可以告诉你从当前位置（position）到限制（limit）还剩的元素数目</p>
+<pre><code class="java">int count = byteBuffer.remaining();</code></pre>
+<p>clear将缓冲区重置为空状态</p>
+<pre><code class="java">byteBuffer.clear();</code></pre>
+<h5>压缩</h5>
+<p>如果我们只想从缓冲区中释放一部分数据，而不是全部，然后重新填充。为了实现这一点，未读的数据元素需要下移以使第一个元素索引为 0。尽管重复这样做会效率低下，但这有时非常必要，而 API 对此为您提供了一个 compact()函数。</p>
+<pre><code class="java">byteBuffer.compact();</code></pre>
+<h5>标记与重置</h5>
+<p>标记是一个索引，通过Buffer中的mark()方法指定Buffer中一个特定的position，之后可以通过调用reset()方法恢复到这个position。要知道缓冲区的标记在mark()函数被调用前时未定义的，如果标记未定义，调用reset()会导致<code>InvalidMarkException</code>异常</p>
+<pre><code class="java">byteBuffer.position(2).mark().position(4).reset();</code></pre>
+<p>要注意，java.nio中的类特意被设计为支持级联调用，优雅的使用级联调用，可以产生优美易读的代码。</p>
+<h4>直接缓冲区与非直接缓冲区</h4>
+<h5>非直接缓冲区</h5>
+<p>上面我们说了ByteBuffer，也就是缓冲区的用法，譬如用<code>allocate()</code> 方法指定缓冲区大小，然后进行填充或翻转操作等等等。我们所创建的缓冲区，都属于直接缓冲区。他们都是在JVM<strong>中</strong>内存中创建，在每次调用基础操作系统的一个本机IO之前或者之后，虚拟机都会将缓冲区的内容复制到中间缓冲区（或者从中间缓冲区复制内容），缓冲区的内容驻留在JVM内，因此销毁容易，但是占用JVM内存开销，处理过程中有复制操作。 </p>
+<p>非直接缓冲区写入步骤：</p>
+<p>1.创建一个临时的直接ByteBuffer对象。<br>2.将非直接缓冲区的内容复制到临时缓冲中。<br>3.使用临时缓冲区执行低层次I/O操作。<br>4.临时缓冲区对象离开作用域，并最终成为被回收的无用数据。</p>
+<pre><code class="java">/**
+ * @program: UndirectBuffer
+ * @description: 利用通道完成文件的复制(非直接缓冲区)
+ * @author: tEngSHe789
+ **/
+public class UndirectBuffer {
+    public static void main(String[] args) throws IOException {
+        // 创建流
+        FileInputStream fis = new FileInputStream("d://blog.md");
+        FileOutputStream fos = new FileOutputStream("d://blog.md");
+        //获取管道
+        FileChannel in = fis.getChannel();
+        FileChannel out = fos.getChannel();
+        // 分配指定大小的缓冲区
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        while (in.read(buffer) !=-1){
+            buffer.flip();// 准备读数据了
+            out.write(buffer);
+            buffer.clear();
+        }
+        out.close();
+        in.close();
+        fis.close();
+        fos.close();
+    }
+}</code></pre>
+<h5>直接缓冲区</h5>
+<p>直接缓冲区，是通过 <code>allocateDirect()</code> 方法在JVM内存<strong>外</strong>开辟内存，在每次调用基础<strong>操作系统</strong>的一个本机IO之前或者之后，虚拟机都会避免将缓冲区的内容复制到中间缓冲区（或者从中间缓冲区复制内容），缓冲区的内容驻留在<strong>物理内存</strong>内，会少一次复制过程，如果需要循环使用缓冲区，用直接缓冲区可以很大地提高性能。</p>
+<p>虽然直接缓冲区使JVM可以进行高效的I/O操作，但它使用的内存是操作系统分配的，绕过了JVM堆栈，建立和销毁比堆栈上的缓冲区要更大的开销。</p>
+<pre><code class="java">/**
+ * @program: DirectBuffer
+ * @description: 使用直接缓冲区完成文件的复制(内存映射文件)
+ * @author: tEngSHe789
+ **/
+public class DirectBuffer {
+    public static void main(String[] args) throws IOException {
+        //创建管道
+        FileChannel in=FileChannel.open(Paths.get("d://blog.md"),StandardOpenOption.READ);
+        FileChannel out=FileChannel.open(Paths.get("d://blog.md"),StandardOpenOption.WRITE
+                        ,StandardOpenOption.READ,StandardOpenOption.CREATE);
+        // 拿到将管道内容映射到内存的直接缓冲区映射文件（一个位置在硬盘的基于内存的缓冲区）
+        MappedByteBuffer inMappedByteBuffer = in.map(FileChannel.MapMode.READ_ONLY, 0, in.size());
+        MappedByteBuffer outMappedByteBuffer = out.map(FileChannel.MapMode.READ_WRITE, 0, in.size());
+        // 对直接缓冲区进行数据读写操作
+        byte[] bytes=new byte[inMappedByteBuffer.limit()];
+        inMappedByteBuffer.get(bytes);
+        outMappedByteBuffer.put(bytes);
+        in.close();
+        out.close();
+    }
+}</code></pre>
+<h5>直接缓冲区与非直接缓冲区的区别</h5>
+<ol>
+<li>字节缓冲区要么是直接的，要么是非直接的。如果为直接字节缓冲区，则 Java 虚拟机会尽最大努力直接在此缓冲区上执行本机 I/O 操作。也就是说，在每次调用基础操作系统的一个本机 I/O 操作之前（或之后），虚拟机都会尽量避免将缓冲区的内容复制到中间缓冲区中（或从中间缓冲区中复制内容）。</li>
+<li>直接字节缓冲区可以通过调用此类的 <code>allocateDirect()</code> 工厂方法来创建。此方法返回的缓冲区进行分配和取消分配所需成本通常高于非直接缓冲区。直接缓冲区的内容可以驻留在常规的垃圾回收堆之外，因此，它们对应用程序的内存需求量造成的影响可能并不明显。所以，建议将直接缓冲区主要分配给那些易受基础系统的本机 I/O 操作影响的大型、持久的缓冲区。一般情况下，最好仅在直接缓冲区能在程序性能方面带来明显好处时分配它们。</li>
+<li>直接字节缓冲区还可以通过 <code>FileChannel</code> 的 <code>map()</code> 方法 将文件区域直接映射到内存中来创建。该方法返回<code>MappedByteBuffer</code> 。 Java 平台的实现有助于通过 JNI 从本机代码创建直接字节缓冲区。如果以上这些缓冲区中的某个缓冲区实例指的是不可访问的内存区域，则试图访问该区域不会更改该缓冲区的内容，并且将会在访问期间或稍后的某个时间导致抛出不确定的异常。</li>
+<li>字节缓冲区是直接缓冲区还是非直接缓冲区可通过调用其 <code>isDirect()</code> 方法来确定。提供此方法是为了能够在性能关键型代码中执行显式缓冲区管理。</li>
+</ol>
+<h3>Channel</h3>
+<p>通道是java.nio的第二个创新，表示提供 IO 设备(例如：文件、套接字)的直接连接。</p>
+<p>若需要使用 NIO 系统，需要获取用于连接 IO 设备的通道以及用于容纳数据的缓冲区。然后操作缓冲区，对数据进行处理。这其中，Channel负责传输， Buffer 负责存储。</p>
+<p>通道是由java.nio.channels 包定义的，Channel 表示 IO 源与目标打开的连接。Channel 类似于传统的“流”。只不过 Channel本身不能直接访问数据， <strong>Channel 只能与Buffer 进行交互</strong>。</p>
+<h4>接口</h4>
+<p>java.nio.channels.Channel 接口：</p>
+<ul>
+<li>FileChannel</li>
+<li>SocketChannel</li>
+<li>ServerSocketChannel</li>
+<li>DatagramChannel</li>
+</ul>
+<p>与缓冲区不同，通道API主要由接口指定，不同操作系统上通道的实现会不一样</p>
+<h4>实现</h4>
+<p>直接缓冲区与非直接缓冲区的栗子</p>
+<h4>分散读取与聚集写入</h4>
+<p>通道可以有选择地实现两个新的接口： <code>ScatteringByteChannel</code> 和 <code>GatheringByteChannel</code>。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232327" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="1535700194601" title="1535700194601"></span></p>
+<p><code>ScatteringByteChannel</code> 有2个read方法，我们都叫她分散读取(scattering Reads)，分散读取中，通道依次填充每个缓冲区。填满一个缓冲区后，它就开始填充下一个。在某种意义上，缓冲区数组就像一个大缓冲区。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232328" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="1535700216940" title="1535700216940"></span></p>
+<p><code>GatheringByteChannel</code>中有2个wirte方法，我们都叫她聚集写入(gathering Writes)，他可以将多个缓冲区的数据聚集到通道中</p>
+<h5>分散读取与聚集写入的应用</h5>
+<p>分散读取/聚集写入对于将数据划分为几个部分很有用。例如，您可能在编写一个使用消息对象的网络应用程序，每一个消息被划分为固定长度的头部和固定长度的正文。您可以创建一个刚好可以容纳头部的缓冲区和另一个刚好可以容难正文的缓冲区。当您将它们放入一个数组中并使用分散读取来向它们读入消息时，头部和正文将整齐地划分到这两个缓冲区中。</p>
+<p>我们从缓冲区所得到的方便性对于缓冲区数组同样有效。因为每一个缓冲区都跟踪自己还可以接受多少数据，所以分散读取会自动找到有空间接受数据的第一个缓冲区。在这个缓冲区填满后，它就会移动到下一个缓冲区。</p>
+<h2>Python与NIO</h2>
+<p>服务端（具体见注释）</p>
+<pre><code class="python">from socket import *
+import time
+s=socket(AF_INET,SOCK_STREAM)
+s.bind(('127.0.0.1',8888))
+s.listen(5)
+s.setblocking(False) #设置socket的接口为非阻塞
+conn_l=[] # 存储和server的连接 的 连接
+del_l=[] # 存储和和server的断开 的 连接
+while True:
+    try:
+        # 这个过程是不阻塞的
+        conn,addr=s.accept() # 当没人连接的时候会报错，走exception（&lt;- py中是except）
+        conn_l.append(conn)
+    except BlockingIOError:
+        print(conn_l)
+        for conn in conn_l:
+            try:
+                data=conn.recv(1024)
+                if not data:
+                    del_l.append(conn)
+                # 这个过程是不阻塞的
+                data=conn.recv(1024) # 不阻塞
+                if not data: # 如果拿不到data
+                    del_l.append(conn) # 在废弃列表中添加conn
+                    continue
+                conn.send(data.upper())
+            except BlockingIOError:
+                pass
+            except ConnectionResetError:
+                del_l.append(conn)
+
+        for conn in del_l:
+            conn_l.remove(conn)
+            conn.close()
+        del_l=[]</code></pre>
+<p>客户端</p>
+<pre><code class="python">from socket import *
+c=socket(AF_INET,SOCK_STREAM)
+c.connect(('127.0.0.1',8888))
+
+while True:
+    msg=input('&gt;&gt;: ')
+    if not msg:continue
+    c.send(msg.encode('utf-8'))
+    data=c.recv(1024)
+    print(data.decode('utf-8'))</code></pre>
+<h1>IO复用(IO multiplexing)</h1>
+<p>I/O多路复用实际上就是用select, poll, epoll监听多个io对象，当io对象有变化（有数据）的时候就通知用户进程。有些地方也称这种IO方式为<strong>事件驱动IO</strong>(event driven IO)。与多进程和多线程技术相比，I/O多路复用技术的最大优势是系统开销小，系统不必创建进程/线程，也不必维护这些进程/线程，从而大大减小了系统的开销。当然具体的可以看看这篇<a href="https://www.cnblogs.com/jeakeven/p/5435916.html" rel="nofollow noreferrer">博客</a>，现在先来看下I/O多路复用的流程：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232329" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="IO复用" title="IO复用"></span></p>
+<p>（1）当用户进程调用了select，那么整个进程会被block；</p>
+<p>（2）而同时，kernel会“监视”所有select负责的socket；</p>
+<p>（3）当任何一个socket中的数据准备好了，select就会返回；</p>
+<p>（4）这个时候用户进程再调用read操作，将数据从kernel拷贝到用户进程。</p>
+<p>这个图和BIO的图其实并没有太大的不同，事实上还更差一些。因为这里需要使用两个系统调用(select和recvfrom)，而BIO只调用了一个系统调用(recvfrom)。但是，用select的优势在于它可以<strong>同时处理多个connection</strong>。</p>
+<h2>JAVA实现IO复用</h2>
+<p>这里我们使用的是java.nio下模块来完成I/O多路复用的例子。我用到的Selector（选择器），是Java NIO中能够检测一到多个NIO通道，并能够知晓通道是否为诸如读写事件做好准备的组件。这样，一个单独的线程可以管理多个channel，从而管理多个网络连接。</p>
+<h3>Selector的使用</h3>
+<h4>Selector的创建</h4>
+<pre><code class="java">Selector selector = Selector.open();</code></pre>
+<h4>向Selector注册通道</h4>
+<p>为了将Channel和Selector配合使用，必须将channel注册到selector上。通过SelectableChannel.register()方法来实现，如下：</p>
+<pre><code class="java">channel.configureBlocking(false);
+SelectionKey key = channel.register(selector,Selectionkey.OP_READ);</code></pre>
+<p>register()方法的第二个参数是一个“interest集合”，意思是在通过Selector监听Channel时对什么事件感兴趣。可以监听四种不同类型的事件：Connect、Accept、Read、Write</p>
+<p>通道触发了一个事件意思是该事件已经就绪。所以，某个channel成功连接到另一个服务器称为“连接就绪”。一个server socket channel准备好接收新进入的连接称为“接收就绪”。一个有数据可读的通道可以说是“读就绪”。等待写数据的通道可以说是“写就绪”。</p>
+<p>这四种事件用SelectionKey的四个常量来表示：</p>
+<ol>
+<li>SelectionKey.OP_CONNECT可连接</li>
+<li>SelectionKey.OP_ACCEPT可接受连接</li>
+<li>SelectionKey.OP_READ可读</li>
+<li>SelectionKey.OP_WRITE可写</li>
+</ol>
+<h4>SelectionKey</h4>
+<p>当向Selector注册Channel时，register()方法会返回一个SelectionKey对象。它包含了：</p>
+<ul>
+<li>interest集合</li>
+<li>ready集合</li>
+<li>Channel</li>
+<li>Selector</li>
+<li>附加的对象（可选）</li>
+</ul>
+<h5>interest集合</h5>
+<p>interest集合是你所选择的感兴趣的事件集合。可以通过SelectionKey读写interest集合，像这样：</p>
+<pre><code class="java">int interestSet = selectionKey.interestOps();
+
+boolean isInterestedInAccept  = (interestSet &amp; SelectionKey.OP_ACCEPT) == SelectionKey.OP_ACCEPT；
+boolean isInterestedInConnect = interestSet &amp; SelectionKey.OP_CONNECT;
+boolean isInterestedInRead    = interestSet &amp; SelectionKey.OP_READ;
+boolean isInterestedInWrite   = interestSet &amp; SelectionKey.OP_WRITE;</code></pre>
+<p>可以看到，用“位与”操作interest 集合和给定的SelectionKey常量，可以确定某个确定的事件是否在interest 集合中。</p>
+<h5>ready集合</h5>
+<p>ready 集合是通道已经准备就绪的操作的集合。在一次选择(Selection)之后，你会首先访问这个ready set。Selection将在下一小节进行解释。可以这样访问ready集合：</p>
+<pre><code class="java">int readySet = selectionKey.readyOps();</code></pre>
+<p>可以用像检测interest集合那样的方法，来检测channel中什么事件或操作已经就绪。但是，也可以使用以下四个方法，它们都会返回一个布尔类型：</p>
+<pre><code class="java">selectionKey.isAcceptable();
+selectionKey.isConnectable();
+selectionKey.isReadable();
+selectionKey.isWritable();</code></pre>
+<h4>从SelectionKey访问Channel和Selector</h4>
+<pre><code class="java">Channel  channel  = selectionKey.channel();
+Selector selector = selectionKey.selector();</code></pre>
+<h3>java代码</h3>
+<pre><code class="java">/**
+ * @program: NIOServer
+ * @description: 服务端
+ * @author: tEngSHe789
+ **/
+public class NIOServer {
+    public static void main(String[] args) throws IOException {
+        System.out.println("服务端Start....");
+        // 创建通道
+        ServerSocketChannel serverSocketChannel=ServerSocketChannel.open();
+        // 设置非阻塞
+        serverSocketChannel.configureBlocking(false);
+        // 绑定连接
+        serverSocketChannel.bind(new InetSocketAddress(8888));
+        // 获取选择器
+        Selector selector=Selector.open();
+        // 将通道注册到选择器
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        // 轮调式获取选择“已经准备就绪”的事件
+        while (selector.select() &gt; 0){
+            // 获取当前选择器的左右已经准备就绪的监听事件（选择key）
+            Iterator&lt;SelectionKey&gt; iterator=selector.selectedKeys().iterator();
+            while (iterator.hasNext()){
+                // 获取准备就绪事件
+                SelectionKey selectionKey=iterator.next();
+                // 判断具体是什么事件
+                if (selectionKey.isAcceptable()){//如果是“接受就绪”
+                    SocketChannel socketChannel=serverSocketChannel.accept();// 获取连接
+                    socketChannel.configureBlocking(false); // 设置非阻塞
+                    //将该通道注册到服务器上
+                    socketChannel.register(selector, SelectionKey.OP_READ);
+                }else if (selectionKey.isReadable()){//如是“已经就绪”
+                    SocketChannel socketChannel= (SocketChannel) selectionKey.channel();//获取连接
+                    //读数据
+                    ByteBuffer buffer=ByteBuffer.allocate(1024);
+                    int len = 0;
+                    //分散读取
+                    len=socketChannel.read(buffer);
+                    while (len &gt; 0){
+                        buffer.flip();
+                        System.out.println(new String(buffer.array(),0,len));
+                        buffer.clear();
+                    }
+                }
+                iterator.remove();
+            }
+        }
+    }
+}</code></pre>
+<h4>客户端：</h4>
+<pre><code class="java">/**
+ * @program: NIOClient
+ * @description: 客户端
+ * @author: tEngSHe789
+ **/
+public class NIOClient {
+    public static void main(String[] args) throws IOException {
+        System.out.println("客户端Start....");
+        // 创建通道
+        SocketChannel socketChannel=SocketChannel.open(new InetSocketAddress("127.0.0.1",8888));
+        // 设置SocketChannel接口为非阻塞
+        socketChannel.configureBlocking(false);
+        //指定缓冲区大小
+        ByteBuffer buffer=ByteBuffer.allocate(1024);
+        Scanner scanner=new Scanner(System.in);
+        while (scanner.hasNext()){
+            String msg = scanner.next();
+            // 存储
+            buffer.put((new Date().toString()+"\n"+msg).getBytes());
+            // 翻转
+            buffer.flip();
+            // 聚集写入
+            socketChannel.write(buffer);
+            // 释放
+            buffer.clear();
+        }
+        socketChannel.close();
+    }
+}</code></pre>
+<h2>python实现IO复用</h2>
+<p>对比java用的是Selector，可以帮我们在默认操作系统下选择最合适的select, poll, epoll这三种多路复合模型，python是通过一种机制一个进程能同时等待多个文件描述符，而这些文件描述符（套接字描述符）其中的<strong>任意一个进入读就绪状态</strong>，select()<strong>函数就可以返回</strong>。</p>
+<h3>服务端</h3>
+<pre><code class="python">from socket import *
+import select
+
+s=socket(AF_INET,SOCK_STREAM)
+s.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
+s.bind(('127.0.0.1',8888))
+s.listen(5)
+s.setblocking(False) #设置socket的接口为非阻塞
+read_l=[s,] # 数据可读通道的列表
+while True:
+    # 监听的read_l中的socket对象内部如果有变化，那么这个对象就会在r_l
+    # 第二个参数里有什么对象，w_l中就有什么对象
+    # 第三个参数 如果这里的对象内部出错，那会把这些对象加到x_l中
+    # 1 是超时时间
+    r_l,w_l,x_l=select.select(read_l,[],[],1)
+    print(r_l)
+    for ready_obj in r_l:
+        if ready_obj == s:
+            conn,addr=ready_obj.accept() #此时的ready_obj等于s
+            read_l.append(conn)
+        else:
+            try:
+                data=ready_obj.recv(1024) #此时的ready_obj等于conn
+                if not data:
+                    ready_obj.close()
+                    read_l.remove(ready_obj)
+                    raise Exception('连接断开')
+                ready_obj.send(data.upper())
+            except ConnectionResetError:
+                ready_obj.close()
+                read_l.remove(ready_obj)</code></pre>
+<h3>客户端</h3>
+<pre><code class="python">from socket import *
+c=socket(AF_INET,SOCK_STREAM)
+c.connect(('127.0.0.1',8888))
+
+while True:
+    msg=input('&gt;&gt;&gt;: ')
+    if not msg:continue
+    c.send(msg.encode('utf-8'))
+    data=c.recv(1024)
+    print(data.decode('utf-8'))</code></pre>
+<h1>AIO（asynchronous io）</h1>
+<p>真正的异步I/O很牛逼，流程大概如下：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232330" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="异步I/O" title="异步I/O"></span></p>
+<p>（1）用户进程发起read操作之后，立刻就可以开始去做其它的事。</p>
+<p>（2）而另一方面，从kernel的角度，当它受到一个asynchronous read之后，首先它会立刻返回，所以不会对用户进程产生任何block。</p>
+<p>（3）然后，kernel会等待数据准备完成，然后将数据拷贝到用户内存，当这一切都完成之后，kernel会给用户进程发送一个signal，告诉它read操作完成了。</p>
+<h2>Java</h2>
+<p>Java中使用AIO需要用到java.nio.channels.AsynchronousChannelGroup和java.nio.channels.AsynchronousServerSocketChannel的包，由于实际项目鲜有人用，就不演示了</p>
+<h1>总结</h1>
+<p>回顾一下各个IO Model的比较，如图所示：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000016232331" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="各个IO Model的比较" title="各个IO Model的比较"></span></p>
+<ul>
+<li>blocking io ：阻塞型io，再熟悉不过，处理accept、read、write都会阻塞用户进程</li>
+<li>non blocking io：当通过系统调用的时候，如果没有连接或者数据到达就直接返回一个错误，用户进程不阻塞但是不断的轮询。注意这个不是java nio框架中对应的网络模型</li>
+<li>io multiplexing：io多路复用才是nio对应的网络io模型。该模型对于用户进程也是阻塞的，优点是可以同时支持多个connetciotn。前三种都属于同步模式，既然都是同步的，如果要做到看似非阻塞，那么就需要轮询机制。相对于上一种模型，这种只是将轮询从用户进程转移到了操作系统内核，通过调用select函数，不断轮询多个connection是否ready，如果有一种ready好的，就通过事件通知用户进程，用户进程再通过事件来处理。所以在java的nio中会看到一大堆事件处理。这种模型的阻塞不是在socket层面的阻塞，而是在调动select函数的阻塞。而且相对于blocking io，还多了一次select的系统调用，其实性能会更低，所以在低吞吐量下，这种io不见得比bio+线程池的模型优越。</li>
+<li>sign driven：极少使用，不知道</li>
+<li>async io ：java7时候开始升级，也成为nio2。实现了异步的io。前三种都是通过用户进程在主动获取（bio的阻塞，nbio的轮询和iomult的按事件获取），而aio交互很简单，用户进程调用后立即返回，用户进程不阻塞，内核当完成网络io和数据复制后，主动通知用户进程。前面说到的系统内核做的操作，除了等待网络io就绪数据到达内核，还有从系统内核复制用户空间去的过程，异步io这两者对于用户进程而言都是非阻塞的，而前三种，在数据从内核复制到用户空间这个过程，都是阻塞的。</li>
+</ul>
+<h1>参考资料</h1>
+<p>前言说的那本书</p>
+<p>Ron Hitchens于2002年 著的《java nio》</p>
+<p><a href="https://www.cnblogs.com/findumars/p/6361627.html" rel="nofollow noreferrer">findumars</a></p>
+<p><a href="https://www.cnblogs.com/dongguacai/p/5770287.html" rel="nofollow noreferrer">冬瓜蔡</a></p>
+<p><a href="https://www.cnblogs.com/otherside/p/5605471.html" rel="nofollow noreferrer">彼岸船夫 </a></p>
+<p><a href="https://blog.csdn.net/qq_33804730/article/details/79171188" rel="nofollow noreferrer">NIO的/分散读取和聚集写入</a></p>
+<p><a href="https://ifeve.com/selectors/" rel="nofollow noreferrer">并发编程网</a></p>
+<p>感谢</p>
+<h3>续1s时间</h3>
+<p>全片结束，觉得我写的不错？想要了解更多精彩新姿势？赶快打开我的👉个人<a href="https://blog.tengshe789.tech/" rel="nofollow noreferrer">博客</a> 👈吧！</p>
+<p>本文地址<a href="https://blog.tengshe789.tech/2018/08/25/IO%E6%A8%A1%E5%9E%8B/#more" rel="nofollow noreferrer">https://blog.tengshe789.tech/...</a>，部分觉得比较用心的会同步到掘金，简书，谢谢你那么可爱，还一直关注着我~❤😝</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000016232318"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="如何用Java与python代码解释IO模型"
+ data-url="https://segmentfault.com/a/1190000016232318" data-shorturl="http://sfau.lt/b5bggVK"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000016232318"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000016232318"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">0</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000016232318" data-user-id="" data-author-id="1030000015572681 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000016232318/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181116.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181116.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542363284000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _NMOxS = 'cc3'//'agk'
++'379'//'1'
++''///*'D'*/'D'
++//'Y'
+'b8'+'f'//'tf'
++//'HX'
+'fb'+'0'//'0'
++'18a'//'y5'
++'R'//'R'
++'b5'//'L4'
++'5'//'iN'
++'324'//'ac'
++''///*'B'*/'B'
++//'M'
+'7'+//'qY'
+'f9'+'41'//'L'
++//'9wL'
+'ae7'+//'CYq'
+'89'+'68'//'q'
+, _eU3RK2 = [[11,12],[14,15]];
+
+    for (var i = 0; i < _eU3RK2.length; i ++) {
+        _NMOxS = _NMOxS.substring(0, _eU3RK2[i][0]) + _NMOxS.substring(_eU3RK2[i][1]);
+    }
+
+    return _NMOxS;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u5982\u4f55\u7528Java\u4e0epython\u4ee3\u7801\u89e3\u91caIO\u6a21\u578b","desc":"\u524d\u5929\u521a\u597d\u770b\u4e86\u70b9\u300aUNIX\u7f51\u7edc\u7f16\u7a0b\u300b\uff0c\u6bd4\u8f83\u5934\u5927\u3002\u73b0\u5728\u6211\u6765\u6574\u7406\u4e00\u4e0b\u6240\u5b66\u6240\u5f97\uff0c\u5e76\u7528\u4e8e\u4e2a\u4eba\u5907\u5fd8\u3002\u5982\u679c\u6709\u4e0d\u5bf9\uff0c\u8bf7\u6279\u8bc4\u3002","link":"https:\/\/segmentfault.com\/a\/1190000016232318","imgUrl":"https:\/\/segmentfault.com\/img\/remote\/1460000016232321?w=720&amp;h=204"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542363284,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

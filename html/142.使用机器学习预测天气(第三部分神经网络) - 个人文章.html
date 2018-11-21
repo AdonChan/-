@@ -1,0 +1,1240 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>使用机器学习预测天气(第三部分神经网络) - 个人文章 - SegmentFault 思否</title><meta name="description" content="这是使用机器学习预测平均气温系列文章的最后一篇文章了，作为最后一篇文章，我将使用google的开源机器学习框架tensorflow来构建一个神经网络回归器。关于tensorflow的介绍、安装、入门，请自己google，这里就不..."/><meta name="keywords" content="天气预报api,神经网络,机器学习,python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=天气预报api,神经网络,机器学习,python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000012777140" class="hidden" />
+
+<div class="wrap" data-blogid="">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="xiaochao"
+                                         data-userslug="xiaochao"
+                                         data-useravatar="https://avatar-static.segmentfault.com/253/681/2536812374-547c3da69fd14_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/xiaochao">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/253/681/2536812374-547c3da69fd14_big64" alt="xiaochao">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/xiaochao" class="mr5 "><strong>xiaochao</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">1.5k</span>
+
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                            <button type="button"
+                                                                class="btn btn-xs btn-success follow-user"
+                                                                data-do="follow"
+                                                                data-type="user"
+                                                                data-id="1030000000458753">关注作者
+                                                        </button>
+                                                                                                                                                    </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-01-10 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000012777140">
+                                            <a href="/a/1190000012777140"> 使用机器学习预测天气(第三部分神经网络)</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E5%A4%A9%E6%B0%94%E9%A2%84%E6%8A%A5api/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="天气预报api"
+                                                                                data-id="1040000002607869">
+                                                                                                                      天气预报api
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="神经网络"
+                                                                                data-id="1040000000636902">
+                                                                                                                      神经网络
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="机器学习"
+                                                                                data-id="1040000000089788">
+                                                                                                                      机器学习
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                2.9k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 51 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">3</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000012777140" data-license="">
+                    
+<h3>概述</h3>
+<p>  这是使用机器学习预测平均气温系列文章的最后一篇文章了，作为最后一篇文章，我将使用google的开源机器学习框架tensorflow来构建一个神经网络回归器。关于tensorflow的介绍、安装、入门，请自己google，这里就不做讲述。</p>
+<p>  这篇文章我主要讲解一下几点：</p>
+<ul>
+<li>了解人工神经网络理论</li>
+<li>tensorflow高级API:Estimators</li>
+<li>构建DNN模型预测天气</li>
+</ul>
+<h3>人工神经网络基础理论</h3>
+<p>  上一篇文章主要讲解了如何构建线性回归模型(这是最基础的机器学习算法)来预测内布拉斯加州林肯市每天的平均气温。线性回归模型非常有效，并且可以被用于数值化(比如分类)、预测(比如预测天气)。线性回归算法也比较与局限性，它要求数据之间具有线性关系。<br>  针对于非线性关系的场景，数据挖掘和机器学习有数不清的算法来处理。近些年最火的要数神经网络算法了，它可以处理机器学习领域的好多问题。神经网络算法具备线性和非线性学习算法的能力。<br>  神经网络受到大脑中的生物神经元的启发，它们在复杂的交互网络中工作，根据已经收集的信息的历史来传输，收集和学习信息。我们感兴趣的计算神经网络类似于大脑的神经元，因为它们是接收输入信号（数字量）的神经元（节点）的集合，处理输入并将处理后的信号发送给其他下游代理 网络。 信号作为通过神经网络的数字量的处理是一个非常强大的特征，不限于线性关系。<br>  在这个系列中，我一直关注一种称为监督学习的特定类型的机器学习，也就说说训练的数据结果是已知的，根据历史已知的输入和输出，预测未来的输入对应的输出。 此外，预测的类型是数值的真实值，这意味着我们使用的是回归预测算法。<br>  从图形上看，类似于本文中描述的神经网络如图:<br><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000012777143?w=1462&amp;h=1014" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span><br>上面描述的神经网络在最左边包含一个输入层，即图中的x1和x2，这两个特征是神经网络输入值。这两个特征被输入到神经网络中，通过被称为隐藏层的两层神经元进行处理和传输。这个描述显示了两个隐藏层，每层包含三个神经元（节点）。 该信号然后离开神经网络，并作为单个数值预测值汇总在输出层。<br>  让我花一点时间来解释箭头背后的含义，箭头表示数据在层间从一个节点到另一个节点的传输处理。 每个箭头代表一个数值的数学变换，从箭头的底部开始，然后乘以特定于该路径特定的权重。 一个图层中的每个节点将以这种方式得到一个值。 然后汇总所有在节点收敛的值。 这个就是我之前提到的神经网络的线性操作。<br><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000012777144?w=1106&amp;h=606" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span><br>  在每个节点上进行求和之后，将一个特殊的非线性函数应用到总和上，这在上面的图像中被描述为Fn（...）。 这种将非线性特征引入神经网络的特殊功能称为激活功能。 激活函数所带来的这种非线性特性赋予了多层神经网络以其功能。 如果不是将非线性加入到过程中，则所有层都将有效地代数地组合成一个常数运算，其中包括将输入乘以某个平坦系数值（即线性模型）。<br>好吧，这一切都很好，但是这怎么转化为学习算法呢？ 那么最直接的答案就是评估正在进行的预测，即模型“y”的输出，到实际预期值（目标），并对权重进行一系列调整，以改善整体 预测准确性。<br>  在回归机器学习算法的世界中，通过使用成本（又名“损失”或“客观”）函数（即平方误差之和（SSE））评估准确性。 请注意，我把这个声明推广到整个机器学习的连续体，而不仅仅是神经网络。 在前面的文章中，普通最小二乘算法完成了这一工作，它发现了使误差平方和（即最小二乘）最小化的系数组合。<br>  我们的神经网络回归器会做同样的事情。 它将迭代训练数据提取特征值，计算成本函数（使用SSE），并以最小化成本函数的方式调整权重。 通过算法迭代推送特征的过程和评估如何根据成本函数来调整权重。<br>  模型优化算法在构建鲁棒神经网络中非常重要。 例如通过网络体系结构（即宽度和深度）馈送，然后根据成本函数进行评估，调整权重。 当优化器函数确定权重调整不会导致成本函数计算代价的变化，该模型被认为是“学习”。</p>
+<h3>TensorFlow Estimator API</h3>
+<p>  tensorflow由好几个部分组成，其中最常用的是Core API,它为用户提供了一套低级别的API来定义和训练使用符号操作的任何机器学习算法。这也是TensorFlow的核心功能，虽然Core API能应对大多数的应用场景，但我更关注Estimator API。<br>  TensorFlow团队开发了Estimator API，使日常开发人员可以更方便地使用该库。这个API提供了训练模型、评估模型、以及和Sci-Kit库相似的对未知数据的预测接口，这是通过实现各种算法的通用接口来实现的。另外，构建在高级API中的是机器学习最佳实践，抽象和可伸缩性的负载。<br>  所有这些机器学习的优点使得基础Estimator类中实现的一套工具以及多个预先封装的模型类型，降低了使用TensorFlow的入门门槛，因此可以应用于日常问题。通过抽象出诸如编写训练循环或处理会话之类的问题，开发人员能够专注于更重要的事情，如快速尝试多个模型和模型架构，以找到最适合他们需要的模型。<br>  在这篇文章中，我将介绍如何使用非常强大的深度神经网络估计器之一DNN Regressor。</p>
+<h3>建立一个DNNRegressor来预测天气</h3>
+<p>  我们先导入一些我们需要用到的库。</p>
+<pre><code class="python">import pandas as pd  
+import numpy as np  
+import tensorflow as tf  
+from sklearn.metrics import 
+explained_variance_score, \  
+    mean_absolute_error, \
+    median_absolute_error
+from sklearn.model_selection import train_test_split  </code></pre>
+<p>我们来处理一下数据，所有的数据我都放在了Github上，大家可以去查阅clone。</p>
+<pre><code class="python"># read in the csv data into a pandas data frame and set the date as the index
+df = pd.read_csv('end-part2_df.csv').set_index('date')
+
+# execute the describe() function and transpose the output so that it doesn't overflow the width of the screen
+df.describe().T  </code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000012777145?w=1632&amp;h=1844" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span><br><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000012777146?w=1630&amp;h=892" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<pre><code class="python"># execute the info() function
+df.info()
+&lt;class 'pandas.core.frame.DataFrame'&gt;  
+Index: 997 entries, 2015-01-04 to 2017-09-27  
+Data columns (total 39 columns):  
+meantempm          997 non-null int64  
+maxtempm           997 non-null int64  
+mintempm           997 non-null int64  
+meantempm_1        997 non-null float64  
+meantempm_2        997 non-null float64  
+meantempm_3        997 non-null float64  
+meandewptm_1       997 non-null float64  
+meandewptm_2       997 non-null float64  
+meandewptm_3       997 non-null float64  
+meanpressurem_1    997 non-null float64  
+meanpressurem_2    997 non-null float64  
+meanpressurem_3    997 non-null float64  
+maxhumidity_1      997 non-null float64  
+maxhumidity_2      997 non-null float64  
+maxhumidity_3      997 non-null float64  
+minhumidity_1      997 non-null float64  
+minhumidity_2      997 non-null float64  
+minhumidity_3      997 non-null float64  
+maxtempm_1         997 non-null float64  
+maxtempm_2         997 non-null float64  
+maxtempm_3         997 non-null float64  
+mintempm_1         997 non-null float64  
+mintempm_2         997 non-null float64  
+mintempm_3         997 non-null float64  
+maxdewptm_1        997 non-null float64  
+maxdewptm_2        997 non-null float64  
+maxdewptm_3        997 non-null float64  
+mindewptm_1        997 non-null float64  
+mindewptm_2        997 non-null float64  
+mindewptm_3        997 non-null float64  
+maxpressurem_1     997 non-null float64  
+maxpressurem_2     997 non-null float64  
+maxpressurem_3     997 non-null float64  
+minpressurem_1     997 non-null float64  
+minpressurem_2     997 non-null float64  
+minpressurem_3     997 non-null float64  
+precipm_1          997 non-null float64  
+precipm_2          997 non-null float64  
+precipm_3          997 non-null float64  
+dtypes: float64(36), int64(3)  
+memory usage: 311.6+ KB  </code></pre>
+<p>  请注意，我们刚刚记录下了1000个气象数据记录，并且所有的特征都是数字性质的。 另外，由于我们在第一篇文章中的努力工作，所有记录都是完整的，因为它们不缺少任何值（没有非空值）。<br>  现在我将删除“mintempm”和“maxtempm”这两列，因为它们对帮助我们预测平均温度毫无意义。 我们正在试图预测未来，所以我们显然不能掌握有关未来的数据。 我还将从目标（y）中分离出特征（X）。</p>
+<pre><code class="python"># First drop the maxtempm and mintempm from the dataframe
+df = df.drop(['mintempm', 'maxtempm'], axis=1)
+
+# X will be a pandas dataframe of all columns except meantempm
+X = df[[col for col in df.columns if col != 'meantempm']]
+
+# y will be a pandas series of the meantempm
+y = df['meantempm']  </code></pre>
+<p>  和所有监督机器学习应用程序一样，我将把我的数据集分成训练集和测试集。 但是，为了更好地解释训练这个神经网络的迭代过程，我将使用一个额外的数据集，我将其称为“验证集合”。 对于训练集，我将利用80％的数据，对于测试和验证集，它们将分别为剩余数据的10％。为了分解这些数据，我将再次使用Scikit Learn 库的train_test_split（）函数。</p>
+<pre><code class="python"># split data into training set and a temporary set using sklearn.model_selection.traing_test_split
+X_train, X_tmp, y_train, y_tmp = train_test_split(X, y, test_size=0.2, random_state=23)  
+# take the remaining 20% of data in X_tmp, y_tmp and split them evenly
+X_test, X_val, y_test, y_val = train_test_split(X_tmp, y_tmp, test_size=0.5, random_state=23)
+
+X_train.shape, X_test.shape, X_val.shape  
+print("Training instances   {}, Training features   {}".format(X_train.shape[0], X_train.shape[1]))  
+print("Validation instances {}, Validation features {}".format(X_val.shape[0], X_val.shape[1]))  
+print("Testing instances    {}, Testing features    {}".format(X_test.shape[0], X_test.shape[1]))  
+Training instances   797, Training features   36  
+Validation instances 100, Validation features 36  
+Testing instances    100, Testing features    36  </code></pre>
+<p>构建神经网络模型时要采取的第一步是实例化tf.estimator.DNNRegressor（）类。类的构造函数有多个参数，但我将重点关注以下参数：</p>
+<ul>
+<li>feature_columns：一种类似列表的结构，包含要输入到模型中的要素的名称和数据类型的定义</li>
+<li>hidden_​​units：一个类似列表的结构，包含神经网络数量宽度和深度的定义</li>
+<li>optimizer：tf.Optimizer子类的一个实例，在训练期间优化模型的权重;它的默认值是AdaGrad优化器。</li>
+<li>activation_fn：激活功能，用于在每一层向网络引入非线性;默认是ReLU</li>
+<li>model_dir：要创建的目录，其中包含模型的元数据和其他检查点保存</li>
+</ul>
+<p>我将首先定义一个数字特征列的列表。要做到这一点，我使用tf.feature_column.numeric_column（）函数返回一个FeatureColumn实例。</p>
+<pre><code class="python">feature_cols = [tf.feature_column.numeric_column(col) for col in X.columns] </code></pre>
+<p>  使用定义的特性列，我现在可以实例化DNNRegressor类并将其存储在回归变量中。 我指定我想要一个有两层深度的神经网络，其中两层的宽度都是50个节点。 我还指出，我希望我的模型数据存储在一个名为tf_wx_model的目录中。</p>
+<pre><code class="python">regressor = tf.estimator.DNNRegressor(feature_columns=feature_cols,  
+                                      hidden_units=[50, 50],
+                                      model_dir='tf_wx_model')
+INFO:tensorflow:Using default config.  
+INFO:tensorflow:Using config: {'_tf_random_seed': 1, '_save_checkpoints_steps': None, '_save_checkpoints_secs': 600, '_model_dir': 'tf_wx_model', '_log_step_count_steps': 100, '_keep_checkpoint_every_n_hours': 10000, '_save_summary_steps': 100, '_keep_checkpoint_max': 5, '_session_config': None}  </code></pre>
+<p>接下来我想要做的是定义一个可重用的函数，这个函数通常被称为“输入函数”，我将调用wx_input_fn（）。 这个函数将被用来在训练和测试阶段将数据输入到我的神经网络中。有许多不同的方法来建立输入函数，但我将描述如何定义和使用一个基于tf.estimator.inputs.pandas_input_fn（），因为我的数据是在一个pandas数据结构。</p>
+<pre><code class="python">def wx_input_fn(X, y=None, num_epochs=None, shuffle=True, batch_size=400):  
+    return tf.estimator.inputs.pandas_input_fn(x=X,
+                                               y=y,
+                                               num_epochs=num_epochs,
+                                               shuffle=shuffle,
+                                               batch_size=batch_size)</code></pre>
+<p>  请注意，这个wx_input_fn（）函数接受一个必选参数和四个可选参数，然后将这些参数交给TensorFlow输入函数，专门用于返回的pandas数据。 这是TensorFlow API一个非常强大的功能。函数的参数定义如下：</p>
+<ul>
+<li>X：输入要输入到三种DNNRegressor接口方法中的一种（训练，评估和预测）</li>
+<li>y：X的目标值，这是可选的，不会被提供给预测调用</li>
+<li>num_epochs：可选参数。 当算法在整个数据集上执行一次时，就会出现一个新纪元。</li>
+<li>shuffle：可选参数，指定每次执行算法时是否随机选择数据集的批处理（子集）</li>
+<li>batch_size：每次执行算法时要包含的样本数</li>
+</ul>
+<p>  通过定义我们的输入函数，我们现在可以训练我们基于训练数据集上的神经网络。 对于熟悉TensorFlow高级API的读者，您可能会注意到我对自己的模型的培训方式有点不合常规。至少从TensorFlow网站上的当前教程和网络上的其他教程的角度来看。通常情况下，您将看到如下所示的内容。</p>
+<pre><code class="python">regressor.train(input_fn=input_fn(training_data, num_epochs=None, shuffle=True), steps=some_large_number)
+
+.....
+lots of log info  
+....</code></pre>
+<p>然后，作者将直接展示evaluate（）函数，并且几乎没有提示它在做什么或为什么存在这一行代码。</p>
+<pre><code class="python">regressor.evaluate(input_fn=input_fn(eval_data, num_epochs=1, shuffle=False), steps=1)
+
+.....
+less log info  
+....</code></pre>
+<p>在此之后，假设所有的训练模型都是完美的，他们会直接跳到执行predict()函数。</p>
+<pre><code class="python">predictions = regressor.predict(input_fn=input_fn(pred_data, num_epochs=1, shuffle=False), steps=1)  </code></pre>
+<p>  我希望能够提供一个合理的解释，说明如何训练和评估这个神经网络，以便将这个模型拟合或过度拟合到训练数据上的风险降到最低。因此，我们不再拖延，让我定义一个简单的训练循环，对训练数据进行训练，定期对评估数据进行评估。</p>
+<pre><code class="python">evaluations = []  
+STEPS = 400  
+for i in range(100):  
+    regressor.train(input_fn=wx_input_fn(X_train, y=y_train), steps=STEPS)
+    evaluations.append(regressor.evaluate(input_fn=wx_input_fn(X_val,
+                                                               y_val,
+                                                               num_epochs=1,
+                                                               shuffle=False)))
+INFO:tensorflow:Create CheckpointSaverHook.  
+INFO:tensorflow:Saving checkpoints for 1 into tf_wx_model/model.ckpt.  
+INFO:tensorflow:step = 1, loss = 1.11335e+07  
+INFO:tensorflow:global_step/sec: 75.7886  
+INFO:tensorflow:step = 101, loss = 36981.3 (1.321 sec)  
+INFO:tensorflow:global_step/sec: 85.0322  
+... A WHOLE LOT OF LOG OUTPUT ...
+INFO:tensorflow:step = 39901, loss = 5205.02 (1.233 sec)  
+INFO:tensorflow:Saving checkpoints for 40000 into tf_wx_model/model.ckpt.  
+INFO:tensorflow:Loss for final step: 4557.79.  
+INFO:tensorflow:Starting evaluation at 2017-12-05-13:48:43  
+INFO:tensorflow:Restoring parameters from tf_wx_model/model.ckpt-40000  
+INFO:tensorflow:Evaluation [1/1]  
+INFO:tensorflow:Finished evaluation at 2017-12-05-13:48:43  
+INFO:tensorflow:Saving dict for global step 40000: average_loss = 10.2416, global_step = 40000, loss = 1024.16  
+INFO:tensorflow:Starting evaluation at 2017-12-05-13:48:43  
+INFO:tensorflow:Restoring parameters from tf_wx_model/model.ckpt-40000  
+INFO:tensorflow:Finished evaluation at 2017-12-05-13:48:43  
+INFO:tensorflow:Saving dict for global step 40000: average_loss = 10.2416, global_step = 40000, loss = 1024.16  </code></pre>
+<p>  上面的循环迭代了100次。 在循环体中，我调用了回归器对象的train（）方法，并将其传递给了我的可重用的wx_input_fn（），后者又通过了我的训练功能集和目标。 我有意地将默认参数num_epochs等于None，基本上这样说：“我不在乎你通过训练集多少次，只是继续训练算法对每个默认batch_size 400”（大约一半的训练 组）。 我还将shuffle参数设置为默认值True，以便在训练时随机选择数据以避免数据中的任何顺序关系。 train（）方法的最后一个参数是我设置为400的步骤，这意味着训练集每个循环将被批处理400次。<br>  这给了我一个很好的时间以更具体的数字来解释一个epoch的意义。 回想一下，当一个训练集的所有记录都通过神经网络训练一次时，就会出现一个epoch。 所以，如果我们的训练集中有大约800（准确的说是797）个记录，并且每个批次选择400个，那么每两个批次我们就完成了一个时间。 因此，如果我们遍历整个训练集100个迭代400个步骤，每个批次大小为400（每个批次的一个半个时间），我们得到：</p>
+<pre><code class="python">(100 x 400 / 2) = 20,000 epochs</code></pre>
+<p>  现在你可能想知道为什么我为循环的每次迭代执行和evaluate()方法，并在列表中捕获它的输出。 首先让我解释一下每次train()方法被触发时会发生什么。它随机选择一批训练记录，并通过网络推送，直到做出预测，并为每条记录计算损失函数。 然后根据计算出的损失根据优化器的逻辑调整权重，这对于减少下一次迭代的整体损失的方向做了很好的调整。 一般而言，只要学习速率足够小，这些损失值随着时间的推移而逐渐下降。<br>  然而，经过一定数量的这些学习迭代之后，权重开始不仅受到数据整体趋势的影响，而且还受到非实际的噪声在所有实际数据中的继承。 在这一点上，网络受到训练数据特性的过度影响，并且变得无法推广关于总体数据的预测。这与我之前提到的高级TensorFlow API许多其他教程不足之处有关。 在训练期间周期性地打破这一点非常重要，并评估模型如何推广到评估或验证数据集。 通过查看第一个循环迭代的评估输出，让我们花些时间看看evaluate()函数返回的结果。</p>
+<pre><code class="python">evaluations[0]  
+{'average_loss': 31.116383, 'global_step': 400, 'loss': 3111.6382}</code></pre>
+<p>正如你所看到的，它输出的是平均损失（均方误差）和训练中的步骤的总损失（平方误差和），这一步是第400步。 在训练有素的网络中，你通常会看到一种趋势，即训练和评估损失或多或少地平行下降。 然而，在某个时间点的过度配置模型中，实际上在过拟合开始出现的地方，验证训练集将不再看到其evaluate()方法的输出降低。 这是你想停止进一步训练模型的地方，最好是在变化发生之前。<br>  现在我们对每个迭代都有一个评估集合，让我们将它们作为训练步骤的函数来绘制，以确保我们没有过度训练我们的模型。 为此，我将使用matplotlib的pyplot模块中的一个简单的散点图。</p>
+<pre><code class="python">import matplotlib.pyplot as plt  
+%matplotlib inline
+
+# manually set the parameters of the figure to and appropriate size
+plt.rcParams['figure.figsize'] = [14, 10]
+
+loss_values = [ev['loss'] for ev in evaluations]  
+training_steps = [ev['global_step'] for ev in evaluations]
+
+plt.scatter(x=training_steps, y=loss_values)  
+plt.xlabel('Training steps (Epochs = steps / 2)')  
+plt.ylabel('Loss (SSE)')  
+plt.show()  </code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000012777147?w=1714&amp;h=1180" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<p>  从上面的图表看来，在所有这些迭代之后，我并没有过度配置模型，因为评估损失从来没有呈现出朝着增加价值的方向的显着变化。现在，我可以安全地继续根据我的剩余测试数据集进行预测，并评估模型如何预测平均天气温度。<br>  与我已经演示的其他两种回归方法类似，predict()方法需要input_fn，我将使用可重用的wx_input_fn()传递input_fn，将测试数据集交给它，将num_epochs指定为None，shuffle为False，因此它将依次送入所有的数据进行测试。<br>  接下来，我做一些从predict()方法返回的dicts迭代的格式，以便我有一个numpy的预测数组。然后，我使用sklearn方法explain_variance_score()，mean_absolute_error()和median_absolute_error()来预测数组，以测量预测与已知目标y_test的关系。</p>
+<pre><code class="python">pred = regressor.predict(input_fn=wx_input_fn(X_test,  
+                                              num_epochs=1,
+                                              shuffle=False))
+predictions = np.array([p['predictions'][0] for p in pred])
+
+print("The Explained Variance: %.2f" % explained_variance_score(  
+                                            y_test, predictions))  
+print("The Mean Absolute Error: %.2f degrees Celcius" % mean_absolute_error(  
+                                            y_test, predictions))  
+print("The Median Absolute Error: %.2f degrees Celcius" % median_absolute_error(  
+                                            y_test, predictions))
+INFO:tensorflow:Restoring parameters from tf_wx_model/model.ckpt-40000  
+The Explained Variance: 0.88  
+The Mean Absolute Error: 3.11 degrees Celcius  
+The Median Absolute Error: 2.51 degrees Celcius  </code></pre>
+<p>我已经使用了与上一篇文章有关的线性回归技术相同的指标，以便我们不仅可以评估这个模型，还可以对它们进行比较。 正如你所看到的，这两个模型的表现相当类似，更简单的线性回归模型略好一些。然而，你可以通过修改学习速率，宽度和深度等参数来优化机器学习模型。</p>
+<h3>总结</h3>
+<p>  本文演示了如何使用TensorFlow高级API Estimator子类DNNRegressor。并且，我也描述了神经网络理论，他们是如何被训练的，以及在过程中认识到过度拟合模型的危险性的重要性。<br>  为了演示这个建立神经网络的过程，我建立了一个模型，能够根据本系列第一篇文章收集的数字特征预测第二天的平均温度。写这些文章的目的不是为了建立一个非常好的模型预测天气，我的目标是：</p>
+<ul>
+<li>演示从数据收集，数据处理，探索性数据分析，模型选择，模型构建和模型评估中进行分析（机器学习，数据科学，无论...）项目的一般过程。</li>
+<li>演示如何使用两个流行的Python库StatsModels和Scikit Learn来选择不违反线性回归技术关键假设的有意义的功能。</li>
+<li>演示如何使用高级别的TensorFlow API，并直观地了解所有这些抽象层下正在发生的事情。</li>
+<li>讨论与过度拟合模型相关的问题。</li>
+<li>解释试验多个模型类型以最好地解决问题。</li>
+</ul>
+<h3>相关文章</h3>
+<p><a href="http://www.bugcode.cn/mlweatherpart02.html" rel="nofollow noreferrer">使用机器学习预测天气第二部分</a><br><a href="http://www.bugcode.cn/mlweatherpart01.html" rel="nofollow noreferrer">使用机器学习预测天气第一部分</a><br><a href="http://stackabuse.com/using-machine-learning-to-predict-the-weather-part-3/" rel="nofollow noreferrer">英文原文</a></p>
+<h3><a href="http://www.bugcode.cn" rel="nofollow noreferrer">来获取我更多有趣的博文</a></h3>
+<ul><li>原文地址:<a href="http://www.bugcode.cn/mlweatherpart03.html" rel="nofollow noreferrer">http://www.bugcode.cn/mlweath...</a>
+</li></ul>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000012777140"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="使用机器学习预测天气(第三部分神经网络)"
+ data-url="https://segmentfault.com/a/1190000012777140" data-shorturl="http://sfau.lt/b51L44"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000012777140"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">3 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000012777140"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">5</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000012777140" data-user-id="" data-author-id="1030000000458753 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">1 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000013982489">
+            <div class="pull-left">
+                <a href="/u/jishenzhiyu" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000013982489" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/jishenzhiyu">寂深之域</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  3月26日</span>
+                </div>
+
+                <div class="fmt mb10"><p>求github地址~</p></div>
+
+                <form action="/api/comment/1050000013982489/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >求github地址~</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000012777140/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542604827000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _PM4 = '1'//'l'
++'9d'//'u7'
++//'zT'
+'zT'+//'u70'
+'4f'+''///*'I3'*/'I3'
++'af'//'Q'
++//'P'
+'P'+//'4Zh'
+'8'+'61'//'Qm'
++'3'//'5'
++//'l'
+'6f'+//'y'
+'a3'+'f'//'pnn'
++//'DMe'
+'81'+'H'//'H'
++//'E'
+'E'+//'mzl'
+'a'+'527'//'nx'
++//'eqL'
+'eqL'+''///*'O'*/'O'
++/* 'gv8'//'gv8' */''+'d'//'QrF'
++'fa'//'4Yt'
++//'t'
+'f29'+//'Z'
+'253'+//'r'
+'8', _JyYcS = [[3,5],[7,8],[18,19],[18,19],[22,25]];
+
+    for (var i = 0; i < _JyYcS.length; i ++) {
+        _PM4 = _PM4.substring(0, _JyYcS[i][0]) + _PM4.substring(_JyYcS[i][1]);
+    }
+
+    return _PM4;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u4f7f\u7528\u673a\u5668\u5b66\u4e60\u9884\u6d4b\u5929\u6c14(\u7b2c\u4e09\u90e8\u5206\u795e\u7ecf\u7f51\u7edc)","desc":"\u8fd9\u662f\u4f7f\u7528\u673a\u5668\u5b66\u4e60\u9884\u6d4b\u5e73\u5747\u6c14\u6e29\u7cfb\u5217\u6587\u7ae0\u7684\u6700\u540e\u4e00\u7bc7\u6587\u7ae0\u4e86\uff0c\u4f5c\u4e3a\u6700\u540e\u4e00\u7bc7\u6587\u7ae0\uff0c\u6211\u5c06\u4f7f\u7528google\u7684\u5f00\u6e90\u673a\u5668\u5b66\u4e60\u6846\u67b6tensorflow\u6765\u6784\u5efa\u4e00\u4e2a\u795e\u7ecf\u7f51\u7edc\u56de\u5f52\u5668\u3002\u5173\u4e8etensorflow\u7684\u4ecb\u7ecd\u3001\u5b89\u88c5\u3001\u5165\u95e8\uff0c\u8bf7\u81ea\u5df1google\uff0c\u8fd9\u91cc\u5c31\u4e0d...","link":"https:\/\/segmentfault.com\/a\/1190000012777140","imgUrl":"https:\/\/segmentfault.com\/img\/remote\/1460000012777143?w=1462&amp;h=1014"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542604827,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

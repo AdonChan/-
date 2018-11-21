@@ -1,0 +1,1339 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>Centos7大管家systemctl  - 达龙 - SegmentFault 思否</title><meta name="description" content="unit表示不同类型的sytemd对象，通过配置文件进行标识和配置，文件中主要包含了系统服务，监听socket、保存的系统快照以及其他与init相关的信息"/><meta name="keywords" content="linux,ubuntu,python,java,php"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=linux,ubuntu,python,java,php'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000010179448" class="hidden" />
+
+<div class="wrap" data-blogid="1200000009596724">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/dalong">达龙</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="达龙"
+                                         data-userslug="dalong_591b8e7e6ab46"
+                                         data-useravatar="https://avatar-static.segmentfault.com/424/456/4244566447-596219353d213_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/dalong_591b8e7e6ab46">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/424/456/4244566447-596219353d213_big64" alt="达龙">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/dalong_591b8e7e6ab46" class="mr5 "><strong>达龙</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">170</span>
+
+                                                                                                发布于
+                                                <a href="/blog/dalong">达龙</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000009596724">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2017-07-14 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000010179448">
+                                            <a href="/a/1190000010179448"> Centos7大管家systemctl </a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/linux/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/329/062/3290625956-1040000000089392_big64" data-placement="top"
+                                                                                data-original-title="linux"
+                                                                                data-id="1040000000089392">
+                                                                                                                      linux
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/ubuntu/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/335/109/3351090335-569f0f29c6140_big64" data-placement="top"
+                                                                                data-original-title="ubuntu"
+                                                                                data-id="1040000000090245">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/335/109/3351090335-569f0f26a2a86_small">
+                                                                                                                      ubuntu
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/java/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/512/342/51234253-1040000000089449_big64" data-placement="top"
+                                                                                data-original-title="java"
+                                                                                data-id="1040000000089449">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/868/271/868271510-54cb382abb7a1_small">
+                                                                                                                      java
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/php/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/188/805/188805810-1040000000089387_big64" data-placement="top"
+                                                                                data-original-title="php"
+                                                                                data-id="1040000000089387">
+                                                                                                                      php
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                2.3k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 29 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000010179448" data-license="sa">
+                    
+<h1>博文参考</h1>
+<pre><code>http://www.178linux.com/48343
+http://www.178linux.com/48674
+http://www.178linux.com/48563
+http://www.jinbuguo.com/systemd/index.html</code></pre>
+<h1>systemd简介</h1>
+<pre><code>Systemd是由红帽公司的一名叫做Lennart Poettering的员工开发，systemd是Linux系统中最新的初始化系统（init）,它主要的设计目的是克服Sys V 固有的缺点，提高系统的启动速度，systemd和upstart是竞争对手，ubantu上使用的是upstart的启动方式，centos7上使用systemd替换了Sys V，Systemd目录是要取代Unix时代依赖一直在使用的init系统，兼容SysV和LSB的启动脚本，而且能够在进程启动中更有效地引导加载服务。
+system：系统启动和服务器守护进程管理器，负责在系统启动或运行时，激活系统资源，服务器进程和其他进程，根据管理，字母d是守护进程（daemon）的缩写，systemd这个名字的含义就是它要守护整个系统。</code></pre>
+<h1>systemd新特性</h1>
+<pre><code>系统引导时实现服务并行启动
+
+按需启动守护进程
+
+自动化的服务依赖关系管理
+
+同时采用socket式与D-Bus总线式激活服务
+
+系统状态快照和恢复
+
+利用Linux的cgroups监视进程
+
+维护挂载点和自动挂载点
+
+各服务间基于依赖关系进行精密控制</code></pre>
+<h1>systemd核心概念</h1>
+<p>unit表示不同类型的sytemd对象，通过配置文件进行标识和配置，文件中主要包含了系统服务，监听socket、保存的系统快照以及其他与init相关的信息</p>
+<p>配置文件:</p>
+<p>/usr/lib/systemd/system：每个服务最主要的启动脚本设置，类似于之前的/etc/initd.d</p>
+<p>/run/system/system:系统执行过程中所产生的服务脚本，比上面的目录优先运行</p>
+<p>/etc/system/system：管理员建立的执行脚本，类似于/etc/rc.d/rcN.d/Sxx类的功能，比上面目录优先运行，在三者之中，此目录优先级最高</p>
+<h1>Unit类型</h1>
+<pre><code>systemctl -t help 查看unit类型
+
+service unit：文件扩展名为.service，用于定义系统服务
+
+target unit：文件扩展名为.target，用于模拟实现“运行级别”
+
+device unit:.device,,用于定义内核识别的设备
+
+mount unit .mount，定义文件系统挂载点
+
+socket unit .socket,用于标识进程间通信用的socket文件，也可以在系统启动时，延迟启动服务，实现按需启动
+
+snapshot unit：.snapshot，关系系统快照
+
+swap unit：.swap，用于表示swap设备
+
+automount unit：.automount，文件系统的自动挂载点如：/misc目录
+
+path unit：.path，用于定义文件系统中的一个文件或目录使用，常用于当文件系统变化时，延迟激活服务，如spool目录
+
+time  ：.timer由systemd管理的计时器</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQSbJ?w=900&amp;h=305" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<pre><code>使用systemctl控制单元时，通常需要使用单元文件的全名，包括扩展名，但是有些单元可以在systemctl中使用简写方式
+
+如果无扩展名，systemctl默认把扩展名当做.service。例如netcfg和netcfg.service是等同的
+
+挂载点会自动转化为相应的.mount单元，例如/home等价于home.mount
+
+设备会自动转化为相应的.device单元，所以/dev/sd2等价于dev-sda2.device</code></pre>
+<h2>关键特性</h2>
+<pre><code>基于socket的激活机制：socket与服务进程分离
+
+基于D-Bus的激活机制
+
+基于device的激活机制
+
+基于path的激活机制
+
+系统快照：保存各unit的当前状态信息于持久存储设备中想后兼容sysv init脚本</code></pre>
+<h2>不兼容</h2>
+<pre><code>systemctl命令固定不变，不可扩展
+
+非由systemd启动的服务，systemctl无语与之通信和控制，如：使用之前sys v风格管理的进程就无法收
+systemd控制</code></pre>
+<h2>systemd基本工具</h2>
+<pre><code>监视和控制systemd的主要命令是systemctl。该命令可用于查看系统状态和管理系统及服务。</code></pre>
+<blockquote><p>管理服务</p></blockquote>
+<pre><code>命令：systemctl  command name.service
+
+启动：service name start –&gt;systemctl start name.service
+
+停止：service name stop –&gt;systemctl stop name.service
+
+重启：service name restart–&gt;systemctl restart name.service
+
+状态：service name status–&gt;systemctl status name.service</code></pre>
+<blockquote><p>条件式重启</p></blockquote>
+<pre><code>已启动才重启，否则不做任何操作
+
+systemctl try-restart name.service</code></pre>
+<blockquote><p>重载或重启服务</p></blockquote>
+<pre><code>先加载，然后再启动
+
+systemctl reload-or-try-restart name.service</code></pre>
+<blockquote><p>禁止自动和手动启动</p></blockquote>
+<pre><code>systemctl mask name.service
+
+执行此条命令实则创建了一个链接ln -s '/dev/null' '/etc/systemd/system/sshd.service'</code></pre>
+<blockquote><p>取消禁止</p></blockquote>
+<pre><code>systemctl unmask name.service
+
+删除此前创建的链接</code></pre>
+<blockquote><p>服务查看</p></blockquote>
+<pre><code>查看某服务当前激活与否的状态
+
+systemctl is-active name.service
+
+如果启动会显示active，否则会显示unknown</code></pre>
+<blockquote><p>查看所有已经激活的服务</p></blockquote>
+<pre><code>systemctl list-units –t|–type service
+</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQSdU?w=900&amp;h=100" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<blockquote><p>查看所有服务</p></blockquote>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQSel?w=900&amp;h=143" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<blockquote><p>设定某服务开机启动</p></blockquote>
+<p>chkconfig name on–&gt;systemctl enable name.service</p>
+<blockquote><p>设定某服务开机禁止启动</p></blockquote>
+<p>chkconfig name off –&gt;systemctl disable name.service</p>
+<blockquote><p>查看所有服务的开机自启状态</p></blockquote>
+<p>chkconfig  –list–&gt;systemctl list-unit-files  -t service</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQSfv?w=900&amp;h=181" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<blockquote><p>用来列出该服务在那些运行级别下启用或禁用</p></blockquote>
+<p>chkconfig sshd –list –&gt;ls /etc/system/system/*.wants/sshd.service<br>[root@www ~]# ls /etc/systemd/system/*.wants/sshd.service<br>/etc/systemd/system/multi-user.target.wants/sshd.service</p>
+<blockquote><p>查看服务是否开机自启</p></blockquote>
+<p>systemctl is-enabled name.servcice</p>
+<blockquote><p>查看服务的依赖关系</p></blockquote>
+<p>systemctl list-dependencies</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQSgp?w=900&amp;h=246" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<blockquote><p>查看启动失败的服务</p></blockquote>
+<p>systemctl -failed  -t service</p>
+<blockquote><p>查看服务单元的启用和禁用状态</p></blockquote>
+<p>systemctl list-unit-files –t=service</p>
+<blockquote><p>杀死进程</p></blockquote>
+<p>systemctl kill 进程名<br><span class="img-wrap"><img src="https://segmentfault.com/img/bVQSgU?w=900&amp;h=243" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<blockquote><p>服务状态</p></blockquote>
+<p>systemctl list-units  -t service -a 显示状态</p>
+<p>loaded：unit配置文件已处理</p>
+<p>active（running）：一次或多次持续处理的运行</p>
+<p>active（exited）：成功完成一次性的配置</p>
+<p>active（waiting）:运行中，等待一个事件</p>
+<p>inactive：不运行</p>
+<p>enabled：开机启动</p>
+<p>disabled：开机不启动</p>
+<p>static：开机不启动，但可以被另一个启用的服务激活</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQShd?w=900&amp;h=303" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<blockquote><p>运行级别</p></blockquote>
+<p>target units：</p>
+<p>unit配置文件：.target 以target结尾的文件</p>
+<p>ls /usr/lib/system/system/*.target</p>
+<p>systemctl list-unit-files -type target -all</p>
+<p>0–&gt;runlevel0.target, poweroff.target</p>
+<p>1–&gt;runlevel1.target, rescue.target</p>
+<p>2–&gt;runlevel2.target, muti-user.target</p>
+<p>3–&gt;runlevel3.target, mutil-user.target</p>
+<p>4–&gt;runlevel4.target, multi-user.target</p>
+<p>5–&gt;runlevel5.target, graphical.target</p>
+<p>6–&gt;runlevel6.target, reboot.target</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQShu?w=900&amp;h=344" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<blockquote><p>查看依赖性</p></blockquote>
+<p>systemctl list-dependencies graphical.target</p>
+<blockquote><p>查看默认运行级别</p></blockquote>
+<p>systemctl get-default  在Sys V风格的系统上是查看/etc/inittab文件其中有一条id:5:initdefault:</p>
+<blockquote><p>级别切换</p></blockquote>
+<pre><code>systemctl isolate muti-user.target
+
+注意：只有当/lib/system/system/*.target文件中AllowIsolate=yes时才能奇幻（修改文件需执行systemctl daemon-reload生效）</code></pre>
+<blockquote><p>设定默认运行级别</p></blockquote>
+<pre><code>systemctl set-default muti-user.target   实则将multi-user.target链接至default.target
+
+ls –l /etc/system/system/default.target  </code></pre>
+<blockquote><p>进入紧急救援模式</p></blockquote>
+<p>systemctl rescue</p>
+<blockquote><p>切换至emergency模式</p></blockquote>
+<p>systemctl emergency</p>
+<blockquote><p>在systemd风格的系统上还能使用sysv风格系统上的关机，重启等命令，指示将该命令链接到systemctl的一个软链接</p></blockquote>
+<pre><code>关机：systemctl halt  systemctl poweroff
+
+重启：systemctl reboot
+
+挂起：systemctl suspend
+
+休眠：systemctl hibernate
+
+休眠并挂起：systemctl hybrid-sleep</code></pre>
+<h1>CentOS7引导顺序</h1>
+<p>1、 CentOS启动流程：POST –&gt; Boot Sequence –&gt; Bootloader –&gt; kernel + initramfs(initrd) –&gt; rootfs–&gt; /sbin/init</p>
+<p>UEFi或BIOS初始化，运行POST开机自检</p>
+<p>选择启动设备</p>
+<p>引导装载程序, centos7是grub2</p>
+<p>加载装载程序的配置文件：/etc/grub.d/ /etc/default/grub /boot/grub2/grub.cfg（注：一般上修改grub.cfg配置文件，是直接修改/etc/default/grub，然后使用命令#grub2-mkconfig /boot/grub2/grub.cfg来生成修改 ）</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQSas?w=900&amp;h=137" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>使用systemctl控制单元时，通常需要使用单元文件的全名，包括扩展名，但是有些单元可以在systemctl中使用简写方式</p>
+<p>如果无扩展名，systemctl默认把扩展名当做.service。例如netcfg和netcfg.service是等同的</p>
+<p>挂载点会自动转化为相应的.mount单元，例如/home等价于home.mount</p>
+<p>设备会自动转化为相应的.device单元，所以/dev/sd2等价于dev-sda2.device<br>加载initramfs驱动模块</p>
+<p>加载内核选项</p>
+<p>内核初始化，centos7使用systemd代替init</p>
+<p>执行initrd.target所有单元，包括挂载/etc/fstab</p>
+<p>从initramfs根文件系统切换到磁盘根目录</p>
+<p>systemd执行默认target配置，配置文件/etc/systemd/default.target /etc/systemd/system/</p>
+<p>systemd执行sysinit.target初始化系统及basic.target准备操作系统</p>
+<p>systemd启动multi-user.target下的本机与服务器服务</p>
+<p>systemd执行multi-user.target下的/etc/rc.d/rc.local</p>
+<p>systemd执行multi-user.target下的getty.target及登入服务</p>
+<p>systemd执行graphical需要的服务（此为图形界面所有）</p>
+<h1>unit文件格式</h1>
+<pre><code>以#开头的行后面的内容会被认为是注释
+
+相关布尔值，1、yes、on、ture都是开启，0、no、off、false都是关闭
+
+时间单位默认是秒</code></pre>
+<h2>Unit文件组成</h2>
+<pre><code> [Unit]：定义与Unit类型无关的通用选项，用于提供unit的扫描信息，unit行为及依赖关系等
+
+ [Service]：与特定类型相关的专用选项；此处为Service类型
+
+ [Install]：定义由“systemctl enable及systemctl disable”命令在实现服务启用或禁用时用到的一些选项</code></pre>
+<h2>unit段常用选项</h2>
+<pre><code>Description：描述信息
+
+    After：定义unit的启动次序，表示当前unit应该晚育那些unit启动，其功能与before相反
+
+    Requires：依赖到的其他units，强依赖，被一来的units无法激活时，当前unit即无法激活
+
+    Wants：依赖到的其他units，弱依赖
+
+    Conflicts：定义units间的冲突关系</code></pre>
+<h2>Service段常用选项</h2>
+<pre><code>  Type：定义硬性ExecStart及相关参数的功能的unit进程启动类型
+
+    simple：默认值；这个daemon主要有ExecStart接的指令串来启动，启动后常驻于内存中
+
+    forking：由ExecStart启动的程序透过spawns延伸出其他子程序来作为此daemon的主要服务。原生父程序在启动结束后就会终止
+
+    onshot：用于执行一项任务，随后立即退出的服务，不会常驻于内存中
+
+    notify：与simple相同，但约定服务会在就绪后想systemd发送一个信号，需要配合NotifyAccess来让Systemd接收消息
+
+    idle：与simple类似，要执行这个daemon必须要所有的工作都顺利执行完毕后才会执行。这类的daemon通常是开机到最后才只能即可的服务
+
+    EnvironmentFile：环境配置文件
+
+    ExeStart：指明启动unit要运行命令或脚本的绝对路径
+
+    ExeStartPre：ExecStart前运行
+
+    ExeStartPost：ExecStart后运行
+
+    ExecStop：指明停止unit要运行的命令或脚本
+
+    Restart：当设定Restart=1时，则当次daemon服务意外终止后，会在此自动启动此服务
+</code></pre>
+<h2>Install段常用选项</h2>
+<pre><code>Alias：别名，可使用systemctl command Alial.service
+
+    RequiredBy:被那些units所依赖，强依赖
+
+    WantedBy：被那些units所依赖，弱依赖
+
+    Also：安装本服务的时候还要安装别的相关服务
+
+注意：对于新创建的unit文件，或者修改了的unit文件，要通知systemd重载次配置文件，而后可以选择重启
+
+    systemctl  daemon-reload</code></pre>
+<h2>案例</h2>
+<pre><code>vim /etc/systemd/system/bak.service
+
+    [Unit]
+
+    Description=backup my etc
+
+    Requires=atd.service
+
+    [Service]
+
+    Type=simple
+
+    ExecStart=/bin/bash -c "echo /testdir/bak.sh|at now"
+
+    [Install]
+
+    WantedBy=multi-user.target
+
+    systemctl daemon-reload
+
+    systemctl start bak</code></pre>
+<h1>设置内核参数</h1>
+<pre><code>在系统启动时，进入内核参数修改，修改只影响当次启动，在启动时在linux16行后添加systemd.unit=desired.target
+
+    systemd.unit=emergency.target进入救援模式
+
+system.unit=recure.target  进入紧急救援模式，功能比emergency多
+
+修改完成后使用ctrl+x启动进入相应的模式</code></pre>
+<h1>启动排错</h1>
+<pre><code>文件系统损坏
+
+先尝试自动修复，如果失败则需要进入emergency 模式，提示用户修复
+
+在/etc/fstab 不存在对应的设备和UUID，等待一段时间，如果不可用，进入emergecy shell 注释哪行即可
+
+在/etc/fstab不存在对应挂载点
+
+systemd尝试创建挂载点，否则提示进入emergecy shell
+
+在/etc/fstab不正确的挂载选项
+
+提示进入emergecy shell</code></pre>
+<h1>破解root口令</h1>
+<pre><code>启动时任意键暂停启动
+
+按e键进入编辑模式
+
+将光标移动linux16开始的行，添加内核参数rd.break
+
+按ctrl-x启动
+
+mount -o remount,rw /sysroot
+
+chroot /sysroot
+
+passwd root
+
+touch /.autorelabel
+
+exit
+
+reboot
+
+等待系统重新打标签后即可进入系统，这时候root的密码已经更改</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVQSjA?w=900&amp;h=328" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<h1>修复grub2</h1>
+<pre><code>GRUB“the Grand Unified Bootloader”
+
+引导提示时可以使用命令行界面
+
+可从文件系统引导
+
+主要配置文件/boot/grub2/grub.cfg
+
+修复配置文件
+
+grub2-mkconfig &gt; /boot/grub2/grub.cfg
+
+修复grub
+
+grub2-install /dev/sda BIOS环境
+
+grub2-install UEFI环境
+
+grub2-mkconfig -o grub.cfg
+
+重启</code></pre>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000010179448"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="Centos7大管家systemctl "
+ data-url="https://segmentfault.com/a/1190000010179448" data-shorturl="http://sfau.lt/b5QSiO"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000010179448"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000010179448"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">7</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000010179448" data-user-id="" data-author-id="1030000009444858 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000010179448/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542614535000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _8HL = //'4cD'
+'4cD'+'e9'//'Tr'
++//'S'
+'39'+//'3O'
+'4b'+'0'//'2ko'
++'2e'//'p'
++'G'//'G'
++//'uo'
+'1'+'73'//'e'
++'154'//'qk'
++//'m'
+'352'+'a'//'QXx'
++'7'//'d'
++'f'//'U9'
++//'M5'
+'79f'+'W'//'W'
++//'qu'
+'qu'+'J6'//'J6'
++//'2'
+'65c'+//'a'
+'92'+//'FT'
+'7'+'a'//'af'
++/* 'yS'//'yS' */''+'1q'//'1q'
++''///*'4px'*/'4px'
++/* 'kW'//'kW' */''+//'Cn'
+'Cn'+''///*'tWo'*/'tWo'
++'6'//'S2L'
+, _TwqFhD = [[0,3],[9,10],[24,25],[24,26],[24,26],[31,33],[31,33]];
+
+    for (var i = 0; i < _TwqFhD.length; i ++) {
+        _8HL = _8HL.substring(0, _TwqFhD[i][0]) + _8HL.substring(_TwqFhD[i][1]);
+    }
+
+    return _8HL;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"Centos7\u5927\u7ba1\u5bb6systemctl ","desc":"unit\u8868\u793a\u4e0d\u540c\u7c7b\u578b\u7684sytemd\u5bf9\u8c61\uff0c\u901a\u8fc7\u914d\u7f6e\u6587\u4ef6\u8fdb\u884c\u6807\u8bc6\u548c\u914d\u7f6e\uff0c\u6587\u4ef6\u4e2d\u4e3b\u8981\u5305\u542b\u4e86\u7cfb\u7edf\u670d\u52a1\uff0c\u76d1\u542csocket\u3001\u4fdd\u5b58\u7684\u7cfb\u7edf\u5feb\u7167\u4ee5\u53ca\u5176\u4ed6\u4e0einit\u76f8\u5173\u7684\u4fe1\u606f","link":"https:\/\/segmentfault.com\/a\/1190000010179448","imgUrl":"https:\/\/segmentfault.com\/img\/bVQSbJ?w=900&amp;h=305"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542614535,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

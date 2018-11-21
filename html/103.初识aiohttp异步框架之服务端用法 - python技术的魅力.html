@@ -1,0 +1,2294 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>初识aiohttp异步框架之服务端用法 - python技术的魅力 - SegmentFault 思否</title><meta name="description" content="typora-copy-images-to: ipic [TOC] 配置环境 首先检查你的python版本： {代码...} 安装aiohttp： {代码...} 查看aiohttp版本号： {代码...} 项目结构与其他基于python的web项目非常相似： {代码...} 开始第一个a..."/><meta name="keywords" content="python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000014587452" class="hidden" />
+
+<div class="wrap" data-blogid="1200000014587431">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/junxi">python技术的魅力</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="君惜"
+                                         data-userslug="junxi3166"
+                                         data-useravatar="https://avatar-static.segmentfault.com/304/597/3045971263-5ae028fa89bc9_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/junxi3166">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/304/597/3045971263-5ae028fa89bc9_big64" alt="君惜">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/junxi3166" class="mr5 "><strong>君惜</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">158</span>
+
+                                                                                                发布于
+                                                <a href="/blog/junxi">python技术的魅力</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000014587431">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-04-25 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000014587452">
+                                            <a href="/a/1190000014587452"> 初识aiohttp异步框架之服务端用法</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                761 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 163 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000014587452" data-license="cc">
+                    
+<hr>
+<p>typora-copy-images-to: ipic</p>
+<hr>
+<p>[TOC]</p>
+<h1>配置环境</h1>
+<hr>
+<p>首先检查你的<code>python</code>版本：</p>
+<pre><code class="sh">$ python3 -V
+Python 3.6.3</code></pre>
+<p>安装<code>aiohttp</code>：</p>
+<pre><code class="sh">$ pip3 install aiohttp</code></pre>
+<p>查看aiohttp版本号：</p>
+<pre><code class="sh">$ python3 -c 'import aiohttp; print(aiohttp.__version__)'
+3.0.7</code></pre>
+<p>项目结构与其他基于python的web项目非常相似：</p>
+<pre><code class="sh">.
+├── README.rst
+└── polls
+    ├── Makefile
+    ├── README.rst
+    ├── aiohttpdemo_polls
+    │   ├── __init__.py
+    │   ├── __main__.py
+    │   ├── db.py
+    │   ├── main.py
+    │   ├── routes.py
+    │   ├── templates
+    │   ├── utils.py
+    │   └── views.py
+    ├── config
+    │   └── polls.yaml
+    ├── images
+    │   └── example.png
+    ├── setup.py
+    ├── sql
+    │   ├── create_tables.sql
+    │   ├── install.sh
+    │   └── sample_data.sql
+    └── static
+        └── style.css</code></pre>
+<h1>开始第一个aiohttp应用</h1>
+<p>这个教程基于Django的投票应用教程。</p>
+<h1>应用</h1>
+<p>所有的aiohttp服务器都围绕aiohttp.web.Application实例来构建。用于注册startup/cleanup信号，以及连接路由等。</p>
+<p>创建一个项目：</p>
+<pre><code class="sh">vote
+├── config
+│   └── __init__.py
+├── models
+│   └── __init__.py
+├── static
+├── template
+└── application
+    └── __init__.py</code></pre>
+<p>目录vote下面分别创建了config、models、application、static、template。</p>
+<p>这里我使用pycharm开发，图示如下：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587457?w=492&amp;h=608" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="vote-pycharm" title="vote-pycharm"></span></p>
+<p>创建一个应用：</p>
+<pre><code class="python">from aiohttp import web
+
+app = web.Application()
+web.run_app(app, host='0.0.0.0', port=9000)</code></pre>
+<p>保存于vote/main.py并启动服务器：</p>
+<pre><code class="sh">$ python3 /Users/junxi/program/vote/main.py</code></pre>
+<p><strong><code>这里的vote是项目的根目录。</code></strong></p>
+<p>你将在命令行中看到如下输出：</p>
+<pre><code class="sh">======== Running on http://0.0.0.0:9000 ========
+(Press CTRL+C to quit)</code></pre>
+<p>在浏览器中打开<code>http://localhost:9000/</code>或者使用命令</p>
+<pre><code class="sh">$ curl -X GET http://localhost:9000</code></pre>
+<p>不过，对于全部请求现在只会返回<code>404: Not Found</code>，让我们创建一个路由和视图来展示一些更有意义的东西。</p>
+<h1>视图</h1>
+<hr>
+<p>让我们从第一个视图开始。创建<code>application/views.py</code>并加入如下代码：</p>
+<pre><code class="python">from aiohttp import web
+
+
+async def hello(request):
+    return web.Response(text='Hello Aiohttp!')</code></pre>
+<p>现在我们应该为这个 <code>index</code> 视图创建一个路由。 将如下代码写入 <code>application/routes.py</code> (分离视图，路由，模型是种很好的做法。 因为你可能拥有很多这些组件，放在不同的地方可以方便地管理代码):</p>
+<pre><code class="python">from .views import hello
+
+
+def setup_routes(app):
+    app.router.add_get('/hello', hello)</code></pre>
+<p>此外，我们应该在某个地方调用 <code>setup_routes</code> 函数，最好是在 <code>main.py</code> 中调用它:</p>
+<pre><code class="python">from aiohttp import web
+from application.routes import setup_routes
+
+app = web.Application()
+setup_routes(app)
+web.run_app(app, host='0.0.0.0', port=9000)</code></pre>
+<p>再次启动服务器. 现在我们打开浏览器就可以看见:</p>
+<pre><code class="sh">$ curl -X GET localhost:9000/hello
+Hello Aiohttp!</code></pre>
+<p>工作目录应该是像下面这样:</p>
+<pre><code class="sh">vote
+├── application
+│   ├── __init__.py
+│   ├── routes.py
+│   └── views.py
+├── config
+│   ├── __init__.py
+│   └── settings.py
+├── main.py
+├── models
+│   ├── __init__.py
+├── static
+└── template</code></pre>
+<h1>配置文件</h1>
+<p>aiohttp 的配置是不可知的。 这意味着这个库不需要任何配置方法，并且也没有内置支持任何配置模式。</p>
+<p>但是请考虑下面这些事实:</p>
+<blockquote><ol>
+<li>99% 的服务器都有配置文件.</li>
+<li>每个产品(除了像 Django 和 Flask 等基于 Python 的解决方案外)都不将配置文件写入源代码。<p>比如 Nginx 默认将自己的配置文件存储在 <code>/etc/nginx</code> 文件夹下。</p>
+<p>Mongo 将配置文件存为 <code>/etc/mongodb.conf</code>。</p>
+</li>
+<li>验证配置文件是个好主意，充分的检查可以在产品部署时避免许多愚蠢的错误。</li>
+</ol></blockquote>
+<p>因此，我们 <strong>建议</strong> 使用以下方法:</p>
+<blockquote><ol>
+<li>将配置存为 <code>yaml</code> 文件(<code>json</code> 或 <code>ini</code> 格式也不错，但是 <code>yaml</code> 格式是最好的).</li>
+<li>从预定位置加载 <code>yaml</code> 配置。例如 <code>./config/app_cfg.yaml</code>, <code>/etc/app_cfg.yaml</code>。</li>
+<li>保持可以通过命令行参数覆盖配置文件的能力。例如 <code>./run_app --config=/opt/config/app_cfg.yaml</code>。</li>
+<li>对于加载的字典应用严格的检查。 <a href="http://trafaret.readthedocs.io/en/latest/" rel="nofollow noreferrer">trafaret</a>, <a href="http://docs.pylonsproject.org/projects/colander/en/latest/" rel="nofollow noreferrer">colander</a> or <a href="http://python-jsonschema.readthedocs.io/en/latest/" rel="nofollow noreferrer">JSON schema</a> 是这类型工作的好候选。</li>
+</ol></blockquote>
+<p>加载配置并在应用中读取:</p>
+<pre><code class="python"># load config from yaml file in current dir
+conf = load_config(str(pathlib.Path('.') / 'config' / 'settings.yaml'))
+app['config'] = conf</code></pre>
+<p>或者使用py文件当作配置文件：</p>
+<pre><code class="sh">├── config
+│   ├── __init__.py
+│   └── settings.py</code></pre>
+<h1>构建数据库</h1>
+<hr>
+<h2>数据库模式</h2>
+<p>操作MySQL数据库的工具，之前django项目一直使用本身自带的orm，tornado项目使用的torndb.py。其他项目则使用的pymysql库，pymysql库的用法在<a href="https://www.jianshu.com/p/f11508c98e62" rel="nofollow noreferrer">这里</a>。</p>
+<p>本文使用MySQL数据库和<a href="https://aiomysql.readthedocs.io/en/latest/" rel="nofollow noreferrer">aiomysql</a>这个异步操作MySQL的库。</p>
+<p><strong>安装<code>aiomysql</code></strong></p>
+<p>需要依赖pymysql</p>
+<pre><code class="sh">$ pip3 install pymysql
+$ pip3 install aiomysql</code></pre>
+<p>我们使用 aiomysql 来描述数据库模式。 </p>
+<p><strong>aiomysql官网连接示例</strong></p>
+<pre><code class="python">import asyncio
+from aiomysql import create_pool
+
+
+loop = asyncio.get_event_loop()
+
+async def go():
+    async with create_pool(host='127.0.0.1', port=3306,
+                           user='root', password='',
+                           db='mysql', loop=loop) as pool:
+        async with pool.get() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute("SELECT 42;")
+                value = await cur.fetchone()
+                print(value)
+
+
+loop.run_until_complete(go())</code></pre>
+<p><strong>aiomysql官网连接池示例</strong></p>
+<pre><code class="python">import asyncio
+import aiomysql
+
+
+async def test_example(loop):
+    pool = await aiomysql.create_pool(host='127.0.0.1', port=3306,
+                                      user='root', password='',
+                                      db='mysql', loop=loop)
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT 42;")
+            print(cur.description)
+            (r,) = await cur.fetchone()
+            assert r == 42
+    pool.close()
+    await pool.wait_closed()
+
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(test_example(loop))</code></pre>
+<p><strong>SQLAlchemy可选集成的示例</strong></p>
+<p>这里不使用sqlalchemy这个orm，原因：迁移功能不怎么好使，用惯了django的orm，感觉别的不咋好用。写原生sql练习自己的原生sql编写能力。</p>
+<pre><code class="python">import asyncio
+import sqlalchemy as sa
+
+from aiomysql.sa import create_engine
+
+
+metadata = sa.MetaData()
+
+tbl = sa.Table('tbl', metadata,
+               sa.Column('id', sa.Integer, primary_key=True),
+               sa.Column('val', sa.String(255)))
+
+
+async def go(loop):
+    engine = await create_engine(user='root', db='test_pymysql',
+                                 host='127.0.0.1', password='', loop=loop)
+    async with engine.acquire() as conn:
+        await conn.execute(tbl.insert().values(val='abc'))
+        await conn.execute(tbl.insert().values(val='xyz'))
+
+        async for row in conn.execute(tbl.select()):
+            print(row.id, row.val)
+
+    engine.close()
+    await engine.wait_closed()
+
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(go(loop))</code></pre>
+<h2>创建数据库表</h2>
+<p><strong>查看<code>mysql</code>版本</strong></p>
+<pre><code class="sh">$ mysql --version
+/usr/local/mysql/bin/mysql  Ver 14.14 Distrib 5.7.20, for macos10.12 (x86_64) using  EditLine wrapper</code></pre>
+<p><strong>创建一个数据库vote，并增加授权用户</strong></p>
+<pre><code class="sh">$ mysql -uroot -p123456
+
+mysql&gt; CREATE DATABASE IF NOT EXISTS vote CHARACTER SET utf8 COLLATE utf8_general_ci;
+mysql&gt; grant all on vote.* to vote identified by '123456';</code></pre>
+<p><strong>创建表user</strong></p>
+<pre><code class="mysql">CREATE TABLE IF NOT EXISTS `user`(
+   `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+   `delete_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志',
+   `name` VARCHAR(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '昵称',
+   `phone` VARCHAR(11) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '电话',
+   `email` VARCHAR(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '邮箱',
+   `password` VARCHAR(16) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '密码',
+   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+   PRIMARY KEY ( `id` ),
+   INDEX `email` (`email`) USING BTREE,
+   INDEX `phone` (`phone`) USING BTREE
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+ROW_FORMAT=DYNAMIC
+;</code></pre>
+<p><code>查看user表结构</code></p>
+<pre><code class="mysql">+-------------+-------------+------+-----+-------------------+----------------+
+| Field       | Type        | Null | Key | Default           | Extra          |
++-------------+-------------+------+-----+-------------------+----------------+
+| id          | int(11)     | NO   | PRI | NULL              | auto_increment |
+| delete_flag | tinyint(1)  | NO   |     | 0                 |                |
+| name        | varchar(40) | NO   |     | NULL              |                |
+| phone       | varchar(11) | NO   | MUL | NULL              |                |
+| email       | varchar(40) | NO   | MUL | NULL              |                |
+| password    | varchar(16) | NO   |     | NULL              |                |
+| create_time | datetime    | NO   |     | CURRENT_TIMESTAMP |                |
++-------------+-------------+------+-----+-------------------+----------------+</code></pre>
+<p><strong>创建表question</strong></p>
+<pre><code class="mysql">CREATE TABLE IF NOT EXISTS `question`(
+   `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '问题ID',
+   `delete_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志',
+   `user_id` INT(11) NOT NULL COMMENT '用户ID',
+   `question_text` VARCHAR(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '问题内容',
+   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+   PRIMARY KEY ( `id` ),
+   FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+   INDEX `user_id` (`user_id`) USING BTREE
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+ROW_FORMAT=DYNAMIC
+;</code></pre>
+<p><strong>查看question表结构</strong></p>
+<pre><code class="mysql">+---------------+--------------+------+-----+-------------------+----------------+
+| Field         | Type         | Null | Key | Default           | Extra          |
++---------------+--------------+------+-----+-------------------+----------------+
+| id            | int(11)      | NO   | PRI | NULL              | auto_increment |
+| delete_flag   | tinyint(1)   | NO   |     | 0              |                |
+| user_id       | int(11)      | NO   | MUL | NULL              |                |
+| question_text | varchar(200) | NO   |     | NULL              |                |
+| create_time   | datetime     | NO   |     | CURRENT_TIMESTAMP |                |
++---------------+--------------+------+-----+-------------------+----------------+</code></pre>
+<p><strong>创建表choice</strong></p>
+<pre><code class="mysql">CREATE TABLE IF NOT EXISTS `choice`(
+   `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '选择ID',
+   `delete_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志',
+   `choice_text` VARCHAR(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '选择内容',
+   `votes` INT(11) NOT NULL COMMENT '得票数',
+   `question_id` INT(11) NOT NULL COMMENT '问题ID',
+   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+   PRIMARY KEY ( `id` ),
+   FOREIGN KEY (`question_id`) REFERENCES `question` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+   INDEX `question_id` (`question_id`) USING BTREE
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+ROW_FORMAT=DYNAMIC
+;</code></pre>
+<p><strong>查看choice表结构</strong></p>
+<pre><code class="mysql">+-------------+--------------+------+-----+-------------------+----------------+
+| Field       | Type         | Null | Key | Default           | Extra          |
++-------------+--------------+------+-----+-------------------+----------------+
+| id          | int(11)      | NO   | PRI | NULL              | auto_increment |
+| delete_flag | tinyint(1)   | NO   |     | 0                 |                |
+| choice_text | varchar(200) | YES  |     | NULL              |                |
+| votes       | int(11)      | NO   |     | NULL              |                |
+| question_id | int(11)      | NO   | MUL | NULL              |                |
+| create_time | datetime     | NO   |     | CURRENT_TIMESTAMP |                |
++-------------+--------------+------+-----+-------------------+----------------+</code></pre>
+<h2>创建连接池</h2>
+<p>我们需要创建一个全局的连接池，每个HTTP请求都可以从连接池中直接获取数据库连接。使用连接池的好处是不必频繁地打开和关闭数据库连接，而是能复用就尽量复用。</p>
+<p>缺省情况下将编码设置为<code>utf8</code>，自动提交事务：</p>
+<pre><code class="python">async def create_pool(loop, **kw):
+    """定义mysql全局连接池"""
+    logging.info('create database connection pool...')
+    global _mysql_pool
+    _mysql_pool = await aiomysql.create_pool(host=DATABASES['host'], port=DATABASES['port'], user=DATABASES['user'],
+                                      password=DATABASES['password'], db=DATABASES['db'], loop=loop,
+                                      charset=kw.get('charset', 'utf8'), autocommit=kw.get('autocommit', True),
+                                      maxsize=kw.get('maxsize', 10), minsize=kw.get('minsize', 1))
+    return _mysql_pool</code></pre>
+<h2>封装增删改查</h2>
+<p>Web App里面有很多地方都要访问数据库。访问数据库需要创建数据库连接、游标对象，然后执行SQL语句，最后处理异常，清理资源。这些访问数据库的代码如果分散到各个函数中，势必无法维护，也不利于代码复用。</p>
+<p>所以，我们要首先把常用的SELECT、INSERT、UPDATE和DELETE操作用函数封装起来。</p>
+<p>由于Web框架使用了基于asyncio的aiohttp，这是基于协程的异步模型。在协程中，不能调用普通的同步IO操作，因为所有用户都是由一个线程服务的，协程的执行速度必须非常快，才能处理大量用户的请求。而耗时的IO操作不能在协程中以同步的方式调用，否则，等待一个IO操作时，系统无法响应任何其他用户。</p>
+<p>这就是异步编程的一个原则：一旦决定使用异步，则系统每一层都必须是异步，“开弓没有回头箭”。</p>
+<p>幸运的是<code>aiomysql</code>为MySQL数据库提供了异步IO的驱动。</p>
+<p>要执行SELECT语句，我们用<code>select</code>函数执行，需要传入SQL语句和SQL参数：</p>
+<pre><code class="python">async def fetchone(sql, args=(), size=None):
+    """封装select，查询单个，返回数据为字典"""
+    log(sql, args)
+    async with _mysql_pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cur:
+            await cur.execute(sql, args)
+            rs = await cur.fetchone()
+            return rs
+
+
+async def select(sql, args=(), size=None):
+    """封装select，查询多个，返回数据为列表"""
+    log(sql, args)
+    async with _mysql_pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cur:
+            await cur.execute(sql, args)
+            if size:
+                rs = await cur.fetchmany(size)
+            else:
+                rs = await cur.fetchall()
+            logging.info('rows returned: %s' % len(rs))
+            return rs</code></pre>
+<p>注意要始终坚持使用带参数的SQL，而不是自己拼接SQL字符串，这样可以防止SQL注入攻击。</p>
+<p>注意到<code>yield from</code>将调用一个子协程（也就是在一个协程中调用另一个协程）并直接获得子协程的返回结果。</p>
+<p>如果传入<code>size</code>参数，就通过<code>fetchmany()</code>获取最多指定数量的记录，否则，通过<code>fetchall()</code>获取所有记录。</p>
+<p><strong>Insert, Update, Delete</strong></p>
+<p>要执行INSERT、UPDATE、DELETE语句，可以定义一个通用的<code>execute()</code>函数，因为这3种SQL的执行都需要相同的参数，以及返回一个整数表示影响的行数：</p>
+<pre><code class="python">async def execute(sql, args=()):
+    """封装insert, delete, update"""
+    log(sql, args)
+    async with _mysql_pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute(sql, args)
+            except BaseException:
+                await conn.rollback()
+                return
+            else:
+                affected = cur.rowcount
+                return affected</code></pre>
+<p><code>execute()</code>函数和<code>select()</code>函数所不同的是，cursor对象不返回结果集，而是通过<code>rowcount</code>返回结果数。</p>
+<p>这三个函数定义在models文件夹下的db.py中(db.py是新创建的文件)：</p>
+<p>完整代码如下：</p>
+<pre><code class="python">import logging
+logging.basicConfig(level=logging.INFO)
+
+import aiomysql
+import aioredis
+from config.settings import DATABASES, CACHES
+
+
+def log(sql, args=()):
+    logging.info('SQL: %s' % sql, *args)
+
+
+async def create_pool(loop, **kw):
+    """定义mysql全局连接池"""
+    logging.info('create database connection pool...')
+    global _mysql_pool
+    _mysql_pool = await aiomysql.create_pool(host=DATABASES['host'], port=DATABASES['port'], user=DATABASES['user'],
+                                      password=DATABASES['password'], db=DATABASES['db'], loop=loop,
+                                      charset=kw.get('charset', 'utf8'), autocommit=kw.get('autocommit', True),
+                                      maxsize=kw.get('maxsize', 10), minsize=kw.get('minsize', 1))
+    return _mysql_pool
+
+
+async def fetchone(sql, args=(), size=None):
+    """封装select，查询单个，返回数据为字典"""
+    log(sql, args)
+    async with _mysql_pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cur:
+            await cur.execute(sql, args)
+            rs = await cur.fetchone()
+            return rs
+
+
+async def select(sql, args=(), size=None):
+    """封装select，查询多个，返回数据为列表"""
+    log(sql, args)
+    async with _mysql_pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cur:
+            await cur.execute(sql, args)
+            if size:
+                rs = await cur.fetchmany(size)
+            else:
+                rs = await cur.fetchall()
+            logging.info('rows returned: %s' % len(rs))
+            return rs
+
+
+async def execute(sql, args=()):
+    """封装insert, delete, update"""
+    log(sql, args)
+    async with _mysql_pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            try:
+                await cur.execute(sql, args)
+            except BaseException:
+                await conn.rollback()
+                return
+            else:
+                affected = cur.rowcount
+                return affected</code></pre>
+<p>把执行SQL的函数导入到models/__init__.py文件中，方便别的模块引用：</p>
+<pre><code class="python">from .db import *
+
+__all__ = ['create_pool', 'select', 'execute', 'fetchone']</code></pre>
+<p>把我们创建表的sql语句保存到models/create_table.sql文件中：</p>
+<pre><code class="mysql">CREATE TABLE IF NOT EXISTS `user`(
+   `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+   `delete_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志',
+   `name` VARCHAR(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '昵称',
+   `phone` VARCHAR(11) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '电话',
+   `email` VARCHAR(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '邮箱',
+   `password` VARCHAR(16) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '密码',
+   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+   PRIMARY KEY ( `id` ),
+   INDEX `email` (`email`) USING BTREE,
+   INDEX `phone` (`phone`) USING BTREE
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+ROW_FORMAT=DYNAMIC
+;
+
+
+CREATE TABLE IF NOT EXISTS `question`(
+   `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '问题ID',
+   `delete_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志',
+   `user_id` INT(11) NOT NULL COMMENT '用户ID',
+   `question_text` VARCHAR(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '问题内容',
+   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+   PRIMARY KEY ( `id` ),
+   FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+   INDEX `user_id` (`user_id`) USING BTREE
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+ROW_FORMAT=DYNAMIC
+;
+
+
+CREATE TABLE IF NOT EXISTS `choice`(
+   `id` INT(11) NOT NULL AUTO_INCREMENT COMMENT '选择ID',
+   `delete_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标志',
+   `choice_text` VARCHAR(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '选择内容',
+   `votes` INT(11) NOT NULL COMMENT '得票数',
+   `question_id` INT(11) NOT NULL COMMENT '问题ID',
+   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+   PRIMARY KEY ( `id` ),
+   FOREIGN KEY (`question_id`) REFERENCES `question` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+   INDEX `question_id` (`question_id`) USING BTREE
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+ROW_FORMAT=DYNAMIC
+;</code></pre>
+<p>models目录结构：</p>
+<pre><code class="sh">models/
+├── __init__.py
+└── db.py</code></pre>
+<h2>编写配置文件</h2>
+<p>之前我们说过的配置文件，我使用py文件当作配置文件，conf/settings.py内容如下：</p>
+<pre><code class="python">DATABASES = {
+    'engine': 'mysql',
+    'db': 'vote',
+    'user': 'vote',
+    'password': '123456',
+    'host': 'localhost',
+    'port': 3306,
+}</code></pre>
+<h2>插入模拟数据</h2>
+<pre><code class="mysql">INSERT INTO user(name, phone, email, password) VALUES('露西', '16666666661', 'luxi@qq.com', '123456'), ('南希', '16666666662', 'nanxi@qq.com', '123456'), ('雪灵', '16666666663', 'xueling@qq.com', '123456');</code></pre>
+<pre><code class="mysql">INSERT INTO question(question_text, user_id) VALUES('最受欢迎的计算机语言？', 1), ('最受欢迎的水果？', 2), ('男人最喜欢女人什么地方？', 3);</code></pre>
+<pre><code class="mysql">INSERT INTO choice(choice_text, question_id, votes) VALUES('python', 1, 3), ('java', 1, 2), ('go', 1, 1);
+INSERT INTO choice(choice_text, question_id, votes) VALUES('香蕉', 2, 3), ('苹果', 2, 2), ('草莓', 2, 1);
+INSERT INTO choice(choice_text, question_id, votes) VALUES('漂亮脸蛋', 3, 3), ('大胸', 3, 2), ('大长腿', 3, 1);</code></pre>
+<h1>基础视图类</h1>
+<p><code>aiohttp.web</code>提供django风格的基础试图类。</p>
+<p>你可以从 <code>View</code> 类中继承，并自定义http请求的处理方法:</p>
+<pre><code class="python">from aiohttp import web
+from models import select
+import json
+import datetime
+import decimal
+
+
+class RewriteJsonEncoder(json.JSONEncoder):
+    """重写json类，为了解决datetime类型的数据无法被json格式化"""
+
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj, datetime.date):
+            return obj.strftime("%Y-%m-%d")
+        elif isinstance(obj, decimal.Decimal):
+            return str(obj)
+        elif hasattr(obj, 'isoformat'):
+            # 处理日期类型
+            return obj.isoformat()
+        else:
+            return json.JSONEncoder.default(self, obj)
+
+
+def json_dumps(obj):
+    return json.dumps(obj, cls=RewriteJsonEncoder)
+
+
+async def hello(request):
+    return web.Response(text='Hello Aiohttp!')
+
+
+class QuestionChoices(web.View):
+    """查看一个问题的可选答案"""
+
+    async def get(self):
+        question_id = self.request.match_info.get('question_id')
+        result = await select(self.request.app['db'], 'select * from choice where question_id = %s', (question_id,))
+        return web.json_response(data=result, dumps=json_dumps)</code></pre>
+<p>定义路由：</p>
+<pre><code class="python">from .views import hello, QuestionChoices
+
+
+def setup_routes(app):
+    app.router.add_get('/hello', hello, name='hello')
+    app.router.add_route('*', '/question/{question_id}/choice', QuestionChoices)</code></pre>
+<p>打开浏览器或输入下面命令访问：</p>
+<pre><code class="sh">$ curl -X GET http://127.0.0.1:9000/question/1/choice
+[{"id": 1, "delete_flag": 0, "choice_text": "python", "votes": 3, "question_id": 1, "create_time": "2018-04-15 19:47:16"}, {"id": 2, "delete_flag": 0, "choice_text": "java", "votes": 2, "question_id": 1, "create_time": "2018-04-15 19:47:16"}, {"id": 3, "delete_flag": 0, "choice_text": "go", "votes": 1, "question_id": 1, "create_time": "2018-04-15 19:47:16"}]j</code></pre>
+<p>之前使用django比较多，个人喜欢使用类视图。</p>
+<h1>装饰器视图</h1>
+<p>路由装饰器有点像Flask风格:</p>
+<pre><code class="python">routes = web.RouteTableDef()
+
+@routes.get('/get')
+async def handle_get(request):
+    ...
+
+
+@routes.post('/post')
+async def handle_post(request):
+    ...
+
+app.router.add_routes(routes)</code></pre>
+<p>首先是要创建一个 <code>aiohttp.web.RouteTableDef</code> 对象。</p>
+<p>该对象是一个类列表对象，额外提供<code>aiohttp.web.RouteTableDef.get()</code>，<code>aiohttp.web.RouteTableDef.post()</code>这些装饰器来注册路由。</p>
+<p>最后调用<code>add_routes()</code>添加到应用的路由里。</p>
+<h1>静态文件</h1>
+<p>处理静态文件( 图片，JavaScripts, CSS文件等)最好的方法是使用反向代理，像是nginx或CDN服务。</p>
+<p>但就开发来说，<code>aiohttp</code>服务器本身可以很方便的处理静态文件。</p>
+<p>只需要通过 <code>UrlDispatcher.add_static()</code>注册个新的静态路由即可:</p>
+<pre><code class="python">app.router.add_static('/static', path_to_static_folder)</code></pre>
+<p>当访问静态文件的目录时，默认服务器会返回 HTTP/403 Forbidden(禁止访问)。 使用<code>show_index</code>并将其设置为<code>True</code>可以显示出索引:</p>
+<pre><code class="python">app.router.add_static('/static', path_to_static_folder, show_index=True)</code></pre>
+<p>当从静态文件目录访问一个符号链接（软链接）时，默认服务器会响应 HTTP/404 Not Found(未找到)。使用<code>follow_symlinks</code>并将其设置为<code>True</code>可以让服务器使用符号链接:</p>
+<pre><code class="python">app.router.add_static('/static', path_to_static_folder, follow_symlinks=True)</code></pre>
+<p>如果你想允许缓存清除，使用<code>append_version</code>并设为<code>True</code>。</p>
+<p>缓存清除会对资源文件像JavaScript 和 CSS文件等的文件名上添加一个hash后的版本。这样的好处是我们可以让浏览器无限期缓存这些文件而不用担心这些文件是否发布了新版本。</p>
+<pre><code class="python">app.router.add_static('/static', path_to_static_folder, append_version=True)</code></pre>
+<p><strong>这里我们添加一个静态文件的路由</strong></p>
+<p>首先在配置文件conf/settings.py中指定项目、静态文件、模版HTML路径：</p>
+<pre><code class="python">BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))      # 项目路径
+STATIC_DIR = os.path.join(BASE_DIR, 'static')       # 静态文件路径
+TEMPLATE_DIR = os.path.join(BASE_DIR, 'template')   # 模版HTML路径     </code></pre>
+<p>接下里在application/routes.py文件中添加一个静态文件路由：</p>
+<pre><code class="python">def setup_static_routes(app):
+    app.router.add_static('/static/', path=STATIC_DIR, name='static')</code></pre>
+<p>下载<a href="https://getuikit.com/" rel="nofollow noreferrer">uikit</a>的静态文件到static目录下：</p>
+<pre><code class="sh">static
+├── css
+│   ├── uikit-rtl.css
+│   ├── uikit-rtl.min.css
+│   ├── uikit.css
+│   └── uikit.min.css
+└── js
+    ├── uikit-icons.js
+    ├── uikit-icons.min.js
+    ├── uikit.js
+    └── uikit.min.js</code></pre>
+<p>把添加静态路由的函数添加到application/main.py文件的init函数中：</p>
+<pre><code class="python">async def init(loop):
+    mysql_pool = await create_pool(loop)
+    app = web.Application(loop=loop)
+    app['db'] = mysql_pool
+    setup_routes(app)
+    setup_static_routes(app)
+    return app</code></pre>
+<p>重启服务器访问<code>http://127.0.0.1:9000/static/js/bootstrap.js</code></p>
+<pre><code class="sh">$ curl -X GET http://127.0.0.1:9000/static/js/bootstrap.js
+/*!
+  * Bootstrap v4.0.0 (https://getbootstrap.com)
+  * Copyright 2011-2018 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
+  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  */
+  。。。。。
+  。。。。。</code></pre>
+<p>可以正常访问，静态路由已经添加成功了。</p>
+<h1>模版</h1>
+<p><code>aiohttp.web</code>并不直接提供模板读取，不过可以使用第三方库 <code>aiohttp_jinja2</code>，该库是由<code>aiohttp</code>作者维护的。<br>使用起来也很简单。首先我们用<code>aiohttp_jinja2.setup()</code>来设置下<code>jinja2</code>环境。</p>
+<p>安装aiohttp_jinja2:</p>
+<pre><code class="sh">$ pip3 install aiohttp_jinja2</code></pre>
+<p>在application/routes.py文件中添加一个模版文件路由：</p>
+<pre><code class="python">from config.settings import STATIC_DIR, TEMPLATE_DIR
+
+def setup_template_routes(app):
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(TEMPLATE_DIR))</code></pre>
+<p>把添加模版路由的函数添加到vote/main.py文件的init函数中：</p>
+<pre><code class="python">from application.routes import setup_routes, setup_static_routes, setup_template_routes
+
+async def init(loop):
+    mysql_pool = await create_pool(loop)
+    app = web.Application(loop=loop)
+    app['db'] = mysql_pool
+    setup_routes(app)
+    setup_static_routes(app)
+    setup_template_routes(app)
+    return app</code></pre>
+<p>增加pycharm普通项目对jinja2模版的支持，编辑.idea/vote.iml，在component标签的同级添加如下内容：</p>
+<pre><code class="xml">  &lt;component name="TemplatesService"&gt;  
+    &lt;option name="TEMPLATE_CONFIGURATION" value="Jinja2" /&gt;  
+    &lt;option name="TEMPLATE_FOLDERS"&gt;  
+    &lt;list&gt;  
+      &lt;option value="$MODULE_DIR$/template" /&gt;  
+    &lt;/list&gt;  
+    &lt;/option&gt;  
+  &lt;/component&gt;  </code></pre>
+<p>新建一个模版HTML文件保存到template/index.html中，内容如下：</p>
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"&gt;
+    {% block title %}
+        &lt;title&gt;首页&lt;/title&gt;
+    {% endblock %}
+    &lt;link rel="stylesheet" href="/static/css/uikit.min.css"&gt;
+    &lt;link rel="stylesheet" href="/static/css/base.css"&gt;
+    &lt;script src="/static/js/uikit.min.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;nav class="uk-navbar-container uk-margin" uk-navbar&gt;
+        &lt;div class="uk-navbar-left"&gt;
+            &lt;a class="uk-navbar-item uk-logo" href="#"&gt;Primumest&lt;/a&gt;
+            &lt;ul class="uk-navbar-nav"&gt;
+                &lt;li class="uk-active"&gt;&lt;a href="#"&gt;首页&lt;/a&gt;&lt;/li&gt;
+                &lt;li&gt;
+                    &lt;a href="#"&gt;编程语言&lt;/a&gt;
+                    &lt;div class="uk-navbar-dropdown"&gt;
+                        &lt;ul class="uk-nav uk-navbar-dropdown-nav"&gt;
+                            &lt;li class="uk-active"&gt;&lt;a href="#"&gt;python&lt;/a&gt;&lt;/li&gt;
+                            &lt;li&gt;&lt;a href="#"&gt;go&lt;/a&gt;&lt;/li&gt;
+                            &lt;li&gt;&lt;a href="#"&gt;c&lt;/a&gt;&lt;/li&gt;
+                        &lt;/ul&gt;
+                    &lt;/div&gt;
+                &lt;/li&gt;
+                &lt;li&gt;&lt;a href="#"&gt;问答&lt;/a&gt;&lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/div&gt;
+        &lt;div class="uk-navbar-right content"&gt;
+            &lt;div class="uk-navbar-item"&gt;
+                &lt;form class="uk-search uk-search-default"&gt;
+                    &lt;a href="" class="uk-search-icon-flip" uk-search-icon&gt;&lt;/a&gt;
+                    &lt;input class="uk-input uk-form-width-smal" type="search" placeholder="Search"&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+
+            &lt;ul class="uk-navbar-nav"&gt;
+                &lt;li class="uk-active"&gt;&lt;a href="#"&gt;登录&lt;/a&gt;&lt;/li&gt;
+                &lt;li&gt;&lt;a href="{{ url('register') }}"&gt;注册&lt;/a&gt;&lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/div&gt;
+    &lt;/nav&gt;
+    {% block content %}
+    {% endblock %}
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>新建注册页面保存到template/register.html中，内容如下：</p>
+<pre><code class="html">{% extends "index.html" %}
+
+{% block title %}
+    &lt;title&gt;注册&lt;/title&gt;
+{% endblock %}
+
+{% block content %}
+    &lt;div class="uk-container content"&gt;
+        &lt;form class="uk-form register-box"&gt;
+            &lt;fieldset style="width: 30%"&gt;
+                &lt;legend&gt;注册账号&lt;/legend&gt;
+                &lt;div class="uk-form-row"&gt;
+                    &lt;span class="uk-form-label"&gt;昵称 &lt;/span&gt;
+                    &lt;input type="text" name="name" placeholder="请输入你的名字" class="uk-form-width-medium uk-form-small"&gt;
+                &lt;/div&gt;
+                &lt;div class="uk-form-row"&gt;
+                    &lt;span class="uk-form-label"&gt;邮箱 &lt;/span&gt;
+                    &lt;input type="text" name="email" placeholder="请输入你的邮箱" class="uk-form-width-medium uk-form-small"&gt;
+                &lt;/div&gt;
+                &lt;div class="uk-form-row"&gt;
+                    &lt;span class="uk-form-label"&gt;手机 &lt;/span&gt;
+                    &lt;input type="text" name="phone" placeholder="请输入你的手机号" class="uk-form-width-medium uk-form-small"&gt;
+                &lt;/div&gt;
+                &lt;div class="uk-form-row"&gt;
+                    &lt;span class="uk-form-label"&gt;密码 &lt;/span&gt;
+                    &lt;input type="password" name="password" placeholder="请输入你的密码" class="uk-form-width-medium uk-form-small"&gt;
+                &lt;/div&gt;
+                &lt;button type="submit" class="uk-button-primary"&gt;提交&lt;/button&gt;
+            &lt;/fieldset&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+{% endblock %}
+</code></pre>
+<p>页面用到了jinja2模版的语法。</p>
+<p>创建视图函数用来访问这个模版文件：</p>
+<pre><code class="python">@aiohttp_jinja2.template('index.html')
+async def index(request):
+    return
+
+@aiohttp_jinja2.template('register.html')
+async def register(request):
+    return</code></pre>
+<p>创建与之对应的路由：</p>
+<pre><code class="python">def setup_routes(app):
+    app.router.add_get('/hello', hello, name='hello')
+    app.router.add_get('/', index, name='index')
+    app.router.add_get('/register', register, name='register')
+    app.router.add_route('*', '/question/{question_id}/choice', QuestionChoices, name='QuestionChoices')</code></pre>
+<p>重启服务器，浏览器访问<code>http://127.0.0.1:9000</code></p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587458?w=2048&amp;h=241" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="base-template" title="base-template"></span></p>
+<p>浏览器访问<code>http://127.0.0.1:9000/register</code></p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587459?w=2048&amp;h=411" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="register" title="register"></span></p>
+<h1>调试工具箱</h1>
+<p>开发<code>aiohttp.web</code>应用项目时，<code>aiohttp_debugtoolbar</code>是非常好用的一个调试工具。</p>
+<p>可使用pip进行安装：</p>
+<pre><code class="sh">$ pip3 install aiohttp_debugtoolbar</code></pre>
+<p>之后将<code>aiohttp_debugtoolba</code>r中间件添加到<code>aiohttp.web.Applicaiton</code>中并调用<code>aiohttp_debugtoolbar.setup()</code>来部署：</p>
+<pre><code class="python">import aiohttp_debugtoolbar
+from aiohttp_debugtoolbar import toolbar_middleware_factory
+
+app = web.Application(middlewares=[toolbar_middleware_factory])
+aiohttp_debugtoolbar.setup(app)</code></pre>
+<p>这里是我们的配置：</p>
+<pre><code class="python">import asyncio
+import aiohttp_debugtoolbar
+from aiohttp import web
+from application.routes import setup_routes, setup_static_routes, setup_template_routes
+from models import create_pool
+from aiohttp_debugtoolbar import toolbar_middleware_factory
+
+
+async def init(loop):
+    mysql_pool = await create_pool(loop)
+    app = web.Application(loop=loop, middlewares=[toolbar_middleware_factory])
+    app['db'] = mysql_pool
+    aiohttp_debugtoolbar.setup(app)
+    setup_routes(app)
+    setup_static_routes(app)
+    setup_template_routes(app)
+    return app</code></pre>
+<p>浏览器输入地址<code>http://127.0.0.1:9000/_debugtoolbar</code>可以看到如下页面：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587460?w=2048&amp;h=723" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="image-20180416164759632" title="image-20180416164759632"></span></p>
+<h1>开发工具</h1>
+<p><code>aiohttp-devtools</code>提供几个简化开发的小工具。</p>
+<p>可以使用pip安装：</p>
+<pre><code class="sh">$ pip3 install aiohttp-devtools
+ * ``runserver`` 提供自动重载，实时重载，静态文件服务和aiohttp_debugtoolbar_integration。
+ * ``start`` 是一个帮助做繁杂且必须的创建'aiohttp.web'应用的命令。</code></pre>
+<p>这是我们的项目启动的例子：</p>
+<pre><code class="sh">$ adev runserver -v main.py --app-factory init -p 9000 --debug-toolbar --host localhost</code></pre>
+<p>这个adev着实难用，我们定义的init函数是个协程函数，但是它命令--app-factory要求必须是个普通函数，并且返回一个aiohttp.web.Application。由于我们要使用数据库连接池，必须使用await协程语法。所以我放弃使用这个东西了。</p>
+<p>创建和运行本地应用的文档和指南请看<code>aiohttp-devtools</code>。</p>
+<p>下面准备编写注册、登录的逻辑了，这里先使用session会话机制。以后使用oauth2.0的token认证机制。</p>
+<h1>处理session会话</h1>
+<p>你经常想要一个可以通过请求存储用户数据的仓库。一般简称为会话。</p>
+<p><code>aiohttp.web</code>没有内置会话，不过你可以使用第三方库<code>aiohttp_session</code>来提供会话支持。</p>
+<p>官网例子：</p>
+<pre><code class="python">import asyncio
+import aioredis
+import time
+
+from aiohttp import web
+from aiohttp_session import setup, get_session
+from aiohttp_session.redis_storage import RedisStorage
+
+
+async def handler(request):
+    session = await get_session(request)
+    last_visit = session['last_visit'] if 'last_visit' in session else None
+    session['last_visit'] = time.time()
+    text = 'Last visited: {}'.format(last_visit)
+    return web.Response(text=text)
+
+
+async def make_redis_pool():
+    redis_address = ('127.0.0.1', '6379')
+    return await aioredis.create_redis_pool(redis_address, timeout=1)
+
+
+def make_app():
+    loop = asyncio.get_event_loop()
+    redis_pool = loop.run_until_complete(make_redis_pool())
+    storage = RedisStorage(redis_pool)
+
+    async def dispose_redis_pool(app):
+        redis_pool.close()
+        await redis_pool.wait_closed()
+
+    app = web.Application()
+    setup(app, storage)
+    app.on_cleanup.append(dispose_redis_pool)
+    app.router.add_get('/', handler)
+    return app
+
+
+web.run_app(make_app())</code></pre>
+<p>安装<code>aiohttp_session</code>:</p>
+<pre><code class="sh">$ pip3 install aiohttp_session</code></pre>
+<p>session存储使用redis，这里使用aioredis连接redis。</p>
+<p>安装aioredis:</p>
+<pre><code class="sh">$ pip3 install aioredis</code></pre>
+<p>创建redis全局连接池与redis命令简单封装，编辑models/db.py：</p>
+<pre><code class="python">import aioredis
+from config.settings import DATABASES, CACHES
+
+async def create_redis_pool(loop):
+    """定义redis全局连接池"""
+    logging.info('create redis connection pool...')
+    global _reids_pool
+    _reids_pool = await aioredis.create_pool(address=CACHES['address'], db=CACHES['db'], password=CACHES['password'],
+                                      minsize=CACHES['minsize'], maxsize=CACHES['maxsize'], loop=loop)
+
+    return _reids_pool
+
+
+async def cache_set(*args, **kwargs):
+    """redis set 命令封装"""
+    with await aioredis.commands.Redis(_reids_pool) as redis:
+        await redis.set(*args, **kwargs)
+
+
+async def cache_get(*args, **kwargs):
+    """redis get 命令封装"""
+    with await aioredis.commands.Redis(_reids_pool) as redis:
+        return await redis.get(*args, **kwargs)
+
+
+async def cache_del(*args, **kwargs):
+    """redis del 命令封装"""
+    with await aioredis.commands.Redis(_reids_pool) as redis:
+        return await redis.delete(*args, **kwargs)</code></pre>
+<p><code>CACHES</code>在我们config/settings.py里面定义：</p>
+<pre><code class="python">CACHES = {
+    'engine': 'redis',
+    'address': ('localhost', 6379),
+    'password': None,
+    'db': None,
+    'minsize': 1,
+    'maxsize': 10
+}</code></pre>
+<p>把执行redis命令的函数导入到models/__init__.py文件中，方便别的模块引用：</p>
+<pre><code class="python">from .db import *
+
+__all__ = ['create_pool', 'select', 'execute', 'fetchone', 'create_redis_pool', 'cache_set', 'cache_get', 'cache_del']</code></pre>
+<p>注册页面：</p>
+<pre><code class="html">{% extends "index.html" %}
+
+{% block title %}
+    &lt;title&gt;注册&lt;/title&gt;
+{% endblock %}
+
+{% block head_js %}
+{% endblock %}
+
+{% block content %}
+    &lt;div class="uk-container content"&gt;
+        &lt;form class="uk-form register-box" method="post" action="{{ url('Register') }}"&gt;
+            &lt;fieldset style="width: 25%; padding: 1rem 0 1rem 5rem"&gt;
+                &lt;legend style="text-align: center"&gt;注册账号&lt;/legend&gt;
+                &lt;div class="uk-form-row"&gt;
+                    &lt;span class="uk-form-label"&gt;昵称 &lt;/span&gt;
+                    &lt;input type="text" name="name" placeholder="请输入你的名字" class="uk-width-1-2 uk-form-small"&gt;
+                &lt;/div&gt;
+                &lt;div class="uk-form-row"&gt;
+                    &lt;span class="uk-form-label"&gt;邮箱 &lt;/span&gt;
+                    &lt;input type="text" name="email" placeholder="请输入你的邮箱" class="uk-width-1-2 uk-form-small"&gt;
+                &lt;/div&gt;
+                &lt;div class="uk-form-row"&gt;
+                    &lt;span class="uk-form-label"&gt;手机 &lt;/span&gt;
+                    &lt;input type="text" name="phone" placeholder="请输入你的手机号" class="uk-width-1-2 uk-form-small"&gt;
+                &lt;/div&gt;
+                &lt;div class="uk-form-row"&gt;
+                    &lt;span class="uk-form-label"&gt;密码 &lt;/span&gt;
+                    &lt;input type="password" name="password" placeholder="请输入你的密码" class="uk-width-1-2 uk-form-small"&gt;
+                &lt;/div&gt;
+                &lt;button type="submit" class="uk-button-primary"&gt;提交&lt;/button&gt;
+            &lt;/fieldset&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+{% endblock %}
+</code></pre>
+<p>注册视图函数:</p>
+<pre><code class="python">class Register(web.View):
+    """a view handler for register page"""
+
+    @aiohttp_jinja2.template('register.html')
+    async def get(self):
+        return
+
+    async def post(self):
+        data = await self.request.post()
+        user = await fetchone('select id from user where email = %s or phone = %s', (data.get('email'), data.get('phone')))
+        # print(await self.request.multipart())
+        if user:
+            msg = {'error_code': 20001, 'error_msg': 'The email or phone has been registered'}
+        else:
+            params = (data.get('name'), data.get('email'), data.get('phone'), data.get('password'))
+            result = await fetchone('INSERT INTO user(name, email, phone, password) VALUES(%s, %s, %s, %s)', params)
+            if result:
+                msg = {'error_code': 0, 'error_msg': 'ok'}
+            else:
+                msg = {'error_code': 20002, 'error_msg': 'Please try again if registration fails'}
+        # return web.json_response(data=msg, dumps=json_dumps)
+        return web.json_response(data=msg, dumps=json_dumps)</code></pre>
+<p>登录页面：</p>
+<pre><code class="html">{% extends "index.html" %}
+
+{% block title %}
+    &lt;title&gt;登录&lt;/title&gt;
+{% endblock %}
+
+{% block head_js %}
+{% endblock %}
+
+{% block content %}
+    &lt;div class="uk-container content"&gt;
+        &lt;form class="uk-form register-box uk-text-center" method="post" action="{{ url('Login') }}" style="margin-top: 2rem;"&gt;
+            &lt;div class="uk-form-row"&gt;
+                &lt;input type="text" name="account" placeholder="请输入邮箱或手机号" class="uk-width-1-5 uk-form-small"&gt;
+            &lt;/div&gt;
+            &lt;div class="uk-form-row"&gt;
+                &lt;input type="password" name="password" placeholder="请输入你的密码" class="uk-width-1-5 uk-form-small"&gt;
+            &lt;/div&gt;
+            &lt;button type="submit" class="uk-width-1-5 uk-button-primary uk-button-small"&gt;提交&lt;/button&gt;
+            {% if msg %}
+                &lt;p class="uk-text-danger"&gt;{{ msg.error_msg }}&lt;/p&gt;
+            {% endif %}
+        &lt;/form&gt;
+    &lt;/div&gt;
+{% endblock %}
+
+{% block bottom_js %}
+
+{% endblock %}
+</code></pre>
+<p>登录视图函数：</p>
+<pre><code class="python">class Login(web.View):
+    """a view handler for login page"""
+
+    async def get(self):
+        return aiohttp_jinja2.render_template('login.html', self.request, locals())
+
+    async def post(self):
+        data = await self.request.post()
+        account = data.get('account')
+        password = data.get('password')
+        columns = 'id, name, email, phone, password'
+        if len(account) == 11 and re.match(r'^1[35678]\d{9}', account):
+            user = await fetchone('select {} from user where phone = %s'.format(columns), (account,))
+        elif re.match(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$', account):
+            user = await fetchone('select {} from user where email = %s'.format(columns), (account,))
+        else:
+            msg = {'error_code': 20003, 'error_msg': 'User does not exists'}
+            return aiohttp_jinja2.render_template('login.html', self.request, locals())
+        if password != user.get('password'):
+            msg = {'error_code': 20004, 'error_msg': 'Password mismatch'}
+            return aiohttp_jinja2.render_template('login.html', self.request, locals())
+        session = await get_session(self.request)
+        session['uid'] = user.get('id')
+        # sessionid = session.identity
+        return web.Response(status=302, headers={'location': '/'})</code></pre>
+<p>给首页视图函数增加个验证登录到装饰器：</p>
+<pre><code class="python">from aiohttp_session import get_session
+from functools import wraps
+
+def login_required(func):  # 用户登录状态校验
+    """This function applies only to class views."""
+    @wraps(func)
+    async def inner(cls, *args, **kwargs):
+        session = await get_session(cls.request)
+        uid = session.get("uid")
+        if uid:
+            user = await fetchone('select id, name, email, phone from user where id = %s', (uid,))
+            cls.request.app.userdata = user
+            return await func(cls, *args, **kwargs)
+        else:
+            return web.Response(status=302, headers={'location': '/login'})
+
+    return inner
+
+
+class Index(web.View):
+    """a view handler for home page"""
+
+    @login_required
+    async def get(self):
+        # response.headers['Content-Language'] = 'utf-8'
+        return aiohttp_jinja2.render_template('index.html', self.request, locals())</code></pre>
+<p>这里我把视图处理函数全部改为类视图方式编写了。</p>
+<p>增加路由：</p>
+<pre><code class="python">#!/usr/bin/env python
+# _*_ coding:utf-8 _*_
+__author__ = 'junxi'
+
+import aiohttp_jinja2
+import jinja2
+import uuid
+from application.views import Hello, Index, Register, Login, QuestionChoices, Questions, hash_sha256
+from config.settings import STATIC_DIR, TEMPLATE_DIR
+from aiohttp_session import setup
+from aiohttp_session.redis_storage import RedisStorage
+
+
+def setup_session(app, redis_pool):
+    storage = RedisStorage(redis_pool=redis_pool, cookie_name='sessionid', key_factory=lambda: hash_sha256(uuid.uuid4().hex))
+    setup(app, storage)
+
+
+def setup_routes(app):
+    app.router.add_view('/hello', Hello, name='Hello')
+    app.router.add_view('', Index, name='Index')
+    app.router.add_view('/register', Register, name='Register')
+    app.router.add_view('/login', Login, name='Login')
+    app.router.add_view('/questions/{question_id}/choice', QuestionChoices, name='QuestionChoices'</code></pre>
+<p><code>main.py</code>增加session处理：</p>
+<pre><code class="python">async def init(loop):
+    mysql_pool = await create_pool(loop)
+    redis_pool = await create_redis_pool(loop)
+    # app = web.Application(loop=loop, middlewares=[toolbar_middleware_factory])
+    # aiohttp_debugtoolbar.setup(app)
+
+    async def dispose_mysql_pool():
+        mysql_pool.close()
+        await mysql_pool.wait_closed()
+
+    async def dispose_redis_pool():
+        redis_pool.close()
+        await redis_pool.wait_closed()
+
+    async def dispose_pool(app):
+        await dispose_mysql_pool()
+        await dispose_redis_pool()
+
+    app = web.Application(loop=loop)
+    setup_session(app, redis_pool)
+    setup_routes(app)
+    setup_static_routes(app)
+    setup_template_routes(app)
+    app.on_cleanup.append(dispose_pool)
+    return app</code></pre>
+<p>重新启动服务器，输入地址<code>http://127.0.0.1:9000/</code> ， 会跳转到登录页面：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587461?w=1333&amp;h=387" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="image-20180423142244346" title="image-20180423142244346"></span></p>
+<p>输入账号密码登录：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587462?w=580&amp;h=356" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="image-20180423142350026" title="image-20180423142350026"></span></p>
+<p>跳转到首页，可以看到右上角显示昵称，已经登录成功了。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587463?w=1848&amp;h=215" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="image-20180423142443067" title="image-20180423142443067"></span></p>
+<p>增加问答页面：</p>
+<pre><code class="html">{% extends "index.html" %}
+
+{% block title %}
+    &lt;title&gt;问答&lt;/title&gt;
+{% endblock %}
+
+{% block head_js %}
+{% endblock %}
+
+{% block content %}
+    &lt;div class="uk-container content"&gt;
+        &lt;div class="uk-child-width-1-2@s" uk-grid&gt;
+            {% for question in questions %}
+                &lt;div&gt;
+                    &lt;div class="uk-dark uk-background-muted uk-padding"&gt;
+                        &lt;h3 class="uk-text-danger"&gt;{{ question.question_text }}&lt;/h3&gt;
+                        {% for i in question.question_choice|choice_split %}
+                            &lt;p&gt;&lt;label&gt;&lt;input class="uk-radio" type="radio" name="radio2" value="{{ i.0 }}"&gt; {{ i.1 }}&lt;/label&gt;&lt;/p&gt;
+                        {% endfor %}
+                        &lt;button class="uk-button-primary uk-button-small"&gt;提交&lt;/button&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            {% endfor %}
+        &lt;/div&gt;
+    &lt;/div&gt;
+{% endblock %}
+
+{% block bottom_js %}
+
+{% endblock %}
+</code></pre>
+<p>增加问答视图函数：</p>
+<pre><code class="python">class Questions(web.View):
+    """a view handler for look at all questions"""
+
+    @login_required
+    async def get(self):
+        questions = await select('select q.id as qid, q.question_text, (select group_concat(concat_ws("|", c.id, c.choice_text)) from choice c where c.question_id = q.id) as question_choice from question q;')
+        return aiohttp_jinja2.render_template('questions.html', self.request, locals())</code></pre>
+<p>增加路由以及我们自定义的jinja2模版上下文处理函数：</p>
+<pre><code class="python">import aiohttp_jinja2
+import jinja2
+import uuid
+from application.views import Hello, Index, Register, Login, QuestionChoices, Questions, hash_sha256
+from config.settings import STATIC_DIR, TEMPLATE_DIR
+from aiohttp_session import setup
+from aiohttp_session.redis_storage import RedisStorage
+
+
+def setup_session(app, redis_pool):
+    storage = RedisStorage(redis_pool=redis_pool, cookie_name='sessionid', key_factory=lambda: hash_sha256(uuid.uuid4().hex))
+    setup(app, storage)
+
+
+def setup_routes(app):
+    app.router.add_view('/hello', Hello, name='Hello')
+    app.router.add_view('', Index, name='Index')
+    app.router.add_view('/register', Register, name='Register')
+    app.router.add_view('/login', Login, name='Login')
+    app.router.add_view('/questions/{question_id}/choice', QuestionChoices, name='QuestionChoices')
+    app.router.add_view('/questions', Questions, name='Questions')
+
+
+def setup_static_routes(app):
+    app.router.add_static('/static/', path=STATIC_DIR, name='static')
+
+
+def setup_template_routes(app):
+    aiohttp_jinja2.setup(app, filters={'choice_split': choice_split}, loader=jinja2.FileSystemLoader(TEMPLATE_DIR))
+
+
+def choice_split(choices):
+    for i in choices.split(','):
+        single = i.split('|')
+        yield single</code></pre>
+<p>重启服务后查看问答页面<code>http://127.0.0.1:9000/questions</code></p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587464?w=1774&amp;h=952" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="image-20180423143016006" title="image-20180423143016006"></span></p>
+<h1>项目展示</h1>
+<p>这是完整代码：<code>https://github.com/junxi3166/python_study/tree/vote/python_practice</code></p>
+<h1>supervisor部署项目</h1>
+<p>安装supervisor：</p>
+<pre><code class="sh">mkdir ~/supervisor
+cd ~/supervisor/
+wget https://files.pythonhosted.org/packages/44/60/698e54b4a4a9b956b2d709b4b7b676119c833d811d53ee2500f1b5e96dc3/supervisor-3.3.4.tar.gz
+tar zxf supervisor-3.3.4.tar.gz 
+cd supervisor-3.3.4
+sudo python setup.py install
+supervisord -v</code></pre>
+<p>生成配置文件：</p>
+<pre><code class="sh">$ echo_supervisord_conf &gt; supervisord.conf</code></pre>
+<p>启动：</p>
+<pre><code class="sh">$ supervisord -c supervisord.conf</code></pre>
+<p>查看 supervisord 是否在运行：</p>
+<pre><code class="sh">$ ps aux|grep supervisord
+junxi             5064   0.0  0.0  4267768    900 s000  S+   10:37上午   0:00.00 grep --color supervisord
+junxi             5059   0.0  0.0  4344312   2196   ??  Ss   10:37上午   0:00.01 /usr/bin/python /usr/local/bin/supervisord -c supervisord.conf</code></pre>
+<p>打开配置文件：</p>
+<pre><code class="sh">vim supervisord.conf</code></pre>
+<p>创建aio目录：</p>
+<pre><code class="sh">mkdir aio</code></pre>
+<p>在配置文件底部，配置include</p>
+<pre><code class="sh">[include]
+files = aio/*.conf</code></pre>
+<p>其他参数配置：</p>
+<pre><code class="sh"># grep -Ev '^;|^$' supervisord.conf
+[unix_http_server]
+file=/var/log/supervisor/supervisor.sock   ; the path to the socket file
+[inet_http_server]         ; inet (TCP) server disabled by default
+port=127.0.0.1:9001        ; ip_address:port specifier, *:port for all iface
+username=user              ; default is no username (open server)
+password=123               ; default is no password (open server)
+[supervisord]
+logfile=/var/log/supervisor/supervisord.log ; main log file; default $CWD/supervisord.log
+logfile_maxbytes=50MB        ; max main logfile bytes b4 rotation; default 50MB
+logfile_backups=10           ; # of main logfile backups; 0 means none, default 10
+loglevel=info                ; log level; default info; others: debug,warn,trace
+pidfile=/var/log/supervisor/supervisord.pid ; supervisord pidfile; default supervisord.pid
+nodaemon=false               ; start in foreground if true; default false
+minfds=1024                  ; min. avail startup file descriptors; default 1024
+minprocs=200                 ; min. avail process descriptors;default 200
+childlogdir=/var/log/supervisor            ; 'AUTO' child log dir, default $TEMP
+[include]
+files = /Users/junxi/supervisor/aio/*.conf</code></pre>
+<p>在aio文件夹下新建vote.conf文件用于启动我们的vote项目，内容如下：</p>
+<pre><code class="sh"># vim aio/vote.conf
+[program:vote]
+numprocs = 4
+numprocs_start = 1
+process_name = vote_910%(process_num)s
+
+command=python3 /Users/junxi/program/vote/main.py --port=910%(process_num)s
+directory=/Users/junxi/program/vote
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/vote/access.log
+loglevel=info</code></pre>
+<p>创建存放日志的文件夹：</p>
+<pre><code class="sh">$ sudo mkdir /var/log/supervisor
+$ sudo chown -R junxi:admin /var/log/supervisor
+$ sudo mkdir /var/log/vote/
+$ sudo chown -R junxi:admin /var/log/vote/</code></pre>
+<p>重启supervisor：</p>
+<pre><code class="sh">$ kill -Hup `ps -ef|grep supervisord|awk 'NR==1{print $2}'`</code></pre>
+<p>或者手动找到pid重启。</p>
+<p>使用客户端supervisorctl管理进程的启动</p>
+<p>连接到服务端：</p>
+<pre><code class="sh">$ supervisorctl -c supervisord.conf </code></pre>
+<p>输入默认的账户<code>user</code>，密码<code>123</code>进入命令行。</p>
+<p>查看状态:</p>
+<pre><code class="sh">supervisor&gt; help
+
+default commands (type help &lt;topic&gt;):
+=====================================
+add    exit      open  reload  restart   start   tail   
+avail  fg        pid   remove  shutdown  status  update 
+clear  maintail  quit  reread  signal    stop    version
+
+supervisor&gt; status
+vote:vote_9101                   STOPPED   Apr 17 11:00 PM
+vote:vote_9102                   STOPPED   Apr 17 11:00 PM
+vote:vote_9103                   STOPPED   Apr 17 11:00 PM
+vote:vote_9104  </code></pre>
+<p>启动vote：</p>
+<pre><code class="sh">supervisor&gt; start all
+vote:vote_9101: started
+vote:vote_9102: started
+vote:vote_9103: started
+vote:vote_9104: started</code></pre>
+<p>浏览器输入 <code>http://127.0.0.1:9001/</code> 打开web页面查看supervisor状态，就是我们配置文件中的inet_http_server。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587465?w=1998&amp;h=760" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="supervisor-web" title="supervisor-web"></span></p>
+<p>浏览器输入4个端口(分别为9101、9102、9103、9104)分别进行访问测试：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587466?w=2048&amp;h=292" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="9101-测试" title="9101-测试"></span></p>
+<p>然后再使用nginx做个负载均衡：</p>
+<pre><code class="sh">proxy_next_upstream error;
+
+upstream votes {
+    server 127.0.0.1:9101;
+    server 127.0.0.1:9102;
+    server 127.0.0.1:9103;
+    server 127.0.0.1:9104;
+}
+
+server {
+    listen 8008;
+    server_name localhost;
+
+
+    access_log /var/log/nginx/vote/access.log;
+    error_log /var/log/nginx/vote/error.log;
+
+    proxy_read_timeout 200;
+
+
+    location /static/ {
+        alias /Users/junxi/program/vote/static/;
+
+    }
+
+    location / {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Scheme $scheme;
+        proxy_pass http://votes;
+    }
+}</code></pre>
+<p>别忘了设置Nginx的worker_rlimit_nofile、worker_connections、worker_processes。</p>
+<p>访问<code>http://localhost:8008/hello</code></p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000014587467?w=468&amp;h=140" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="image-20180423151130765" title="image-20180423151130765"></span></p>
+<p>Nice。</p>
+<p>先写到这里了。</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000014587452"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="初识aiohttp异步框架之服务端用法"
+ data-url="https://segmentfault.com/a/1190000014587452" data-shorturl="http://sfau.lt/b59m1E"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000014587452"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000014587452"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">0</span></button><br><button type="button" data-id="1190000014587452"
+                                        class="btn btn-danger btn-lg mt15 article__reward-btn">
+                                    赞赏支持
+                                </button></div><div class="mt30 mb30 text-center article__reward-info"><span class="mr10">如果觉得我的文章对你有用，请随意赞赏</span></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000014587452" data-user-id="" data-author-id="1030000011698915 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">1 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000014588502">
+            <div class="pull-left">
+                <a href="/u/junxi3166" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/304/597/3045971263-5ae028fa89bc9_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000014588502" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/junxi3166">君惜</a></strong>
+                    <span class="comments-isAuthor ">作者</span>
+                    <span class="comments-date">  ·  4月25日</span>
+                </div>
+
+                <div class="fmt mb10"><p>第一次在这个平台写文档，居然不识别markdown [TOC] 好尴尬啊。</p></div>
+
+                <form action="/api/comment/1050000014588502/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >第一次在这个平台写文档，居然不识别markdown [TOC] 好尴尬啊。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000014587452/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542599515000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _r7d45 = 'd02'//'W'
++//'v'
+'ff'+'3'//'o'
++//'FRA'
+'28'+'f0'//'e'
++//'34C'
+'30'+'697'//'hh'
++//'CB'
+'56'+'8'//'KzB'
++//'0h'
+'9'+'d5'//'xSW'
++'227'//'sy'
++//'N'
+'156'+'5'//'hc'
++/* '7x'//'7x' */''+//'QCx'
+'b'+'b'//'U'
++/* 'lvd'//'lvd' */''+'ee'//'t'
+, _OOy3rVA = [];
+
+    for (var i = 0; i < _OOy3rVA.length; i ++) {
+        _r7d45 = _r7d45.substring(0, _OOy3rVA[i][0]) + _r7d45.substring(_OOy3rVA[i][1]);
+    }
+
+    return _r7d45;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u521d\u8bc6aiohttp\u5f02\u6b65\u6846\u67b6\u4e4b\u670d\u52a1\u7aef\u7528\u6cd5","desc":"typora-copy-images-to: ipic [TOC] \u914d\u7f6e\u73af\u5883 \u9996\u5148\u68c0\u67e5\u4f60\u7684python\u7248\u672c\uff1a {\u4ee3\u7801...} \u5b89\u88c5aiohttp\uff1a {\u4ee3\u7801...} \u67e5\u770baiohttp\u7248\u672c\u53f7\uff1a {\u4ee3\u7801...} \u9879\u76ee\u7ed3\u6784\u4e0e\u5176\u4ed6\u57fa\u4e8epython\u7684web\u9879\u76ee\u975e\u5e38\u76f8\u4f3c\uff1a {\u4ee3\u7801...} \u5f00\u59cb\u7b2c\u4e00\u4e2aa...","link":"https:\/\/segmentfault.com\/a\/1190000014587452","imgUrl":"https:\/\/segmentfault.com\/img\/remote\/1460000014587457?w=492&amp;h=608"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542599516,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

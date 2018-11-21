@@ -1,0 +1,1622 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>密码学入门（一）：用Python实现对称加密算法 - 个人文章 - SegmentFault 思否</title><meta name="description" content="最开始只是想整理一下密码学课程的作业，后面越写越多，就索性写成一篇入门的介绍。我会把自己对对称加密的理解和一些作业的代码串起来，力图清晰明白地展示出来，文中所有代码都放在我的Github上，如果有错误之..."/><meta name="keywords" content="密码学,对称加密算法,aes,比特币,python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=密码学,对称加密算法,aes,比特币,python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000014666335" class="hidden" />
+
+<div class="wrap" data-blogid="">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="Gooong"
+                                         data-userslug="gooong"
+                                         data-useravatar="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/gooong">
+                                                    <img class="avatar-40" src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt="Gooong">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/gooong" class="mr5 "><strong>Gooong</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">9</span>
+
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                            <button type="button"
+                                                                class="btn btn-xs btn-success follow-user"
+                                                                data-do="follow"
+                                                                data-type="user"
+                                                                data-id="1030000010379843">关注作者
+                                                        </button>
+                                                                                                                                                    </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-04-29 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000014666335">
+                                            <a href="/a/1190000014666335"> 密码学入门（一）：用Python实现对称加密算法</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E5%AF%86%E7%A0%81%E5%AD%A6/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/412/180/4121808633-1040000000351813_big64" data-placement="top"
+                                                                                data-original-title="密码学"
+                                                                                data-id="1040000000351813">
+                                                                                                                      密码学
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E7%AE%97%E6%B3%95/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="对称加密算法"
+                                                                                data-id="1040000004461379">
+                                                                                                                      对称加密算法
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/aes/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="aes"
+                                                                                data-id="1040000000180836">
+                                                                                                                      aes
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E6%AF%94%E7%89%B9%E5%B8%81/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="比特币"
+                                                                                data-id="1040000000343451">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/272/250/2722506514-5a55e1864a41a_small">
+                                                                                                                      比特币
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                1.8k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 39 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">4</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000014666335" data-license="">
+                    
+<h2>0.前言</h2>
+<p>最开始只是想整理一下密码学课程的作业，后面越写越多，就索性写成一篇入门的介绍。我会把自己对对称加密的理解和一些作业的代码串起来，力图清晰明白地展示出来，文中所有代码都放在我的<a href="https://github.com/Gooong/Cryptography" rel="nofollow noreferrer">Github</a>上，如果有错误之处还请轻拍。</p>
+<ul>
+<li>文章地址：<a href="https://gooong.cn/post/cryptography-part1/" rel="nofollow noreferrer">https://gooong.cn/post/crypto...</a>
+</li>
+<li>代码地址：<a href="https://github.com/Gooong/Cryptography" rel="nofollow noreferrer">https://github.com/Gooong/Cry...</a>
+</li>
+</ul>
+<h2>1.对称密码基础</h2>
+<p>加密是为了防止要传达的内容被别人知道。例如，你如果想在课堂上传小纸条給后位小红说：<code>i love coding</code>，但又怕在递纸条的过程中被老师看到，知道了你的心思，于是将每个字母变字母表中的后一个字母（如a变成b，i变成j，z变成a），得到密文：<code>j mpwf dpejoh</code>，这样即老师人拿到这纸条，也不知道你说的是什么。</p>
+<p>这就是一个加密的过程，把原本的内容称为<strong>明文</strong>，一般用p表示；加密后得到的内容称为<strong>密文</strong>，一般用c表示；而加密的这个过程可以看做是一个<strong>加密函数E</strong>，即</p>
+<p>$$c = E( p )$$</p>
+<p>E是指Encrypt，函数输入是明文，输出是加密之后的密文。上面的例子中<code>i love coding</code>便是明文，<code>j mpwf dpejoh</code>便是密文，而把字母在字母表中向后移动一位的操作就是加密函数。</p>
+<p>在小红得到小纸条后，可以根据你加密的方法，将每个字母变成字母表中的前一个字母，就可以从你的密文小纸条得到你要说的内容<code>i love coding</code>，心领神会，顺便还会怀疑一下你的脑袋……无论怎样，这个解密的过程就也可以看做是一个<strong>解密函数D</strong>，即</p>
+<p>$$p = D( c )$$</p>
+<p>D是指Decrypt，函数输入是密文，输出是解密之后的明文。</p>
+<p>在这个过程这种，小红能够成功解密小纸条的前提是，你得和她在课前约定好你加密的时候移动的是1位，2位还是几位，不然他就会和老师一样一脸懵逼，不知道你在说啥。你们提前约定好的这个“几位”，就是加密和解密的<strong>密钥k</strong>，你会根据这个秘钥来进行加密，小红会根据这个秘钥来进行解密。</p>
+<p>所以你的传纸条的动作抽象成这个过程：</p>
+<p><code>明文p----&gt;加密函数E----&gt;密文c----&gt;传输----&gt;密文c-----&gt;解密函数D----&gt;明文p</code></p>
+<p>或者用公式来表达是：</p>
+<p>$$c = D_k( E_k( c ) )$$</p>
+<p>用大白话说就是：明文用同一个密钥先加密再解密得到的还是同一个明文（等于没说...）</p>
+<p>从这里我们可以总结出加密体质的五个要素：<strong>{明文p，密文c，密钥k，加密函数E，解密函数D}</strong>，对称解密的的意思就是说，加密和解密的密钥是一样的，上面的过程是不是正好很对称呢?</p>
+<p>为了方便使用，不用每次自己手动掰手指数字符，你还写了Python程序：</p>
+<pre><code># 移位密码
+
+def _move_leter(letter, n):
+    """
+    把字母变为字母表后n位的字母,z后面接a
+    :param letter: 小写字母
+    :param n: 要移动的字母
+    :return: 移动的结果
+    """
+    return chr((ord(letter) - ord('a') + n) % 26 + ord('a'))
+
+
+def Encrypt(k, p):
+    """
+    移位密码加密函数E
+    :param k: 秘钥k,每个字母在字母表中移动k位
+    :param p: 明文p
+    :return: 密文c
+    """
+    letter_list = list(p.lower())
+    c = ''.join([_move_leter(x, k) for x in letter_list])
+    return c
+
+
+def Decrypt(k, c):
+    """
+    移位密码解密函数D
+    :param k: 秘钥k,每个字母在字母表中移动k位
+    :param c: 密文c
+    :return: 明文p
+    """
+    letter_list = list(c.lower())
+    p = ''.join([_move_leter(x, -k) for x in letter_list])
+    return p
+
+
+if __name__ == '__main__':
+    p = 'ilovecoding'
+    print('明文：' + p)
+    print('密文：' + Encrypt(1, p))
+    print('解密：' + Decrypt(1, Encrypt(1, p)))
+    assert Decrypt(1, Encrypt(1, p)) == p
+</code></pre>
+<p>运行这段代码，就可以看到输出了：</p>
+<pre><code>明文：ilovecoding
+密文：jmpwfdpejoh
+解密：ilovecoding
+
+</code></pre>
+<p>终于，现在你能和你的小红秘密地传达纸条内容了，迎来全班人羡慕的目光，从此走上人生巅峰，本文到此结束。</p>
+<p>...Hey，醒醒...</p>
+<h2>2.密码分析</h2>
+<p>面对你俩日益频繁的纸条往来，老师终于坐不住了，他想知道你俩写的到底是啥，于是在某次逮到你递纸条之后，决定下功夫破解你所使用的密码，也就是<strong>密码分析</strong>。</p>
+<p>根据他的了解，以你的水平，最可能用的就是移位密码，但具体每次移动了几位，无法直接观察得出。不过他又一想，你移动的位数顶多是25位，因为，移动26位的效果等于没移动，移27位的效果不就跟移动1位的效果是一样的嘛！这就是说，你的密码只能是0-25中的某一个数字，而不可能是其他的，就这么二十几个秘钥，一个一个试就能知道你写的是啥！</p>
+<p>老师果然聪明绝顶，关键是也还会Python，就索性写了一个程序，每次尝试用不同的秘钥来进行解密，并观察解密出来的内容是否有意义：</p>
+<pre><code>def analyze(c):
+    """
+    移位密码分析
+    :param c: 密文c
+    :return:
+    """
+    for k in range(26):
+        # 用不同的秘钥k尝试解密
+        print('秘钥%d：' % k + Decrypt(k, c))
+
+
+if __name__ == '__main__':
+    c = 'jmpwfdpejoh'
+    analyze(c)
+
+</code></pre>
+<p>运行程序输出结果为：</p>
+<pre><code>秘钥0：jmpwfdpejoh
+秘钥1：ilovecoding
+秘钥2：hknudbnchmf
+秘钥3：gjmtcambgle
+...........
+</code></pre>
+<p>逐行观察输出结果，到第二行的时候就能看到原来的明文，也就知道了你要对小红说的内容以及你们所约定的秘钥。面对你冒着巨大风险在课堂上所传递的纸条内容，老师心里可能也是复杂的...</p>
+<p>Anyway，你的小秘密已经被老师知道了，此时比较灰心，一直在想，究竟是什么原因致使纸条计划失败？其实原因很明显，各位也看出来了，小明所使用的<strong>加密体制</strong>中，可用的秘钥太少，或者说<strong>秘钥空间太小</strong>，别人直接一一列举进行穷搜就能破解，这就提示我们：<strong>一个好的加密体制，它的秘钥空间应该是足够大的</strong>。</p>
+<p>其实，你此次所用的移位密码是古典的加密体制之一，据说凯撒打仗时就用这种方法与将军们联系，所以位移密码也叫凯撒密码（Caesar cipher）。类似的还有代换密码，仿设射密码等等，都是将单个字母替换成别的字母，来达到加密的目的。报纸上的猜谜游戏就经常用这些方法，一般根据字母频率进行破解，有兴趣可以进行进一步的了解。</p>
+<p>所以到底要用什么样的加密方法，才能保证我和小红的秘密不被人偷窥呢？</p>
+<h3>2.1 密码分析情形</h3>
+<p>俗话说，知己知彼，百战不殆，了解破解者的密码分析方法，或许能够帮助我们想出更安全的密码体制。可以在不同的情形下考察密码体制的安全性，一般我们都假设破解者知道我们所使用的密码体制，也就是说，不把密码体制的安全性寄托在密码体制的保密性上，而是放在秘钥上。</p>
+<p>破解者的目的就是找出所使用的秘钥，常见的有以下几种攻击情形：</p>
+<ul>
+<li>
+<strong>唯密文攻击：</strong> 破解者拥有密文c。这就是老师破解纸条的情形。</li>
+<li>
+<strong>已知明文攻击：</strong> 破解者拥有一些明文p及其对应的密文c。考虑到实际情形，这个假设是比较合理的，例如破解者获得一封邮件加密后的密文，可以猜测一个词很可能是'hi'或者'dear'，这样就可能找到一个明文--密文对。</li>
+<li>
+<strong>选择明文攻击：</strong> 破解者能够指定一个明文p，获得其对应的密文c，较强的假设。</li>
+<li>
+<strong>选择密文攻击：</strong> 破解者指定一个密文c，获得其对应的明文，较强的假设。</li>
+</ul>
+<p>天啊，你不禁惊呼，在这么强的假设下，真的会有密码体制能够存活吗？</p>
+<p>答案是有，而且这种密码体制已经被广泛应用，甚至可以说无处不在，它就是AES（Advanced Encryption Standard）。</p>
+<h2>3.SPN网络</h2>
+<p>难道不是要介绍AES吗，怎么会变成SPN网络，这是啥？可以吃吗？</p>
+<p>AES、DES等很多现代对称加密方法的核心就是SPN网络，它是代换-置换网络（Substitution-Permutation Network）的缩写，是现代对称加密方法设计的蓝本。可以说，了解SPN网络，就基本了解了AES。</p>
+<p>很巧的是，这个网络正好是容易理解的。SPN网络的思想很简单：既然加密一次不够安全，那我就加密多次，把第一次加密产生的密文再进行加密，解密的时候我连续进行两次解密就可以了，这样是不是就安全了一些呢？</p>
+<p>对于密码体制\(S_1\)，其加密与解密函数为\(E_1\)与\(D_1\)，对于密码体制\(S_2\)，其加密与解密函数为\(E_2\)与\(D_2\)，我构造出一个新的密码体制\(S_3\)，其加密函数为：$$c = E_2( E_1( p ) )$$</p>
+<p>解密函数为$$p=D_1( D_2( c ) )$$</p>
+<p>记为$$S_3 = S_1 * S_2$$这样破解\(S_3\)就可能会困难些。这个想法是不是很直接呢？这个思想在1949年才被提出，而提出者，可能理科生都多少听过他的名字——香农（Shannon）。</p>
+<p>注意，不是任何的加密体制都可以这样“乘”起来变得更强，例如对于你的移位密码，嵌套起来还是移位密码（为什么？），没有任何改善，即\(S_1*S_1=S_1\)，这样的密码体制被称为<strong>幂等的</strong>。</p>
+<p>如果密码体制不是幂等的，那么多次迭代就可能能够提高安全性，SPN就是使用这种思想，包含多轮的迭代，每轮的操作都是相同的。下面，介绍SPN单轮的操作：</p>
+<h3>3.1 SPN单轮操作</h3>
+<p>SPN网络是对一定长度的比特进行操作的，在本文中的SPN网络中，一次加密的长度为16个比特，即2字节，也就是说每次加密16比特的明文，输出16比特的密文。</p>
+<p>一个SPN网络包含多轮迭代，每轮迭代的操作内容都一样是：<strong>异或运算--&gt;分组代换--&gt;单比特置换</strong></p>
+<h4>3.1.1 第一步——异或运算</h4>
+<p>异或运算是比较常见的二元比特运算，用⊕表示，其规则就是“相同得0，不同得1”：</p>
+<pre><code>0 ⊕ 0 = 0
+1 ⊕ 1 = 0
+1 ⊕ 0 = 1
+0 ⊕ 1 = 1
+</code></pre>
+<p>对于比特串，直接按每一位对应进行计算即可以了：</p>
+<pre><code>0011 ⊕ 1010 = 1001
+</code></pre>
+<p>异或的有比较有意思的性质：一个比特串亦或另一个比特串两遍，还是等于他自己，即<code>a ⊕ b ⊕ b = a</code>，这是因为<code>a ⊕ b ⊕ b = a ⊕ ( b ⊕ b ) =a ⊕ 0 =  a</code>，可以带入一些例子试试看。</p>
+<p>SPN网络中，每一轮的第一步就是把输入的比特串w和秘钥k进行亦或：<code>u = w ⊕ k</code>，如：</p>
+<pre><code>0001110000100011 = 0010011010110111 ⊕ 0011101010010100
+</code></pre>
+<p>这一步的目的是根据秘钥对明文进行混淆。如果你只知道输出<code>u</code>而不知道秘钥<code>k</code>，那么你就猜不出实际输入的<code>w</code>是什么，它是什么都可能，而且是等概率的。例如对于<code>1 = a ⊕ b</code>，不告诉你b是0还是1，你就不知道a是什么。而对于<code>和</code>操作，如果知道<code>1 = a and b</code>，那么就能确定a与b都是1。</p>
+<p>这就是第一步，是不是很简单呢？</p>
+<h4>3.1.2 第二步——分组代换</h4>
+<p>这一步也很简单，将第一步输出的16比特的串分为4组，每组4比特，即<code>0001110000100011</code>写成<code>0001 1100 0010 0011</code>。然后对于每组再根据事先所定的表进行代换，代换表长这样：</p>
+<table>
+<thead><tr>
+<th>代换前</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>D</th>
+<th>E</th>
+<th>F</th>
+</tr></thead>
+<tbody><tr>
+<td>代换后</td>
+<td>E</td>
+<td>4</td>
+<td>D</td>
+<td>1</td>
+<td>2</td>
+<td>F</td>
+<td>B</td>
+<td>8</td>
+<td>3</td>
+<td>A</td>
+<td>6</td>
+<td>C</td>
+<td>5</td>
+<td>9</td>
+<td>0</td>
+<td>7</td>
+</tr></tbody>
+</table>
+<p>就拿第一列来说，表的意思是：如果你是<code>0</code>（0000），那么我要把你换成<code>E</code>（1110），就是一个简单的映射操作。</p>
+<p>原比特串长这样：<code>0001 1100 0010 0011</code> &lt;==&gt; <code>1 C 2 3</code>，再对每个字母查表得到：<code>4 5 D 1</code> &lt;==&gt; <code>0100 0101 1101 0001</code>，这样就得到代换后的比特串<code>0100 0101 1101 0001</code>，完成了第二步。</p>
+<p>这个表一般称为S盒（Substitution），这个过程可以用<code>v = S(u)</code>表示，<code>u</code>是第一步异或的结果，也是第二步分组代换的输入，<code>v</code>是第二步的输出。需要注意，S盒的输入和输出一般是非线性的关系。</p>
+<h4>3.1.3 第三步——单比特置换</h4>
+<p>单比特置换是将16比特中的每一比特，根据P盒（Permutation）移动挪位，这样说很不直观，直接上例子，P盒长这样：</p>
+<table>
+<thead><tr>
+<th>置换前的位置</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+</tr></thead>
+<tbody><tr>
+<td>置换后的位置</td>
+<td>1</td>
+<td>5</td>
+<td>6</td>
+<td>13</td>
+<td>2</td>
+<td>6</td>
+<td>10</td>
+<td>14</td>
+<td>3</td>
+<td>7</td>
+<td>11</td>
+<td>15</td>
+<td>4</td>
+<td>8</td>
+<td>12</td>
+<td>16</td>
+</tr></tbody>
+</table>
+<p>拿第二列来说，表的意思是：第二个比特要挪到第五个比特的位置，举个好看的例子：</p>
+<pre><code>0100 0000 0000 0000 置换后为==&gt; 0000 1000 0000 0000
+</code></pre>
+<p>这个例子里面第二个比特的<code>1</code>挪到了第五的位置，而其他位置的比特都是<code>0</code>，挪位置之后还是<code>0</code>。</p>
+<p>对于第二部输出的结果<code>1100 1101 1100 0100</code>，置换后的比特串为<code>0010 1110 0000 0111</code>，这样就完成了第三步。</p>
+<p>这一步可以用<code>W = S(v)</code>表示，<code>v</code>是第二部的输出，也是第三步的输入，<code>W</code>是第三步的输出，P盒置换是一种线性的变换。</p>
+<p>这三步放在一起结果如下，建议读者自己计算一遍：</p>
+<pre><code>w = 0010 0110 1011 0111
+k = 0011 1010 1001 0100
+第一步，异或运算：
+u = w ⊕ k = 0001 1100 0010 0011
+第二步，分组代换：
+v = S(u) = 0100 0101 1101 0001
+第三步，单比特置换：
+W = P(v) = 0010 1110 0000 0111
+</code></pre>
+<p>可以写成：<code>W = P( S(w ⊕ k) )</code>，这样就完成了一轮迭代，里面用到的参数有k，S盒与P盒，如图（图片来自<a href="https://commons.wikimedia.org/w/index.php?curid=6420152" rel="nofollow noreferrer">维基百科</a>）：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV9GyM?w=506&amp;h=347" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="一轮操作（图片来自维基百科）" title="一轮操作（图片来自维基百科）"></span></p>
+<h3>3.2 SPN的多轮迭代</h3>
+<p>弄清楚一轮的流程，SPN整体就很容易明白了，就是一轮一轮的乘起来，上一轮的输出作为这一轮的输入：</p>
+<pre><code>w0 = x
+w1 = P(S(w0 ⊕ k1))
+w2 = P(S(w1 ⊕ k2))
+w3 = P(S(w2 ⊕ k3))
+w4 = P(S(w3 ⊕ k4))
+y = w4
+</code></pre>
+<p><code>w0</code>就是16比特的明文，<code>w4</code>是4轮操作后的16比特密文结果，是不是很简单？需要注意的是，每一轮迭代的秘钥k是不一样的，一般是由一个基础秘钥经特定秘钥编排算法生成的，而使用的S盒P盒都是相同的，会提前确定好，并且是公开的。<br>下图是一个三轮SPN网络的示意图（图片来自<a href="https://commons.wikimedia.org/w/index.php?curid=6420152" rel="nofollow noreferrer">维基百科</a>）：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV9GyQ?w=712&amp;h=912" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="SPN网络（图片来自维基百科）" title="SPN网络（图片来自维基百科）"></span></p>
+<p>注意在最后一轮去掉了代换操作，这样做可以使加密算法稍微做一些调整就可以用来进行解密。</p>
+<p>OK! SPN网络就是这些内容，你已经掌握了它，如果你还想和小红传纸条的话，可以试试用它加密，会比移位密码更安全一些。</p>
+<p>什么？自己手动代换置换太麻烦？不用怕，贴心的我已经为你准备好了Python代码。</p>
+<h3>3.3 用Python实现SPN网络</h3>
+<p>我实现的是4轮迭代的SPN网络，以及加密和解密算法，其结构图如下（图片来自 <em>Cryptography Theory and Practice</em> ）：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bV9Hob?w=545&amp;h=921" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="5层SPN网络（图片来自 *Cryptography Theory and Practice* ）" title="5层SPN网络（图片来自 *Cryptography Theory and Practice* ）"></span></p>
+<p>每次加密输入16比特的明文，输出16比特的密文，代码如下：</p>
+<pre><code># S盒参数
+S_Box = [14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7]
+
+# P盒参数
+P_Box = [1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15, 4, 8, 12, 16]
+
+
+def gen_K_list(K):
+    """
+    秘钥编排算法，由一个32比特秘钥生成5个16比特子秘钥
+    :param K: 32比特秘钥
+    :return: [k1,k2,k3,k4,k5]，五个16比特子秘钥
+    """
+    Ks = []
+    for i in range(5, 0, -1):
+        ki = K % (2 ** 16)
+        Ks.insert(0, ki)
+        K = K &gt;&gt; 4
+    return Ks
+
+
+def pi_s(s_box, ur):
+    """
+    分组代换操作
+    :param s_box:S盒参数
+    :param ur:输入比特串，16比特
+    :return:输出比特串，16比特
+    """
+    vr = 0
+    for i in range(4):
+        uri = ur % (2 ** 4)
+        vri = s_box[uri]
+        vr = vr + (vri &lt;&lt; (4 * i))
+        ur = ur &gt;&gt; 4
+    return vr
+
+
+def pi_p(p_box, vr):
+    """
+    单比特置换操作
+    :param p_box:P盒参数
+    :param vr:输入比特串，16比特
+    :return:输出比特串，16比特
+    """
+    wr = 0
+    for i in range(15, -1, -1):
+        vri = vr % 2
+        vr = vr &gt;&gt; 1
+        wr = wr + (vri &lt;&lt; (16 - p_box[i]))
+    return wr
+
+
+def reverse_Sbox(s_box):
+    """
+    求S盒的逆
+    :param s_box:S盒参数
+    :return:S盒的逆
+    """
+    re_box = [-1] * 16
+    for i in range(16):
+        re_box[s_box[i]] = i
+    return re_box
+
+
+def reverse_Pbox(p_box):
+    """
+    求P盒的逆
+    :param s_box:P盒参数
+    :return:P盒的逆
+    """
+    re_box = [-1] * 16
+    for i in range(16):
+        re_box[p_box[i] - 1] = i + 1
+    return re_box
+
+
+def do_SPN(x, s_box, p_box, Ks):
+    """
+    5轮的SPN网络，可以用来进行加密或解密
+    :param x: 16比特输入
+    :param s_box: S盒参数
+    :param p_box: P盒参数
+    :param Ks: [k1,k2,k3,k4,k5]，五个16比特子秘钥
+    :return: 16比特输出
+    """
+    wr = x
+    for r in range(3):
+        ur = wr ^ Ks[r]  # 异或操作
+        vr = pi_s(s_box, ur)  # 分组代换
+        wr = pi_p(p_box, vr)  # 单比特置换
+
+    ur = wr ^ Ks[3]
+    vr = pi_s(s_box, ur)
+    y = vr ^ Ks[4]
+    return y
+
+
+def encrypt(K, x):
+    """
+    根据秘钥K对16比特明文x进行加密
+    :param K:32比特秘钥
+    :param x:16比特明文
+    :return:16比特密文
+    """
+    Ks = gen_K_list(K)
+    return do_SPN(x, S_Box, P_Box, Ks)
+
+
+def decrypt(K, y):
+    """
+    根据秘钥K对16比特密文y进行解密。
+    :param K:32比特秘钥
+    :param y:16比特密文
+    :return:16比特明文
+    """
+    Ks = gen_K_list(K)
+    Ks.reverse()  # 秘钥逆序编排
+    # 秘钥置换
+    Ks[1] = pi_p(P_Box, Ks[1])
+    Ks[2] = pi_p(P_Box, Ks[2])
+    Ks[3] = pi_p(P_Box, Ks[3])
+
+    s_rbox = reverse_Sbox(S_Box)  # S盒求逆
+    p_rbox = reverse_Pbox(P_Box)  # P盒求逆
+    return do_SPN(y, s_rbox, p_rbox, Ks)
+
+
+if __name__ == '__main__':
+    x = 0b0010011010110111
+    K = 0b00111010100101001101011000111111
+    print('初始明文：', format(x, '016b'))
+    print('加密密文：', format(encrypt(K, x), '016b'))
+    print('解密结果：', format(decrypt(K, encrypt(K, x)), '016b'))
+    assert decrypt(K, encrypt(K, x)) == x
+
+
+</code></pre>
+<p>可以直接看<code>do_SPN</code>函数，函数里面循环3次，对应3轮迭代，第4轮迭代没有置换操作。<code>encrypt</code>与<code>decrypt</code>函数调用<code>do_SPN</code>函数即可进行加密和解密操作（为什么可以调用SPN进行解密？可以对照代码观察SPN的结构想一想），运行程序输出为：</p>
+<pre><code>初始明文： 0010011010110111
+加密密文： 1011110011010110
+解密结果： 0010011010110111
+
+</code></pre>
+<p>至此，SPN网络已经完全实现！那么它的安全性如何呢？</p>
+<p>首先，我们知道，这个SPN网络的秘钥是32位的，大约是有4百万的候选秘钥，这个数量的秘钥，手动穷搜是很难的，用计算机来穷搜就会比较容易了，不过我们随时对它进行改造，增加秘钥长度，如256位，这时候机器穷搜也不行了。</p>
+<p>其次，如果SPN层数较少，对其进行<strong>线性分析</strong>或者<strong>差分分析</strong>通常会比较容易成功，这些分析方法的代码我也已经写好了，不过今天的内容已经够多了，我们下次再介绍它:)</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000014666335"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="密码学入门（一）：用Python实现对称加密算法"
+ data-url="https://segmentfault.com/a/1190000014666335" data-shorturl="http://sfau.lt/b59HxX"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000014666335"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">4 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000014666335"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">1</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000014666335" data-user-id="" data-author-id="1030000010379843 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">9 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000016550648">
+            <div class="pull-left">
+                <a href="/u/zzzcdr" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000016550648" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/zzzcdr">zzzcdr</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  9月28日</span>
+                </div>
+
+                <div class="fmt mb10"><p>您好，如何修改您这个加密方式，能够对8bytes数据进行加密？</p></div>
+
+                <form action="/api/comment/1050000016550648/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >您好，如何修改您这个加密方式，能够对8bytes数据进行加密？</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list ">
+
+                    
+                        <div class="reply-item" data-id="1050000016552670">
+                            <span class="pull-left comment-ops " style="position:absolute;">
+                                <span class="mr20 comments-zan ">
+                                    <span class="comments-zan-value comment-showhide
+                                         islike0-10
+                                        ">
+                                        0
+                                    </span>
+                                    <i class="fa fa-thumbs-up comment-showhide ml5" aria-hidden="true"></i>
+                                </span>
+                            </span>
+
+                            <div class="reply-content-block">
+                                <div class="reply-content"><p>上面的spn是对2bytes加密，你可以把8bytes分成4组，每组就是2bytes了</p></div>
+                                <form action="/api/comment/1050000016552670/edit">
+                                    <div class="form-group">
+                                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >上面的spn是对2bytes加密，你可以把8bytes分成4组，每组就是2bytes了</textarea>
+                                    </div>
+                                </form>
+                                <div class="comment-func inline-block">
+                                    
+
+                                    <span class="pull-right commentTools ml15">
+                                                                                                                                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-module="comment"
+                                           data-id="1050000016552670" data-action='report' data-typetext="评论" data-placement="top" title="举报">
+                                            <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+                                        </a>
+                                    </span>
+
+                                    <span class="comment-meta inline-block">
+                                        <span> — </span>
+                                        <a target="_blank" href="/u/gooong">
+                                            <strong>Gooong</strong>
+                                        </a> 
+                                        <span class="comments-isAuthor ">
+                                            作者
+                                        </span> 
+                                        <span class="text-muted-plus">  ·  9月28日</span>
+                                                                            </span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="reply-item" data-id="1050000016554012">
+                            <span class="pull-left comment-ops " style="position:absolute;">
+                                <span class="mr20 comments-zan ">
+                                    <span class="comments-zan-value comment-showhide
+                                         islike0-10
+                                        ">
+                                        0
+                                    </span>
+                                    <i class="fa fa-thumbs-up comment-showhide ml5" aria-hidden="true"></i>
+                                </span>
+                            </span>
+
+                            <div class="reply-content-block">
+                                <div class="reply-content"><p>对不起，我写错了，是要对1bytes进行加密，修改无法实现。</p></div>
+                                <form action="/api/comment/1050000016554012/edit">
+                                    <div class="form-group">
+                                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >对不起，我写错了，是要对1bytes进行加密，修改无法实现。</textarea>
+                                    </div>
+                                </form>
+                                <div class="comment-func inline-block">
+                                    
+
+                                    <span class="pull-right commentTools ml15">
+                                                                                                                                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-module="comment"
+                                           data-id="1050000016554012" data-action='report' data-typetext="评论" data-placement="top" title="举报">
+                                            <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+                                        </a>
+                                    </span>
+
+                                    <span class="comment-meta inline-block">
+                                        <span> — </span>
+                                        <a target="_blank" href="/u/zzzcdr">
+                                            <strong>zzzcdr</strong>
+                                        </a> 
+                                        <span class="comments-isAuthor hide">
+                                            
+                                        </span> 
+                                        <span class="text-muted-plus">  ·  9月28日</span>
+                                                                            </span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="reply-item" data-id="1050000016554528">
+                            <span class="pull-left comment-ops " style="position:absolute;">
+                                <span class="mr20 comments-zan ">
+                                    <span class="comments-zan-value comment-showhide
+                                         islike0-10
+                                        ">
+                                        0
+                                    </span>
+                                    <i class="fa fa-thumbs-up comment-showhide ml5" aria-hidden="true"></i>
+                                </span>
+                            </span>
+
+                            <div class="reply-content-block">
+                                <div class="reply-content"><p>你想说的是8 bit吧，简单的方法是每次加密之前，你都随机取 8 bit接在明文后面，这样就是16 bit = 2 byte，可以加密了。解密之后，再取前 8 bit就可以了。</p></div>
+                                <form action="/api/comment/1050000016554528/edit">
+                                    <div class="form-group">
+                                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >你想说的是8 bit吧，简单的方法是每次加密之前，你都随机取 8 bit接在明文后面，这样就是16 bit = 2 byte，可以加密了。解密之后，再取前 8 bit就可以了。</textarea>
+                                    </div>
+                                </form>
+                                <div class="comment-func inline-block">
+                                    
+
+                                    <span class="pull-right commentTools ml15">
+                                                                                                                                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-module="comment"
+                                           data-id="1050000016554528" data-action='report' data-typetext="评论" data-placement="top" title="举报">
+                                            <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+                                        </a>
+                                    </span>
+
+                                    <span class="comment-meta inline-block">
+                                        <span> — </span>
+                                        <a target="_blank" href="/u/gooong">
+                                            <strong>Gooong</strong>
+                                        </a> 
+                                        <span class="comments-isAuthor ">
+                                            作者
+                                        </span> 
+                                        <span class="text-muted-plus">  ·  9月28日</span>
+                                                                            </span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                                                <span class="reply-more"><span class="text-muted-plus-plus mr5 ml5">|</span>
+                        <a class="reply-more-btn" href="javascript:;">显示更多</a></span>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000016552501">
+            <div class="pull-left">
+                <a href="/u/zzzcdr" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000016552501" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/zzzcdr">zzzcdr</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  9月28日</span>
+                </div>
+
+                <div class="fmt mb10"><p>修改了半天，各种方式都试了，但是还是无法还原，大神能够指导一下？</p></div>
+
+                <form action="/api/comment/1050000016552501/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >修改了半天，各种方式都试了，但是还是无法还原，大神能够指导一下？</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000014666335/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542599005000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _o2KuR = //'b'
+'75'+'3'//'gQ'
++''///*'z'*/'z'
++//'Hg'
+'ea'+//'J0'
+'290'+'57'//'Gas'
++'14'//'i8'
++/* 'yk'//'yk' */''+''///*'EK'*/'EK'
++'08d'//'1Mt'
++/* '5'//'5' */''+//'7'
+'7b'+//'Sis'
+'Sis'+'2'//'o41'
++'9a6'//'7'
++/* 'FNz'//'FNz' */''+'ar'//'ar'
++'0c'//'k'
++//'bom'
+'6'+''///*'YqO'*/'YqO'
++//'r'
+'345'+/* 'J'//'J' */''+'84'//'4'
++//'V7'
+'V7'+'081'//'7r'
+, _P7ta = [[17,20],[21,23],[29,31]];
+
+    for (var i = 0; i < _P7ta.length; i ++) {
+        _o2KuR = _o2KuR.substring(0, _P7ta[i][0]) + _o2KuR.substring(_P7ta[i][1]);
+    }
+
+    return _o2KuR;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u5bc6\u7801\u5b66\u5165\u95e8\uff08\u4e00\uff09\uff1a\u7528Python\u5b9e\u73b0\u5bf9\u79f0\u52a0\u5bc6\u7b97\u6cd5","desc":"\u6700\u5f00\u59cb\u53ea\u662f\u60f3\u6574\u7406\u4e00\u4e0b\u5bc6\u7801\u5b66\u8bfe\u7a0b\u7684\u4f5c\u4e1a\uff0c\u540e\u9762\u8d8a\u5199\u8d8a\u591a\uff0c\u5c31\u7d22\u6027\u5199\u6210\u4e00\u7bc7\u5165\u95e8\u7684\u4ecb\u7ecd\u3002\u6211\u4f1a\u628a\u81ea\u5df1\u5bf9\u5bf9\u79f0\u52a0\u5bc6\u7684\u7406\u89e3\u548c\u4e00\u4e9b\u4f5c\u4e1a\u7684\u4ee3\u7801\u4e32\u8d77\u6765\uff0c\u529b\u56fe\u6e05\u6670\u660e\u767d\u5730\u5c55\u793a\u51fa\u6765\uff0c\u6587\u4e2d\u6240\u6709\u4ee3\u7801\u90fd\u653e\u5728\u6211\u7684Github\u4e0a\uff0c\u5982\u679c\u6709\u9519\u8bef\u4e4b...","link":"https:\/\/segmentfault.com\/a\/1190000014666335","imgUrl":"https:\/\/segmentfault.com\/img\/bV9GyM?w=506&amp;h=347"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542599006,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

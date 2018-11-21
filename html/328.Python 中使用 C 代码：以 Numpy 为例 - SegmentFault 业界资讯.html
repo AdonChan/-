@@ -1,0 +1,2086 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>Python 中使用 C 代码：以 Numpy 为例 - SegmentFault 业界资讯 - SegmentFault 思否</title><meta name="description" content="这个章节包含许多在python代码中支持c/c++本机代码的许多不同方法， 通常这个过程叫作包裹(wrapping)。本章的目的是让您大致知道有那些技术和它们分别的优缺点是什么，于是您能够为您自己的特定需要选择何时的技..."/><meta name="keywords" content="numpy,cython,c,python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=numpy,cython,c,python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000000479951" class="hidden" />
+
+<div class="wrap" data-blogid="1200000000309635">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/news">SegmentFault 业界资讯</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="weakish"
+                                         data-userslug="weakish"
+                                         data-useravatar="https://avatar-static.segmentfault.com/266/538/2665388308-1030000000323597_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/weakish">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/266/538/2665388308-1030000000323597_big64" alt="weakish">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/weakish" class="mr5 "><strong>weakish</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">22.8k</span>
+
+                                                                                                发布于
+                                                <a href="/blog/news">SegmentFault 业界资讯</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000000309635">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2014-04-23 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000000479951">
+                                            <a href="/a/1190000000479951"> Python 中使用 C 代码：以 Numpy 为例</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/numpy/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="numpy"
+                                                                                data-id="1040000000374904">
+                                                                                                                      numpy
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/cython/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="cython"
+                                                                                data-id="1040000000479949">
+                                                                                                                      cython
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/c/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/225/658/2256581988-1040000000089457_big64" data-placement="top"
+                                                                                data-original-title="c"
+                                                                                data-id="1040000000089457">
+                                                                                                                      c
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                18.1k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 108 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">5</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000000479951" data-license="cc">
+                    
+<p>这个章节包含许多在python代码中支持c/c++本机代码的许多不同方法， 通常这个过程叫作包裹(wrapping)。本章的目的是让您大致知道有那些技术和它们分别的优缺点是什么，于是您能够为您自己的特定需要选择何时的技术。在任何情况下，一旦您开始包裹，您几乎一定将想要查阅您所选技术各自的文档。</p>
+
+<h2>简介</h2>
+
+<p>本章节包含以下技术：</p>
+
+<ul>
+<li><a rel="nofollow" href="http://docs.python.org/2/c-api/">Python-C-Api</a></li>
+<li><a rel="nofollow" href="http://docs.python.org/2/library/ctypes.html">Ctypes</a></li>
+<li><a rel="nofollow" href="http://www.swig.org/">SWIG(简单包裹和接口生成)</a></li>
+<li><a rel="nofollow" href="http://cython.org/">Cython</a></li>
+</ul>
+<p>这四种方法大概是最著名的，其中Cython可能是最高级且应该优先使用的。如果您想从其它角度理解包裹问题，其它方法也很重要。已经说过，虽然还有其它方法，但是理解以上基本方法，您将能评估您自己的选择看是否符合自己的需要。</p>
+
+<p>以下标准在评估一项技术时也许有用：</p>
+
+<ul>
+<li>是否需要额外的库？</li>
+<li>代码是否是自动生成的？</li>
+<li>需要编译吗？</li>
+<li>和Numpy数组进行交互方便吗？</li>
+<li>支持C++吗？</li>
+</ul>
+<p>首先，您应该考虑你的用例。当用本机代码接口时，通常有两个用例：</p>
+
+<ul>
+<li>存在需要充分利用的C/C++代码，或者那些代码已经存在，或者那些代码更快。</li>
+<li>Python代码慢爆了，将内循环交给本机代码处理</li>
+</ul>
+<p>每个技术通过包裹<code>math.h</code>中的<code>cos</code>函数实现。尽管这是微不足道的例子，它将很好的展示基本的包裹问题。因为每个技术也包括某种形式的Numpy支持，这也通过使用一个余弦函数被在某种数组上计算的例子来展示。</p>
+
+<p>最后但重要的是两个小警告：</p>
+
+<ul>
+<li>所有这些技术都可能造成Python解释器崩溃(段错误)，这(通常)是C代码的Bug。</li>
+<li>所有例子在linux上完成，也应该能在其它操作系统上实现</li>
+<li>大多数例子中你需要一个C编译器</li>
+</ul>
+<h2>Python-C-Api</h2>
+
+<p><a rel="nofollow" href="http://docs.python.org/2/c-api/">Python-C-API</a>是标准Python解释器(就是所谓的CPython)的支柱。使用这个API可以用C或C++语言编写Python扩展。显然这些扩展模块可以凭借语言兼容性，调用任何C或C++写成的函数。</p>
+
+<p>当使用Python-C-API时，人们通常写许多样板代码，先解析传递给函数的参数，然后构建并返回类型。</p>
+
+<p><strong>优点</strong></p>
+
+<ul>
+<li>无需额外的库</li>
+<li>许多低级的控制</li>
+<li>完全可以用C++</li>
+</ul>
+<p><strong>劣势</strong></p>
+
+<ul>
+<li>可能需要大量工作</li>
+<li>代码中的大量开销</li>
+<li>必须编译</li>
+<li>高额的维护代价</li>
+<li>当跨Python版本时若C-Api变化没有后向兼容性</li>
+</ul>
+<p><strong>注意：以下Python-C-Api示例主要为了展示需要。因为大多其它技术实际上依赖这个，所以最好对它如何工作有个高层次的了解。在99%的用例中你最好使用其它技术。</strong></p>
+
+<h3>示例</h3>
+
+<p>以下C扩展模块，让标准数学库中的<code>cos</code>函数在Python中可用：</p>
+
+<pre><code>/*  Example of wrapping cos function from math.h with the Python-C-API. */
+
+#include &lt;Python.h&gt;
+#include &lt;math.h&gt;
+
+/*  wrapped cosine function */
+static PyObject* cos_func(PyObject* self, PyObject* args)
+{
+    double value;
+    double answer;
+
+    /*  parse the input, from python float to c double */
+    if (!PyArg_ParseTuple(args, "d", &amp;value))
+        return NULL;
+    /* if the above function returns -1, an appropriate Python exception will
+     * have been set, and the function simply returns NULL
+     */
+
+    /* call cos from libm */
+    answer = cos(value);
+
+    /*  construct the output from cos, from c double to python float */
+    return Py_BuildValue("f", answer);
+}
+
+/*  define functions in module */
+static PyMethodDef CosMethods[] =
+{
+     {"cos_func", cos_func, METH_VARARGS, "evaluate the cosine"},
+     {NULL, NULL, 0, NULL}
+};
+
+/* module initialization */
+PyMODINIT_FUNC
+
+initcos_module(void)
+{
+     (void) Py_InitModule("cos_module", CosMethods);
+}
+</code></pre>
+
+<p>如您所见，所有对参数处理、返回类型和模块初始化都相当样板化。然而有些被摊销了，当扩展增长时，样板需要每个函数保留。</p>
+
+<p>标准python构建系统<code>distutils</code>支持从<code>setup.py</code>编译C扩展，这相当方便。</p>
+
+<pre><code>from distutils.core import setup, Extension
+
+# define the extension module
+cos_module = Extension('cos_module', sources=['cos_module.c'])
+
+# run the setup
+setup(ext_modules=[cos_module])
+</code></pre>
+
+<p>这能被编译：</p>
+
+<pre><code> ~/Work/scipy-lecture-notes/interfacing-with-c $ls
+cos_module.c  setup.py
+ ~/Work/scipy-lecture-notes/interfacing-with-c $python setup.py build_ext --inplace
+running build_ext
+building 'cos_module' extension
+x86_64-pc-linux-gnu-gcc -pthread -fPIC -I/usr/include/python2.7 -c cos_module.c -o build/temp.linux-x86_64-2.7/cos_module.o
+x86_64-pc-linux-gnu-gcc -pthread -shared build/temp.linux-x86_64-2.7/cos_module.o -L/usr/lib64 -lpython2.7 -o /home/lyy/Work/scipy-lecture-notes/interfacing-with-c/cos_module.so
+ ~/Work/scipy-lecture-notes/interfacing-with-c $ls
+build  cos_module.c  cos_module.so  setup.py
+</code></pre>
+
+<ul>
+<li>
+<code>build_ext</code>是用来构建扩展模块的</li>
+<li>
+<code>--inplace</code>将编译好的扩展模块输出到当前文件夹</li>
+</ul>
+<p>文件<code>cos_module.so</code>包含编译的扩展，我们能将它加载到IPython解释器中：</p>
+
+<pre><code>In [1]: import cos_module
+
+In [2]: cos_module?
+Type:       module
+String Form:&lt;module 'cos_module' from 'cos_module.so'&gt;
+File:       /home/lyy/Work/scipy-lecture-notes/interfacing-with-c/cos_module.so
+Docstring:  &lt;no docstring&gt;
+
+In [3]: dir(cos_module)
+Out[3]: ['__doc__', '__file__', '__name__', '__package__', 'cos_func']
+
+In [4]: cos_module.cos_func(1.0)
+Out[4]: 0.5403023058681398
+
+In [5]: cos_module.cos_func(0.0)
+Out[5]: 1.0
+
+In [6]: cos_module.cos_func(3.14159265359)
+Out[6]: -1.0
+</code></pre>
+
+<p>现在让我们看看它有多健壮：</p>
+
+<pre><code>In [7]: cos_module.cos_func('foo')
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+&lt;ipython-input-7-11bee483665d&gt; in &lt;module&gt;()
+----&gt; 1 cos_module.cos_func('foo')
+
+TypeError: a float is required
+</code></pre>
+
+<h3>Numpy支持</h3>
+
+<p>类似于Python-C-API,Numpu自身作为C扩展实现也有<a rel="nofollow" href="http://docs.scipy.org/doc/numpy/reference/c-api.html">Numpy-C-API</a>。这个API可以在写自定的C扩展时，被用来从C创建和操作Numpy数组。参见<a rel="nofollow" href="http://scipy-lectures.github.io/advanced/interfacing_with_c/interfacing_with_c.html#id3">高级Numpy</a></p>
+
+<p>以下例子展示了如何将Numpy数组作为参数传递给函数，如何使用(老的)Numpy-C-API遍历整个Numpy数组。它仅仅将数组作为参数，运用来自<code>math.h</code>中的余弦函数，并且返回一个新的结果数组。</p>
+
+<pre><code>/*  Example of wrapping the cos function from math.h using the Numpy-C-API. */
+
+#include &lt;Python.h&gt;
+#include &lt;numpy/arrayobject.h&gt;
+#include &lt;math.h&gt;
+
+/*  wrapped cosine function */
+static PyObject* cos_func_np(PyObject* self, PyObject* args)
+{
+
+    PyArrayObject *in_array;
+    PyObject      *out_array;
+    PyArrayIterObject *in_iter;
+    PyArrayIterObject *out_iter;
+
+    /*  parse single numpy array argument */
+    if (!PyArg_ParseTuple(args, "O!", &amp;PyArray_Type, &amp;in_array))
+        return NULL;
+
+    /*  construct the output array, like the input array */
+    out_array = PyArray_NewLikeArray(in_array, NPY_ANYORDER, NULL, 0);
+    if (out_array == NULL)
+        return NULL;
+
+    /*  create the iterators */
+    /* TODO: this iterator API is deprecated since 1.6
+     *       replace in favour of the new NpyIter API */
+    in_iter  = (PyArrayIterObject *)PyArray_IterNew((PyObject*)in_array);
+    out_iter = (PyArrayIterObject *)PyArray_IterNew(out_array);
+    if (in_iter == NULL || out_iter == NULL)
+        goto fail;
+
+    /*  iterate over the arrays */
+    while (in_iter-&gt;index &lt; in_iter-&gt;size
+            &amp;&amp; out_iter-&gt;index &lt; out_iter-&gt;size) {
+        /* get the datapointers */
+        double * in_dataptr = (double *)in_iter-&gt;dataptr;
+        double * out_dataptr = (double *)out_iter-&gt;dataptr;
+        /* cosine of input into output */
+        *out_dataptr = cos(*in_dataptr);
+        /* update the iterator */
+        PyArray_ITER_NEXT(in_iter);
+        PyArray_ITER_NEXT(out_iter);
+    }
+
+    /*  clean up and return the result */
+    Py_DECREF(in_iter);
+    Py_DECREF(out_iter);
+    Py_INCREF(out_array);
+    return out_array;
+
+    /*  in case bad things happen */
+    fail:
+        Py_XDECREF(out_array);
+        Py_XDECREF(in_iter);
+        Py_XDECREF(out_iter);
+        return NULL;
+}
+
+/*  define functions in module */
+static PyMethodDef CosMethods[] =
+{
+     {"cos_func_np", cos_func_np, METH_VARARGS,
+         "evaluate the cosine on a numpy array"},
+     {NULL, NULL, 0, NULL}
+};
+
+/* module initialization */
+PyMODINIT_FUNC
+
+initcos_module_np(void)
+{
+     (void) Py_InitModule("cos_module_np", CosMethods);
+     /* IMPORTANT: this must be called */
+     import_array();
+}
+</code></pre>
+
+<p>我们仍可使用distutils编译这个。然而，我们必须通过使用<code>numpy.get_include()</code>保证包含了Numpy头文件。</p>
+
+<pre><code>from distutils.core import setup, Extension
+import numpy
+
+# define the extension module
+cos_module_np = Extension('cos_module_np', sources=['cos_module_np.c'],
+                          include_dirs=[numpy.get_include()])
+
+# run the setup
+setup(ext_modules=[cos_module_np])
+</code></pre>
+
+<p>为确信它确实能用我们做以下测试脚本：</p>
+
+<pre><code>import cos_module_np
+import numpy as np
+import pylab
+
+x = np.arange(0, 2 * np.pi, 0.1)
+y = cos_module_np.cos_func_np(x)
+pylab.plot(x, y)
+pylab.show()
+</code></pre>
+
+<p>结果将如下图</p>
+
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.comhttps://segmentfault.comhttps://segmentfault.comhttp://segmentfault.com/img/bVcaTt" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt=""></span></p>
+
+<h2>Ctypes</h2>
+
+<p><a rel="nofollow" href="http://docs.python.org/2/library/ctypes.html">Ctypes</a>是一个Python的外部函数库。它提供了兼容C的数据类型。并且允许调用DLL或共享库中的函数。它能够被用来将这些库用纯Python包裹。</p>
+
+<p><strong>优势</strong></p>
+
+<ul>
+<li>Python标准库的一部分</li>
+<li>不必编译</li>
+<li>完全用Python包裹代码</li>
+</ul>
+<p><strong>劣势</strong></p>
+
+<ul>
+<li>需要将代码包裹作为共享库获得(粗略地说就是Windows中的<code>*.dll</code>、Linux下的<code>*.so</code>和Mac OSX的<code>*.dylib</code>)</li>
+<li>对C++支持不好</li>
+</ul>
+<h3>示例</h3>
+
+<p>如上所述，包裹的代码是纯Python的。</p>
+
+<pre><code>""" Example of wrapping cos function from math.h using ctypes. """
+
+import ctypes
+from ctypes.util import find_library
+
+# find and load the library
+libm = ctypes.cdll.LoadLibrary(find_library('m'))
+# set the argument type
+libm.cos.argtypes = [ctypes.c_double]
+# set the return type
+libm.cos.restype = ctypes.c_double
+
+
+def cos_func(arg):
+    ''' Wrapper for cos from math.h '''
+    return libm.cos(arg)
+</code></pre>
+
+<ul>
+<li>寻找和加载库可能依赖于不同的操作系统，检查<a rel="nofollow" href="http://docs.python.org/2/library/ctypes.html#loading-dynamic-link-libraries">文档</a>获取细节。</li>
+<li>这稍微有点虚幻，因为在系统上已经存在编译好的数学库。如果你将包裹一个在自己的库，你将不得不先编译它。这也许需要也许不需要额外的工作。</li>
+</ul>
+<p>我们现在如前述那样使用它：</p>
+
+<pre><code>In [1]: import cos_module
+
+In [2]: cos_module?
+Type:       module
+String Form:&lt;module 'cos_module' from 'cos_module.py'&gt;
+File:       /home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/ctypes/cos_module.py
+Docstring:  &lt;no docstring&gt;
+
+In [3]: dir(cos_module)
+Out[3]:
+['__builtins__',
+ '__doc__',
+ '__file__',
+ '__name__',
+ '__package__',
+ 'cos_func',
+ 'ctypes',
+ 'find_library',
+ 'libm']
+
+In [4]: cos_module.cos_func(1.0)
+Out[4]: 0.5403023058681398
+
+In [5]: cos_module.cos_func(0.0)
+Out[5]: 1.0
+
+In [6]: cos_module.cos_func(3.14159265359)
+Out[6]: -1.0
+</code></pre>
+
+<p>正如之前的例子，这个代码稍微健壮一些。尽管错误信息不怎么有用，因它并没告诉我们应该是什么类型。</p>
+
+<pre><code>In [7]: cos_module.cos_func('foo')
+---------------------------------------------------------------------------
+ArgumentError                             Traceback (most recent call last)
+&lt;ipython-input-7-11bee483665d&gt; in &lt;module&gt;()
+----&gt; 1 cos_module.cos_func('foo')
+
+/home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/ctypes/cos_module.py in cos_func(arg)
+     12 def cos_func(arg):
+     13     ''' Wrapper for cos from math.h '''
+---&gt; 14     return libm.cos(arg)
+
+ArgumentError: argument 1: &lt;type 'exceptions.TypeError'&gt;: wrong type
+</code></pre>
+
+<h3>Numpy支持</h3>
+
+<p>Numpy包含一些对ctypes接口的支持。特别是有导出Numpy数组作为ctypes数据类型的某一属性的支持，并且有将C数组和Numpy数组互相转化的函数。</p>
+
+<p>更多信息参考<a rel="nofollow" href="http://www.scipy.org/Cookbook/Ctypes">Numpy Cookbook</a>中相应章节和<a rel="nofollow" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.ctypes.html">numpy.ndarray.ctypes</a>和<a rel="nofollow" href="http://docs.scipy.org/doc/numpy/reference/routines.ctypeslib.html">numpy.ctypeslib</a>的API文档。</p>
+
+<p>在以下例子中，让我们考虑一个库中的C函数，这个函数接受一个数组作为输入并输出一个数组，计算输入数组的正弦值并将结果存储在输出数组中。</p>
+
+<p>这个库包含以下头文件(尽管就这个例子不严格需要，为完整性需要我们列出它)：</p>
+
+<pre><code>void cos_doubles(double * in_array, double * out_array, int size);
+</code></pre>
+
+<p>这个实现在C源码中如下：</p>
+
+<pre><code>#include &lt;math.h&gt;
+
+/*  Compute the cosine of each element in in_array, storing the result in
+ *  out_array. */
+void cos_doubles(double * in_array, double * out_array, int size){
+    int i;
+    for(i=0;i&lt;size;i++){
+        out_array[i] = cos(in_array[i]);
+    }
+}
+</code></pre>
+
+<p>因为这个库是纯C的，我们不能使用<code>distutils</code>来编译它。必须同时使用<code>make</code>和<code>gcc</code>:</p>
+
+<pre><code>m.PHONY : clean
+
+libcos_doubles.so : cos_doubles.o
+    gcc -shared -Wl,-soname,libcos_doubles.so -o libcos_doubles.so cos_doubles.o
+
+cos_doubles.o : cos_doubles.c
+    gcc -c -fPIC cos_doubles.c -o cos_doubles.o
+
+clean :
+    -rm -vf libcos_doubles.so cos_doubles.o cos_doubles.pyc
+</code></pre>
+
+<p>我们接着可以将之编译到共享库<code>libcos_double.so</code>中(linux下):</p>
+
+<pre><code>$ ls
+cos_doubles.c  cos_doubles.h  cos_doubles.py  makefile  test_cos_doubles.py
+$ make
+gcc -c -fPIC cos_doubles.c -o cos_doubles.o
+gcc -shared -Wl,-soname,libcos_doubles.so -o libcos_doubles.so cos_doubles.o
+$ ls
+cos_doubles.c  cos_doubles.o   libcos_doubles.so*  test_cos_doubles.py
+cos_doubles.h  cos_doubles.py  makefile
+</code></pre>
+
+<p>接着我们能继续通过ctypes库对(某些类型)Numpy数组的直接支持包裹这个库了：</p>
+
+<pre><code>""" Example of wrapping a C library function that accepts a C double array as
+    input using the numpy.ctypeslib. """
+
+import numpy as np
+import numpy.ctypeslib as npct
+from ctypes import c_int
+
+# input type for the cos_doubles function
+# must be a double array, with single dimension that is contiguous
+array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='CONTIGUOUS')
+
+# load the library, using numpy mechanisms
+libcd = npct.load_library("libcos_doubles", ".")
+
+# setup the return typs and argument types
+libcd.cos_doubles.restype = None
+libcd.cos_doubles.argtypes = [array_1d_double, array_1d_double, c_int]
+
+
+def cos_doubles_func(in_array, out_array):
+    return libcd.cos_doubles(in_array, out_array, len(in_array))
+</code></pre>
+
+<ul>
+<li>注意连续单维Numpy数组的固有限制，因为C函数要求这种缓冲区。^<a rel="nofollow" href="#fn:1">1</a>^</li>
+<li>注意输出数组必须预先分配，例如通过<code>numpy.zeros()</code>，这个函数将写进它的缓冲区。</li>
+<li>尽管<code>cos_doubles</code>函数的原始参数是<code>ARRAY, ARRAY, int</code>，最终的<code>cos_doubles_func</code>仅仅接受两个Numpy数组作为参数。</li>
+</ul>
+<p>像之前一样，我们相信它能够工作：</p>
+
+<pre><code>import numpy as np
+import pylab
+import cos_doubles
+
+x = np.arange(0, 2 * np.pi, 0.1)
+y = np.empty_like(x)
+
+cos_doubles.cos_doubles_func(x, y)
+pylab.plot(x, y)
+pylab.show()
+</code></pre>
+
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.comhttps://segmentfault.comhttps://segmentfault.comhttp://segmentfault.com/img/bVcaTt" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt=""></span></p>
+
+<h2>SWIG</h2>
+
+<p><a rel="nofollow" href="http://www.swig.org/">SWIG</a>, 简化包裹接口生成器，是一个将不同高级编程语言包括Python链接到用C和C++写的程序上的软件开发工具。SWIG重要的功能是，它能自动为你生成包裹代码。这就开发时间来说是个优势，也可能是个负担。生成文件趋于巨大，读起来不友好，包裹过程的结果就是多个间接层，可能有点难以理解。</p>
+
+<p><strong>注意：自动生成的C代码使用Python-C-Api。</strong></p>
+
+<p><strong>优势</strong></p>
+
+<ul>
+<li>可以自动包裹给定头文件的整个库</li>
+<li>对C++工作很好</li>
+</ul>
+<p><strong>劣势</strong></p>
+
+<ul>
+<li>自动生成巨大的文件</li>
+<li>若出错难以调试</li>
+<li>陡峭的学习曲线</li>
+</ul>
+<h3>示例</h3>
+
+<p>让我们假设我们的<code>cos</code>函数位于用C写成的<code>cos_module</code>中，源代码文件为<code>cos_module.c</code>。</p>
+
+<pre><code>#include &lt;math.h&gt;
+
+double cos_func(double arg){
+    return cos(arg);
+}
+</code></pre>
+
+<p>头文件为<code>cos_module.h</code>：</p>
+
+<pre><code>double cos_func(double arg);
+</code></pre>
+
+<p>我们的任务是将<code>cos_func</code>暴露给Python。为了用SWIG实现这个，我们必须写一个包含SWIG指令的接口文件。</p>
+
+<pre><code>/*  Example of wrapping cos function from math.h using SWIG. */
+
+%module cos_module
+%{
+    /* the resulting C file should be built as a python extension */
+    #define SWIG_FILE_WITH_INIT
+    /*  Includes the header in the wrapper code */
+    #include "cos_module.h"
+%}
+/*  Parse the header file to generate wrappers */
+%include "cos_module.h"
+</code></pre>
+
+<p>如您所见，需要太多代码了。在这个简单的例子中在接口文件中仅仅包含头文件就足够将函数暴露给Python。然而，SWIG允许更细粒度地包含/排除头文件中的函数，查看文档获取更多细节。</p>
+
+<p>产生编译的包裹代码是一个两个阶段的过程：</p>
+
+<ol>
+<li>对接口文件运行swig生成文件<code>cos_module_wrap.c</code>，这是用来自动生成Python的C扩展的源代码文件。<code>cos_module.py</code>是自动生成的纯Python模块。</li>
+<li>编译<code>cos_module_wrap.c</code>为<code>_cos_module.so</code>。幸运的是，<code>distutils</code>知道如何处理SWIG接口文件，所以我们的<code>setup.py</code>很简单：</li>
+</ol>
+<!-- --><pre><code>from distutils.core import setup, Extension
+
+setup(ext_modules=[Extension("_cos_module",
+      sources=["cos_module.c", "cos_module.i"])])
+
+$ cd advanced/interfacing_with_c/swig
+
+$ ls
+cos_module.c  cos_module.h  cos_module.i  setup.py
+
+$ python setup.py build_ext --inplace
+running build_ext
+building '_cos_module' extension
+swigging cos_module.i to cos_module_wrap.c
+swig -python -o cos_module_wrap.c cos_module.i
+creating build
+creating build/temp.linux-x86_64-2.7
+gcc -pthread -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/home/esc/anaconda/include/python2.7 -c cos_module.c -o build/temp.linux-x86_64-2.7/cos_module.o
+gcc -pthread -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/home/esc/anaconda/include/python2.7 -c cos_module_wrap.c -o build/temp.linux-x86_64-2.7/cos_module_wrap.o
+gcc -pthread -shared build/temp.linux-x86_64-2.7/cos_module.o build/temp.linux-x86_64-2.7/cos_module_wrap.o -L/home/esc/anaconda/lib -lpython2.7 -o /home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/swig/_cos_module.so
+
+$ ls
+build/  cos_module.c  cos_module.h  cos_module.i  cos_module.py  _cos_module.so*  cos_module_wrap.c  setup.py
+</code></pre>
+
+<p>现在我们能加载和执行<code>cos_module</code>，就好像我们之前做的：</p>
+
+<pre><code>In [1]: import cos_module
+
+In [2]: cos_module?
+Type:       module
+String Form:&lt;module 'cos_module' from 'cos_module.py'&gt;
+File:       /home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/swig/cos_module.py
+Docstring:  &lt;no docstring&gt;
+
+In [3]: dir(cos_module)
+Out[3]:
+['__builtins__',
+ '__doc__',
+ '__file__',
+ '__name__',
+ '__package__',
+ '_cos_module',
+ '_newclass',
+ '_object',
+ '_swig_getattr',
+ '_swig_property',
+ '_swig_repr',
+ '_swig_setattr',
+ '_swig_setattr_nondynamic',
+ 'cos_func']
+
+In [4]: cos_module.cos_func(1.0)
+Out[4]: 0.5403023058681398
+
+In [5]: cos_module.cos_func(0.0)
+Out[5]: 1.0
+
+In [6]: cos_module.cos_func(3.14159265359)
+Out[6]: -1.0
+</code></pre>
+
+<p>我们再次检验健壮性，看到得到了更好的错误信息(然而，严格地说Python中没有<code>double</code>类型)：</p>
+
+<pre><code>In [7]: cos_module.cos_func('foo')
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+&lt;ipython-input-7-11bee483665d&gt; in &lt;module&gt;()
+----&gt; 1 cos_module.cos_func('foo')
+
+TypeError: in method 'cos_func', argument 1 of type 'double'
+</code></pre>
+
+<h3>Numpy支持</h3>
+
+<p>numpy通过<code>numpy.i</code>文件提供了<a rel="nofollow" href="http://docs.scipy.org/doc/numpy/reference/swig.html">对SWIG的支持</a>。这个接口文件定义了各种所谓的类型映射(typemaps)来转换Numpy数组和C数组。在下面的例子中我们将简略地看看这种类型映射在实际中如何起作用。</p>
+
+<p>我们使用在ctypes例子中相同的<code>cos_doubles</code>函数：</p>
+
+<pre><code>void cos_doubles(double * in_array, double * out_array, int size);
+
+#include &lt;math.h&gt;
+
+/*  Compute the cosine of each element in in_array, storing the result in
+ *  out_array. */
+void cos_doubles(double * in_array, double * out_array, int size){
+    int i;
+    for(i=0;i&lt;size;i++){
+        out_array[i] = cos(in_array[i]);
+    }
+}
+</code></pre>
+
+<p>使用SWIG接口文件将它包裹为<code>cos_doubles_func</code>：</p>
+
+<pre><code>/*  Example of wrapping a C function that takes a C double array as input using
+ *  numpy typemaps for SWIG. */
+
+%module cos_doubles
+%{
+    /* the resulting C file should be built as a python extension */
+    #define SWIG_FILE_WITH_INIT
+    /*  Includes the header in the wrapper code */
+    #include "cos_doubles.h"
+%}
+
+/*  include the numpy typemaps */
+%include "numpy.i"
+/*  need this for correct module initialization */
+%init %{
+    import_array();
+%}
+
+/*  typemaps for the two arrays, the second will be modified in-place */
+%apply (double* IN_ARRAY1, int DIM1) {(double * in_array, int size_in)}
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double * out_array, int size_out)}
+
+/*  Wrapper for cos_doubles that massages the types */
+%inline %{
+    /*  takes as input two numpy arrays */
+    void cos_doubles_func(double * in_array, int size_in, double * out_array, int size_out) {
+        /*  calls the original funcion, providing only the size of the first */
+        cos_doubles(in_array, out_array, size_in);
+    }
+%}
+</code></pre>
+
+<ul>
+<li>为了使用Numpy类型映射，需要<code>numpy.i</code>文件。</li>
+<li>观察<code>import_array()</code>的调用，我们已经在Numpy-C-Api的例子中见到过。</li>
+<li>因为类型映射仅仅支持参数<code>ARRAY, SIZE</code>我们需要包裹<code>cos_doubles</code>为<code>cos_doubles_func</code>，该函数接受两个数组包含各自大小作为输入。</li>
+<li>相对于简单SWIG的例子，我们不需要包含<code>cos_doubles.h</code>头文件，因为我们通过<code>cos_doubles_func</code>暴露这个功能，我们没有其它东西想暴露给Python。</li>
+</ul>
+<p>然后，如前述用distutils包裹它：</p>
+
+<pre><code>from distutils.core import setup, Extension
+import numpy
+
+setup(ext_modules=[Extension("_cos_doubles",
+      sources=["cos_doubles.c", "cos_doubles.i"],
+      include_dirs=[numpy.get_include()])])
+</code></pre>
+
+<p>显然，我们需要<code>include_dirs</code>指定位置。</p>
+
+<pre><code>$ ls
+cos_doubles.c  cos_doubles.h  cos_doubles.i  numpy.i  setup.py  test_cos_doubles.py
+$ python setup.py build_ext -i
+running build_ext
+building '_cos_doubles' extension
+swigging cos_doubles.i to cos_doubles_wrap.c
+swig -python -o cos_doubles_wrap.c cos_doubles.i
+cos_doubles.i:24: Warning(490): Fragment 'NumPy_Backward_Compatibility' not found.
+cos_doubles.i:24: Warning(490): Fragment 'NumPy_Backward_Compatibility' not found.
+cos_doubles.i:24: Warning(490): Fragment 'NumPy_Backward_Compatibility' not found.
+creating build
+creating build/temp.linux-x86_64-2.7
+gcc -pthread -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include -I/home/esc/anaconda/include/python2.7 -c cos_doubles.c -o build/temp.linux-x86_64-2.7/cos_doubles.o
+gcc -pthread -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include -I/home/esc/anaconda/include/python2.7 -c cos_doubles_wrap.c -o build/temp.linux-x86_64-2.7/cos_doubles_wrap.o
+In file included from /home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/ndarraytypes.h:1722,
+                 from /home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/ndarrayobject.h:17,
+                 from /home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h:15,
+                 from cos_doubles_wrap.c:2706:
+/home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/npy_deprecated_api.h:11:2: warning: #warning "Using deprecated NumPy API, disable it by #defining NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION"
+gcc -pthread -shared build/temp.linux-x86_64-2.7/cos_doubles.o build/temp.linux-x86_64-2.7/cos_doubles_wrap.o -L/home/esc/anaconda/lib -lpython2.7 -o /home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/swig_numpy/_cos_doubles.so
+$ ls
+build/         cos_doubles.h  cos_doubles.py    cos_doubles_wrap.c  setup.py
+cos_doubles.c  cos_doubles.i  _cos_doubles.so*  numpy.i             test_cos_doubles.py
+</code></pre>
+
+<p>接着，确信它起作用：</p>
+
+<pre><code>import numpy as np
+import pylab
+import cos_doubles
+
+x = np.arange(0, 2 * np.pi, 0.1)
+y = np.empty_like(x)
+
+cos_doubles.cos_doubles_func(x, y)
+pylab.plot(x, y)
+pylab.show()
+</code></pre>
+
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.comhttps://segmentfault.comhttps://segmentfault.comhttp://segmentfault.com/img/bVcaTt" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt=""></span></p>
+
+<h2>Cython</h2>
+
+<p>Cython不仅使用来写C扩展的Python样子的语言，而且是这个语言的一个高级编译器。Cython语言是Python的超集，包含额外的结构允许你调用C函数，将变量和类属性解释为C类型。在这个意义上可以叫它Python的一个类型。</p>
+
+<p>除了这些几本的包裹原生代码的用例，Cython支持一个额外的用例，即交互优化。基本上是，从纯Python代码脚本出发逐步向代码瓶颈增加Cython类型来优化那些真正值得优化的代码。</p>
+
+<p>在这个意义上它和SWIG非常相似，因为C代码可以自动生成，但某种意义上它也相当类似与ctypes，因为它包裹代码可以(几乎可以)用Python写成。</p>
+
+<p>尽管其它自动生成代码方案会很难调试(例如SWIG)，Cython带有一个GNU调试器的扩展，能帮助调试Python，Cython和C代码。</p>
+
+<p><strong>注意：自动生成的C代码使用了Python-C-Api。</strong></p>
+
+<p><strong>优势</strong></p>
+
+<ul>
+<li>类Python的语言来写C扩展</li>
+<li>自动生成代码</li>
+<li>支持增量优化</li>
+<li>包含一个GNU调试器扩展</li>
+<li>支持C++(自从0.13版本)</li>
+</ul>
+<p><strong>劣势</strong></p>
+
+<ul>
+<li>必须编译</li>
+<li>需要额外的库(但仅仅在编译时，这个问题可以通过传递一个生成的C文件克服)</li>
+</ul>
+<h3>示例</h3>
+
+<p>我们<code>cos_module</code>的主要的Cython代码包含在文件<code>cos_module.pyx</code>中：</p>
+
+<pre><code>""" Example of wrapping cos function from math.h using Cython. """
+
+cdef extern from "math.h":
+    double cos(double arg)
+
+def cos_func(arg):
+    return cos(arg)
+</code></pre>
+
+<p>注意额外的关键字像<code>cdef</code>和<code>extern</code>。<code>cos_func</code>紧接着是纯Python。</p>
+
+<p>我们再次使用标准<code>distutils</code>模块，但是这次我们需要一些来自<code>Cython.Distutils</code>额外的片段：</p>
+
+<pre><code>from distutils.core import setup, Extension
+from Cython.Distutils import build_ext
+
+setup(
+    cmdclass={'build_ext': build_ext},
+    ext_modules=[Extension("cos_module", ["cos_module.pyx"])]
+)
+</code></pre>
+
+<p>编译它：</p>
+
+<pre><code>$ cd advanced/interfacing_with_c/cython
+$ ls
+cos_module.pyx  setup.py
+$ python setup.py build_ext --inplace
+running build_ext
+cythoning cos_module.pyx to cos_module.c
+building 'cos_module' extension
+creating build
+creating build/temp.linux-x86_64-2.7
+gcc -pthread -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/home/esc/anaconda/include/python2.7 -c cos_module.c -o build/temp.linux-x86_64-2.7/cos_module.o
+gcc -pthread -shared build/temp.linux-x86_64-2.7/cos_module.o -L/home/esc/anaconda/lib -lpython2.7 -o /home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/cython/cos_module.so
+$ ls
+build/  cos_module.c  cos_module.pyx  cos_module.so*  setup.py
+</code></pre>
+
+<p>然后运行它：</p>
+
+<pre><code>In [1]: import cos_module
+
+In [2]: cos_module?
+Type:       module
+String Form:&lt;module 'cos_module' from 'cos_module.so'&gt;
+File:       /home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/cython/cos_module.so
+Docstring:  &lt;no docstring&gt;
+
+In [3]: dir(cos_module)
+Out[3]:
+['__builtins__',
+ '__doc__',
+ '__file__',
+ '__name__',
+ '__package__',
+ '__test__',
+ 'cos_func']
+
+In [4]: cos_module.cos_func(1.0)
+Out[4]: 0.5403023058681398
+
+In [5]: cos_module.cos_func(0.0)
+Out[5]: 1.0
+
+In [6]: cos_module.cos_func(3.14159265359)
+Out[6]: -1.0
+</code></pre>
+
+<p>接着，测试健壮性，可以看到我们获得了很棒的错误信息：</p>
+
+<pre><code>In [7]: cos_module.cos_func('foo')
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+&lt;ipython-input-7-11bee483665d&gt; in &lt;module&gt;()
+----&gt; 1 cos_module.cos_func('foo')
+
+/home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/cython/cos_module.so in cos_module.cos_func (cos_module.c:506)()
+
+TypeError: a float is required
+</code></pre>
+
+<p>另外，值得注意的是Cython带有完整的C数学库声明，将之上代码简化为：</p>
+
+<pre><code>""" Simpler example of wrapping cos function from math.h using Cython. """
+
+from libc.math cimport cos
+
+def cos_func(arg):
+    return cos(arg)
+</code></pre>
+
+<p>在这个例子中<code>cimport</code>声明被用来import<code>cos</code>函数。</p>
+
+<h3>Numpy支持</h3>
+
+<p>Cython通过<code>numpy.pyx</code>文件支持Numpy，这允许你将Numpy数组类型添加到Cython代码。例如将<code>i</code>指定为<code>int</code>类型，将变量<code>a</code>指定为<code>numpy.ndarray</code>并给定<code>dtype</code>。某些优化像边界检查也支持。参看<a rel="nofollow" href="http://docs.cython.org/src/tutorial/numpy.html">Cython文档</a>的相关章节。万一你想将Numpy数组作为C数组传递给你的Cython包裹的C代码，<a rel="nofollow" href="http://wiki.cython.org/tutorials/NumpyPointerToC">Cython维基</a>中有一个章节。</p>
+
+<p>在以下例子中，我们将展示如何如何使用Cython包裹熟悉的<code>cos_doubles</code>函数。</p>
+
+<pre><code>void cos_doubles(double * in_array, double * out_array, int size);
+
+#include &lt;math.h&gt;
+
+/*  Compute the cosine of each element in in_array, storing the result in
+ *  out_array. */
+void cos_doubles(double * in_array, double * out_array, int size){
+    int i;
+    for(i=0;i&lt;size;i++){
+        out_array[i] = cos(in_array[i]);
+    }
+}
+</code></pre>
+
+<p>该函数使用以下Cython代码被包裹为<code>cos_doubles_func</code>：</p>
+
+<pre><code>""" Example of wrapping a C function that takes C double arrays as input using
+    the Numpy declarations from Cython """
+
+# import both numpy and the Cython declarations for numpy
+import numpy as np
+cimport numpy as np
+
+# if you want to use the Numpy-C-API from Cython
+# (not strictly necessary for this example)
+np.import_array()
+
+# cdefine the signature of our c function
+cdef extern from "cos_doubles.h":
+    void cos_doubles (double * in_array, double * out_array, int size)
+
+# create the wrapper code, with numpy type annotations
+def cos_doubles_func(np.ndarray[double, ndim=1, mode="c"] in_array not None,
+                     np.ndarray[double, ndim=1, mode="c"] out_array not None):
+    cos_doubles(&lt;double*&gt; np.PyArray_DATA(in_array),
+                &lt;double*&gt; np.PyArray_DATA(out_array),
+                in_array.shape[0])
+</code></pre>
+
+<p>可以使用<code>distutils</code>编译：</p>
+
+<pre><code>from distutils.core import setup, Extension
+import numpy
+from Cython.Distutils import build_ext
+
+setup(
+    cmdclass={'build_ext': build_ext},
+    ext_modules=[Extension("cos_doubles",
+                 sources=["_cos_doubles.pyx", "cos_doubles.c"],
+                 include_dirs=[numpy.get_include()])],
+)
+</code></pre>
+
+<ul>
+<li>如上编译Numpy的例子，我们需要<code>include_dirs</code>选项。</li>
+</ul>
+<!-- --><pre><code>$ ls
+cos_doubles.c  cos_doubles.h  _cos_doubles.pyx  setup.py  test_cos_doubles.py
+$ python setup.py build_ext -i
+running build_ext
+cythoning _cos_doubles.pyx to _cos_doubles.c
+building 'cos_doubles' extension
+creating build
+creating build/temp.linux-x86_64-2.7
+gcc -pthread -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include -I/home/esc/anaconda/include/python2.7 -c _cos_doubles.c -o build/temp.linux-x86_64-2.7/_cos_doubles.o
+In file included from /home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/ndarraytypes.h:1722,
+                 from /home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/ndarrayobject.h:17,
+                 from /home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/arrayobject.h:15,
+                 from _cos_doubles.c:253:
+/home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/npy_deprecated_api.h:11:2: warning: #warning "Using deprecated NumPy API, disable it by #defining NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION"
+/home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include/numpy/__ufunc_api.h:236: warning: ‘_import_umath’ defined but not used
+gcc -pthread -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/home/esc/anaconda/lib/python2.7/site-packages/numpy/core/include -I/home/esc/anaconda/include/python2.7 -c cos_doubles.c -o build/temp.linux-x86_64-2.7/cos_doubles.o
+gcc -pthread -shared build/temp.linux-x86_64-2.7/_cos_doubles.o build/temp.linux-x86_64-2.7/cos_doubles.o -L/home/esc/anaconda/lib -lpython2.7 -o /home/esc/git-working/scipy-lecture-notes/advanced/interfacing_with_c/cython_numpy/cos_doubles.so
+$ ls
+build/  _cos_doubles.c  cos_doubles.c  cos_doubles.h  _cos_doubles.pyx  cos_doubles.so*  setup.py  test_cos_doubles.py
+</code></pre>
+
+<p>如前述确保它能起作用：</p>
+
+<pre><code>import numpy as np
+import pylab
+import cos_doubles
+
+x = np.arange(0, 2 * np.pi, 0.1)
+y = np.empty_like(x)
+
+cos_doubles.cos_doubles_func(x, y)
+pylab.plot(x, y)
+pylab.show()
+</code></pre>
+
+<p><span class="img-wrap"><img src="https://segmentfault.comhttps://segmentfault.comhttps://segmentfault.comhttps://segmentfault.comhttp://segmentfault.com/img/bVcaTt" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt=""></span></p>
+
+<h2>总结</h2>
+
+<p>这个章节中四种不同和本地代码接口技术被呈现在您面前。这个表格简要的总结了这些技术的某些方面。</p>
+
+<pre><code>  x              Part of CPython   Compiled   Autogenerated   Numpy Support
+  -------------- ----------------- ---------- --------------- ---------------
+  Python-C-Api   True              True       False           True
+  Ctypes         True              False      False           True
+  Swig           False             True       True            True
+  Cython         False             True       True            True
+</code></pre>
+
+<p>相比所有技术中，Cython是最现代最高级的了。特别是，通过向Python代码中添加类型增量优化代码的能力是独一无二的。</p>
+
+<h2>更多阅读和参考</h2>
+
+<ul>
+<li>
+<a rel="nofollow" href="http://gael-varoquaux.info/blog/?p=157">Gaël Varoquaux的关于避免复制数据的博文</a>对于如何聪明的处理内存管理提供了一些深刻的见解。如果你曾经碰到过大数据集的问题，这是一个可以激发灵感的参考。</li>
+</ul>
+<h2>练习</h2>
+
+<p>因这是一个全新的章节，这些练习更可视为是接下来看什么的指针。所以选择您最感兴趣的那个。如果你对此有更多好的想法，请联系我们！</p>
+
+<ol>
+<li>下载每个练习的源码并在你的机器上编译运行。</li>
+<li>对每个例子做小的修改确信它能起作用。(像将<code>cos</code>改成<code>sin</code>)</li>
+<li>
+<p>大多数例子，特别是涉及Numpy的例子可能仍然对错误输入很脆弱、并且返回模糊的消息。寻找使这些例子出问题的方法，指出问题是什么并且设计潜在的解决方案。这有一些提示：</p>
+
+<ol>
+<li>数值溢出</li>
+<li>输入输出数组长度不同</li>
+<li>多维数组</li>
+<li>空数组</li>
+<li>非<code>double</code>型数组</li>
+</ol>
+</li>
+<li><p>使用IPython中的magic<code>%timeit</code>来测量不同方案的执行时间。</p></li>
+</ol>
+<h3>Python-C-Api</h3>
+
+<ol>
+<li>更改Numpy的例子让函数接受两个输入参数，第二个参数是预分配的输出数组，让它像其它Numpy例子。</li>
+<li>更改例子让函数仅仅接受一个输入数组并且原地修改。</li>
+<li>尝试使用<a rel="nofollow" href="http://docs.scipy.org/doc/numpy/reference/c-api.iterator.html">Numpy迭代协议</a>修正例子，如果你设法获取了一个工作的解决方案，请在github上发布一个拉取请求(pull-request)。</li>
+<li>你也许注意到了，Numpy-C-API例子是唯一不包裹<code>cos_double</code>但是直接将<code>cos</code>应用到Numpy数组的元素的Numpy例子。这相对于其它技术有什么优势？</li>
+<li>你能仅仅使用NJumpy-C-API包裹<code>cos_doubles</code>吗？你可能需要确保数组是正确的类型，并且在内存中一维连续。</li>
+</ol>
+<h3>Ctypes</h3>
+
+<ol>
+<li>更改像<code>cos_double_func</code>的Numpy例子为你处理预分配，使之更像Numpy-C-Api例子。</li>
+</ol>
+<h3>SWIG</h3>
+
+<ol>
+<li>查看SWIG自动生成的代码，你能理解多少？</li>
+<li>更改Numpy的例子像<code>cos_double_func</code>处理预分配，让它更像Numpy-C-API的例子。</li>
+<li>更改C函数<code>cos_doubles</code>让它返回一个分配的数组。你能用SWIG类型映射包裹它？如果不能，为何不行？有没有特定条件的变通方案。(提示：你知道输出数组的大小，所以可能从返回的<code>double *</code>构建一个Numpy数组。)</li>
+</ol>
+<h3>Cython</h3>
+
+<ol>
+<li>查看Cython自动生成的代码。仔细看看Cython插入的一些注释。你看到了什么？</li>
+<li>查看Cython文档的章节<a rel="nofollow" href="http://docs.cython.org/src/tutorial/numpy.html">Working with<br>
+Numpy</a>去学习使用Numpy如何增量优化纯python代码。</li>
+<li>更改Numpy例子比如<code>cos_doubles_func</code>处理预分配，使之更像Numpy-C-Api例子。</li>
+</ol>
+<hr>
+<p>原文 <a rel="nofollow" href="http://reverland.org/python/2013/04/16/interfacing-with-c/">scipy lecture notes: Interfacing with C</a><br>
+翻译 <a rel="nofollow" href="http://reverland.org/python/2013/04/16/interfacing-with-c/">reverland</a><br>
+under GNU Free Documentation License 1.2.</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000000479951"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="Python 中使用 C 代码：以 Numpy 为例"
+ data-url="https://segmentfault.com/a/1190000000479951" data-shorturl="http://sfau.lt/b5ca1j"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000000479951"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">5 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000000479951"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">23</span></button><br><button type="button" data-id="1190000000479951"
+                                        class="btn btn-danger btn-lg mt15 article__reward-btn">
+                                    赞赏支持
+                                </button></div><div class="mt30 mb30 text-center article__reward-info"><span class="mr10">如果觉得我的文章对你有用，请随意赞赏</span></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000000479951" data-user-id="" data-author-id="1030000000323597 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">2 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000000480717">
+            <div class="pull-left">
+                <a href="/u/mingjunyang" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/195/964/1959646896-1030000000139723_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000000480717" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/mingjunyang">MingjunYang</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2014年04月23日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>虽然从没写过C，但是很久以前天天抱着那本C 语言在看。。。。</p>
+</div>
+
+                <form action="/api/comment/1050000000480717/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >虽然从没写过C，但是很久以前天天抱着那本C 语言在看。。。。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000002463918">
+            <div class="pull-left">
+                <a href="/u/e_ahrea" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000002463918" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/e_ahrea">e_ahrea</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2015年01月05日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>学习了</p>
+</div>
+
+                <form action="/api/comment/1050000002463918/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >学习了</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000000479951/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181120.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181120.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542695027000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _cGZ = '5'//'oWh'
++//'Yv'
+'104'+'6a7'//'1uU'
++//'sip'
+'0ed'+'a'//'c2f'
++'a06'//'bne'
++'z'//'z'
++'175'//'l1t'
++//'pri'
+'dce'+//'isT'
+'1'+''///*'4M'*/'4M'
++//'yS'
+'0b'+//'WM'
+'2e'+//'Hp'
+'073'+'a9'//'6bj'
++//'o'
+'90', _pMvtlo = [[14,15]];
+
+    for (var i = 0; i < _pMvtlo.length; i ++) {
+        _cGZ = _cGZ.substring(0, _pMvtlo[i][0]) + _cGZ.substring(_pMvtlo[i][1]);
+    }
+
+    return _cGZ;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"Python \u4e2d\u4f7f\u7528 C \u4ee3\u7801\uff1a\u4ee5 Numpy \u4e3a\u4f8b","desc":"\u8fd9\u4e2a\u7ae0\u8282\u5305\u542b\u8bb8\u591a\u5728python\u4ee3\u7801\u4e2d\u652f\u6301c\/c++\u672c\u673a\u4ee3\u7801\u7684\u8bb8\u591a\u4e0d\u540c\u65b9\u6cd5\uff0c \u901a\u5e38\u8fd9\u4e2a\u8fc7\u7a0b\u53eb\u4f5c\u5305\u88f9(wrapping)\u3002\u672c\u7ae0\u7684\u76ee\u7684\u662f\u8ba9\u60a8\u5927\u81f4\u77e5\u9053\u6709\u90a3\u4e9b\u6280\u672f\u548c\u5b83\u4eec\u5206\u522b\u7684\u4f18\u7f3a\u70b9\u662f\u4ec0\u4e48\uff0c\u4e8e\u662f\u60a8\u80fd\u591f\u4e3a\u60a8\u81ea\u5df1\u7684\u7279\u5b9a\u9700\u8981\u9009\u62e9\u4f55\u65f6\u7684\u6280...","link":"https:\/\/segmentfault.com\/a\/1190000000479951","imgUrl":"https:\/\/avatar-static.segmentfault.com\/266\/538\/2665388308-1030000000323597_huge256"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542695028,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

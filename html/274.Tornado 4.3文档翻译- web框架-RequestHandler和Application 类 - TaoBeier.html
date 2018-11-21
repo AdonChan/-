@@ -1,0 +1,1504 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>Tornado 4.3文档翻译: web框架-RequestHandler和Application 类 - TaoBeier - SegmentFault 思否</title><meta name="description" content="Tornado 4.3于2015年11月6日发布，该版本正式支持Python3.5的async/await关键字，并且用旧版本CPython编译Tornado同样可以使用这两个关键字，这无疑是一种进步。其次，这是最后一个支持Python2.6和Python3.2的版..."/><meta name="keywords" content="python,tornado,linux,git,github"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python,tornado,linux,git,github'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000004707229" class="hidden" />
+
+<div class="wrap" data-blogid="1200000004032406">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/taobeier">TaoBeier</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="TaoBeier"
+                                         data-userslug="taobeier"
+                                         data-useravatar="https://avatar-static.segmentfault.com/257/052/2570524486-1030000000438563_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/taobeier">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/257/052/2570524486-1030000000438563_big64" alt="TaoBeier">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/taobeier" class="mr5 "><strong>TaoBeier</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">681</span>
+
+                                                                                                发布于
+                                                <a href="/blog/taobeier">TaoBeier</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000004032406">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2016-03-28 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000004707229">
+                                            <a href="/a/1190000004707229"> Tornado 4.3文档翻译: web框架-RequestHandler和Application 类</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/tornado/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/384/787/3847873550-1040000000116331_big64" data-placement="top"
+                                                                                data-original-title="tornado"
+                                                                                data-id="1040000000116331">
+                                                                                                                      tornado
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/linux/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/329/062/3290625956-1040000000089392_big64" data-placement="top"
+                                                                                data-original-title="linux"
+                                                                                data-id="1040000000089392">
+                                                                                                                      linux
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/git/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/346/251/346251195-1040000000089459_big64" data-placement="top"
+                                                                                data-original-title="git"
+                                                                                data-id="1040000000089459">
+                                                                                                                      git
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/github/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/154/051/1540511964-1040000000091226_big64" data-placement="top"
+                                                                                data-original-title="github"
+                                                                                data-id="1040000000091226">
+                                                                                                                      github
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                2.9k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 93 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000004707229" data-license="cc">
+                    
+<h2>译者说</h2>
+<p><code>Tornado 4.3</code>于2015年11月6日发布，该版本正式支持<code>Python3.5</code>的<code>async</code>/<code>await</code>关键字，并且用旧版本CPython编译Tornado同样可以使用这两个关键字，这无疑是一种进步。其次，这是最后一个支持<code>Python2.6</code>和<code>Python3.2</code>的版本了，在后续的版本了会移除对它们的兼容。现在网络上还没有<code>Tornado4.3</code>的中文文档，所以为了让更多的朋友能接触并学习到它，我开始了这个翻译项目，希望感兴趣的小伙伴可以一起参与翻译，项目地址是<a href="https://github.com/tao12345666333/tornado-zh" rel="nofollow noreferrer">tornado-zh on Github</a>，翻译好的文档在<a href="https://tornado-zh.readthedocs.org/" rel="nofollow noreferrer">Read the Docs上</a>直接可以看到。欢迎Issues or PR。</p>
+<h4>PS:本节最好直接在<a href="https://tornado-zh.readthedocs.org/zh/latest/" rel="nofollow noreferrer">https://tornado-zh.readthedocs.org</a>或者<a href="http://tornado.moelove.info/" rel="nofollow noreferrer">http://tornado.moelove.info/</a>阅读，以获得更好的阅读体验(格式支持)。原谅我没排好版QAQ</h4>
+<h1>RequestHandler 和 Application 类</h1>
+<p>tornado.web 提供了一种带有异步功能并允许它扩展到大量开放连接的 简单的web 框架, 使其成为处理 长连接(long polling) 的一种理想选择.</p>
+<p>这里有一个简单的”Hello, world”示例应用:</p>
+<pre><code>import tornado.ioloop
+import tornado.web
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("Hello, world")
+
+if __name__ == "__main__":
+    application = tornado.web.Application([
+        (r"/", MainHandler),
+    ])
+    application.listen(8888)
+    tornado.ioloop.IOLoop.current().start()
+</code></pre>
+<p>查看 用户指南 以了解更多信息.</p>
+<h2>线程安全说明</h2>
+<p>一般情况下, 在 RequestHandler 中的方法和Tornado 中其他的方法不是 线程安全的. 尤其是一些方法, 例如 write(), finish(), 和 flush() 要求只能从 主线程调用. 如果你使用多线程, 那么在结束请求之前, 使用 IOLoop.add_callback 来把控制权传送回主线程是很重要的.</p>
+<h2>Request handlers</h2>
+<h3>class tornado.web.RequestHandler(application, request, **kwargs)</h3>
+<p>HTTP请求处理的基类.</p>
+<p>子类至少应该定义以下”Entry points” 部分中被定义的方法其中之一.</p>
+<h2>Entry points</h2>
+<h3>RequestHandler.initialize()</h3>
+<p>子类初始化(Hook).</p>
+<p>作为url spec的第三个参数传递的字典, 将作为关键字参数提供给 initialize().</p>
+<p>例子:</p>
+<pre><code>class ProfileHandler(RequestHandler):
+    def initialize(self, database):
+        self.database = database
+
+    def get(self, username):
+        ...
+
+app = Application([
+    (r'/user/(.*)', ProfileHandler, dict(database=database)),
+    ])
+</code></pre>
+<h3>RequestHandler.prepare()</h3>
+<p>在每个请求的最开始被调用, 在 get/post/等方法之前.</p>
+<p>通过复写这个方法, 可以执行共同的初始化, 而不用考虑每个请求方法.</p>
+<p>异步支持: 这个方法使用 gen.coroutine 或 return_future 装饰器来使它异步( asynchronous 装饰器不能被用在 prepare). 如果这个方法返回一个 Future 对象, 执行将不再进行, 直到 Future 对象完成.</p>
+<p>3.1 新版功能: 异步支持.</p>
+<h3>RequestHandler.on_finish()</h3>
+<p>在一个请求结束后被调用.</p>
+<p>复写这个方法来执行清理, 日志记录等. 这个方法和 prepare 是相 对应的. on_finish 可能不产生任何输出, 因为它是在响应被送 到客户端后才被调用.</p>
+<p>执行后面任何的方法 (统称为HTTP 动词(verb) 方法) 来处理相应的HTTP方法. 这些方法可以通过使用下面的装饰器: gen.coroutine, return_future, 或 asynchronous 变成异步.</p>
+<p>为了支持不再列表中的方法, 可以复写类变量 SUPPORTED_METHODS:</p>
+<pre><code>class WebDAVHandler(RequestHandler):
+    SUPPORTED_METHODS = RequestHandler.SUPPORTED_METHODS + ('PROPFIND',)
+
+    def propfind(self):
+        pass</code></pre>
+<h3>RequestHandler.get(<em>args, </em>*kwargs)</h3>
+<h3>RequestHandler.head(<em>args, </em>*kwargs)</h3>
+<h3>RequestHandler.post(<em>args, </em>*kwargs)</h3>
+<h3>RequestHandler.delete(<em>args, </em>*kwargs)</h3>
+<h3>RequestHandler.patch(<em>args, </em>*kwargs)</h3>
+<h3>RequestHandler.put(<em>args, </em>*kwargs)</h3>
+<h3>RequestHandler.options(<em>args, </em>*kwargs)</h3>
+<h2>Input</h2>
+<h3>RequestHandler.get_argument(name, default=[], strip=True)</h3>
+<p>返回指定的name参数的值.</p>
+<p>如果没有提供默认值, 那么这个参数将被视为是必须的, 并且当 找不到这个参数的时候我们会抛出一个 MissingArgumentError.</p>
+<p>如果一个参数在url上出现多次, 我们返回最后一个值.</p>
+<p>返回值永远是unicode.</p>
+<h3>RequestHandler.get_arguments(name, strip=True)</h3>
+<p>返回指定name的参数列表.</p>
+<p>如果参数不存在, 返回一个空列表.</p>
+<p>返回值永远是unicode.</p>
+<h3>RequestHandler.get_query_argument(name, default=[], strip=True)</h3>
+<p>从请求的query string返回给定name的参数的值.</p>
+<p>如果没有提供默认值, 这个参数将被视为必须的, 并且当找不到这个 参数的时候我们会抛出一个 MissingArgumentError 异常.</p>
+<p>如果这个参数在url中多次出现, 我们将返回最后一次的值.</p>
+<p>返回值永远是unicode.</p>
+<p>3.2 新版功能.</p>
+<h3>RequestHandler.get_query_arguments(name, strip=True)</h3>
+<p>返回指定name的参数列表.</p>
+<p>如果参数不存在, 将返回空列表.</p>
+<p>返回值永远是unicode.</p>
+<p>3.2 新版功能.</p>
+<h3>RequestHandler.get_body_argument(name, default=[], strip=True)</h3>
+<p>返回请求体中指定name的参数的值.</p>
+<p>如果没有提供默认值, 那么这个参数将被视为是必须的, 并且当 找不到这个参数的时候我们会抛出一个 MissingArgumentError.</p>
+<p>如果一个参数在url上出现多次, 我们返回最后一个值.</p>
+<p>返回值永远是unicode.</p>
+<p>3.2 新版功能.</p>
+<h3>RequestHandler.get_body_arguments(name, strip=True)</h3>
+<p>返回由指定请求体中指定name的参数的列表.</p>
+<p>如果参数不存在, 返回一个空列表.</p>
+<p>返回值永远是unicode.</p>
+<p>3.2 新版功能.</p>
+<h3>RequestHandler.decode_argument(value, name=None)</h3>
+<p>从请求中解码一个参数.</p>
+<p>这个参数已经被解码现在是一个字节字符串(byte string). 默认情况下, 这个方法会把参数解码成utf-8并且返回一个unicode字符串, 但是它可以 被子类复写.</p>
+<p>这个方法既可以在 get_argument() 中被用作过滤器, 也可以用来从url 中提取值并传递给 get()/post()/等.</p>
+<p>如果知道的话参数的name会被提供, 但也可能为None (e.g. 在url正则表达式中未命名的组).</p>
+<h3>RequestHandler.request</h3>
+<p>tornado.httputil.HTTPServerRequest 对象包含附加的 请求参数包括e.g. 头部和body数据.</p>
+<h3>RequestHandler.path_args</h3>
+<h3>RequestHandler.path_kwargs</h3>
+<p>path_args 和 path_kwargs 属性包含传递给 HTTP verb methods 的位置和关键字参数. 这些属性被设置, 在这些方法被调用之前, 所以这些值 在 prepare 之间是可用的.</p>
+<h2>Output</h2>
+<h3>RequestHandler.set_status(status_code, reason=None)</h3>
+<p>设置响应的状态码.</p>
+<p>参数:    <br>status_code (int) – 响应状态码. 如果 reason 是 None, 它必须存在于 httplib.responses.<br>reason (string) – 用人类可读的原因短语来描述状态码. 如果是 None, 它会由来自 httplib.responses 的reason填满.<br>RequestHandler.set_header(name, value)<br>给响应设置指定的头部和对应的值.</p>
+<p>如果给定了一个datetime, 我们会根据HTTP规范自动的对它格式化. 如果值不是一个字符串, 我们会把它转换成字符串. 之后所有头部的值 都将用UTF-8 编码.</p>
+<h3>RequestHandler.add_header(name, value)</h3>
+<p>添加指定的响应头和对应的值.</p>
+<p>不像是 set_header, add_header 可以被多次调用来为相同的头 返回多个值.</p>
+<h3>RequestHandler.clear_header(name)</h3>
+<p>清除输出头, 取消之前的 set_header 调用.</p>
+<p>注意这个方法不适用于被 add_header 设置了多个值的头.</p>
+<h3>RequestHandler.set_default_headers()</h3>
+<p>复写这个方法可以在请求开始的时候设置HTTP头.</p>
+<p>例如, 在这里可以设置一个自定义 Server 头. 注意在一般的 请求过程流里可能不会实现你预期的效果, 因为头部可能在错误处 理(error handling)中被重置.</p>
+<h3>RequestHandler.write(chunk)</h3>
+<p>把给定块写到输出buffer.</p>
+<p>为了把输出写到网络, 使用下面的flush()方法.</p>
+<p>如果给定的块是一个字典, 我们会把它作为JSON来写同时会把响应头 设置为 application/json. (如果你写JSON但是设置不同的 Content-Type, 可以调用set_header 在调用write()之后 ).</p>
+<p>注意列表不能转换为JSON 因为一个潜在的跨域安全漏洞. 所有的JSON 输出应该包在一个字典中. 更多细节参考 <a href="http://haacked.com/archive/2009/06/25/json-hijacking.aspx/" rel="nofollow noreferrer">http://haacked.com/archive/20...</a> 和 <a href="https://github.com/facebook/tornado/issues/1009" rel="nofollow noreferrer">https://github.com/facebook/t...</a></p>
+<h3>RequestHandler.flush(include_footers=False, callback=None)</h3>
+<p>将当前输出缓冲区写到网络.</p>
+<p>callback 参数, 如果给定则可用于流控制: 它会在所有数据被写到 socket后执行. 注意同一时间只能有一个flush callback停留; 如果另 一个flush在前一个flush的callback运行之前发生, 那么前一个callback 将会被丢弃.</p>
+<p>在 4.0 版更改: 现在如果没有给定callback, 会返回一个 Future 对象.</p>
+<h3>RequestHandler.finish(chunk=None)</h3>
+<p>完成响应, 结束HTTP 请求.</p>
+<h3>RequestHandler.render(template_name, **kwargs)</h3>
+<p>使用给定参数渲染模板并作为响应.</p>
+<h3>RequestHandler.render_string(template_name, **kwargs)</h3>
+<p>使用给定的参数生成指定模板.</p>
+<p>我们返回生成的字节字符串(以utf8). 为了生成并写一个模板 作为响应, 使用上面的render().</p>
+<h3>RequestHandler.get_template_namespace()</h3>
+<p>返回一个字典被用做默认的模板命名空间.</p>
+<p>可以被子类复写来添加或修改值.</p>
+<p>这个方法的结果将与 tornado.template 模块中其他的默认值 还有 render 或 render_string 的关键字参数相结合.</p>
+<h3>RequestHandler.redirect(url, permanent=False, status=None)</h3>
+<p>重定向到给定的URL(可以选择相对路径).</p>
+<p>如果指定了 status 参数, 这个值将作为HTTP状态码; 否则 将通过 permanent 参数选择301 (永久) 或者 302 (临时). 默认是 302 (临时重定向).</p>
+<h3>RequestHandler.send_error(status_code=500, **kwargs)</h3>
+<p>给浏览器发送给定的HTTP 错误码.</p>
+<p>如果 flush() 已经被调用, 它是不可能发送错误的, 所以这个方法将终止 响应. 如果输出已经被写但尚未flush, 它将被丢弃并被错误页代替.</p>
+<p>复写 write_error() 来自定义它返回的错误页. 额外的关键字参数将 被传递给 write_error.</p>
+<h3>RequestHandler.write_error(status_code, **kwargs)</h3>
+<p>复写这个方法来实现自定义错误页.</p>
+<p>write_error 可能调用 write, render, set_header,等 来产生一般的输出.</p>
+<p>如果错误是由未捕获的异常造成的(包括HTTPError), 三个一组的 exc_info 将变成可用的通过 kwargs["exc_info"]. 注意这个异常可能不是”当前(current)” 目的或方法的异常就像 sys.exc_info() 或 traceback.format_exc.</p>
+<h3>RequestHandler.clear()</h3>
+<p>重置这个响应的所有头部和内容.</p>
+<h3>RequestHandler.data_received(chunk)</h3>
+<p>实现这个方法来处理请求数据流.</p>
+<p>需要 stream_request_body 装饰器.</p>
+<h2>Cookies</h2>
+<h3>RequestHandler.cookies</h3>
+<p>self.request.cookies 的别名.</p>
+<h3>RequestHandler.get_cookie(name, default=None)</h3>
+<p>获取给定name的cookie值, 如果未获取到则返回默认值.</p>
+<h3>RequestHandler.set_cookie(name, value, domain=None, expires=None, path='/', expires_days=None, **kwargs)</h3>
+<p>设置给定的cookie 名称/值还有其他给定的选项.</p>
+<p>另外的关键字参数在Cookie.Morsel直接设置. 参见 <a href="https://docs.python.org/2/library/cookie.html#Cookie.Morsel" rel="nofollow noreferrer">https://docs.python.org/2/lib...</a> 查看可用的属性.</p>
+<h3>RequestHandler.clear_cookie(name, path='/', domain=None)</h3>
+<p>删除给定名称的cookie.</p>
+<p>受cookie协议的限制, 必须传递和设置该名称cookie时候相同的path 和domain来清除这个cookie(但是这里没有方法来找出在服务端所使 用的该cookie的值).</p>
+<h3>RequestHandler.clear_all_cookies(path='/', domain=None)</h3>
+<p>删除用户在本次请求中所有携带的cookie.</p>
+<p>查看 clear_cookie 方法来获取关于path和domain参数的更多信息.</p>
+<p>在 3.2 版更改: 添加 path 和 domain 参数.</p>
+<h3>RequestHandler.get_secure_cookie(name, value=None, max_age_days=31, min_version=None)</h3>
+<p>如果给定的签名过的cookie是有效的,则返回，否则返回None.</p>
+<p>解码后的cookie值作为字节字符串返回(不像 get_cookie ).</p>
+<p>在 3.2.1 版更改: 添加 min_version 参数. 引进cookie version 2; 默认版本 1 和 2 都可以接受.</p>
+<h3>RequestHandler.get_secure_cookie_key_version(name, value=None)</h3>
+<p>返回安全cookie(secure cookie)的签名key版本.</p>
+<p>返回的版本号是int型的.</p>
+<h3>RequestHandler.set_secure_cookie(name, value, expires_days=30, version=None, **kwargs)</h3>
+<p>给cookie签名和时间戳以防被伪造.</p>
+<p>你必须在你的Application设置中指定 cookie_secret 来使用这个方法. 它应该是一个长的, 随机的字节序列作为HMAC密钥来做签名.</p>
+<p>使用 get_secure_cookie() 方法来阅读通过这个方法设置的cookie.</p>
+<p>注意 expires_days 参数设置cookie在浏览器中的有效期, 并且它是 独立于 get_secure_cookie 的 max_age_days 参数的.</p>
+<p>安全cookie(Secure cookies)可以包含任意字节的值, 而不只是unicode 字符串(不像是普通cookie)</p>
+<p>在 3.2.1 版更改: 添加 version 参数. 提出cookie version 2 并将它作为默认设置.</p>
+<h3>RequestHandler.create_signed_value(name, value, version=None)</h3>
+<p>产生用时间戳签名的字符串, 防止被伪造.</p>
+<p>一般通过set_secure_cookie 使用, 但对于无cookie使用来说就 作为独立的方法来提供. 为了解码不作为cookie存储的值, 可以 在 get_secure_cookie 使用可选的value参数.</p>
+<p>在 3.2.1 版更改: 添加 version 参数. 提出cookie version 2 并将它作为默认设置.</p>
+<h3>tornado.web.MIN_SUPPORTED_SIGNED_VALUE_VERSION = 1</h3>
+<p>这个Tornado版本所支持的最旧的签名值版本.</p>
+<p>比这个签名值更旧的版本将不能被解码.</p>
+<p>3.2.1 新版功能.</p>
+<h3>tornado.web.MAX_SUPPORTED_SIGNED_VALUE_VERSION = 2</h3>
+<p>这个Tornado版本所支持的最新的签名值版本.</p>
+<p>比这个签名值更新的版本将不能被解码.</p>
+<p>3.2.1 新版功能.</p>
+<h3>tornado.web.DEFAULT_SIGNED_VALUE_VERSION = 2</h3>
+<p>签名值版本通过 RequestHandler.create_signed_value 产生.</p>
+<p>可通过传递一个 version 关键字参数复写.</p>
+<p>3.2.1 新版功能.</p>
+<h3>tornado.web.DEFAULT_SIGNED_VALUE_MIN_VERSION = 1</h3>
+<p>可以被 RequestHandler.get_secure_cookie 接受的最旧的签名值.</p>
+<p>可通过传递一个 min_version 关键字参数复写.</p>
+<p>3.2.1 新版功能.</p>
+<h2>Other</h2>
+<h3>RequestHandler.application</h3>
+<p>为请求提供服务的 Application 对象</p>
+<h3>RequestHandler.check_etag_header()</h3>
+<p>针对请求的 If-None-Match 头检查 Etag 头.</p>
+<p>如果请求的ETag 匹配则返回 True 并将返回一个304. 例如:</p>
+<pre><code>self.set_etag_header()
+if self.check_etag_header():
+    self.set_status(304)
+    return
+</code></pre>
+<p>这个方法在请求结束的时候会被自动调用, 但也可以被更早的调用 当复写了 compute_etag 并且想在请求完成之前先做一个 If-None-Match 检查. Etag 头应该在这个方法被调用前设置 (可以使用 set_etag_header).</p>
+<h3>RequestHandler.check_xsrf_cookie()</h3>
+<p>确认 _xsrf cookie匹配 _xsrf 参数.</p>
+<p>为了预防cross-site请求伪造, 我们设置一个 _xsrf cookie和包含相同值的一个non-cookie字段在所有 POST 请求中. 如果这两个不匹配, 我们拒绝这个 表单提交作为一个潜在的伪造请求.</p>
+<p>_xsrf 的值可以被设置为一个名为 _xsrf 的表单字段或 在一个名为 X-XSRFToken 或 X-CSRFToken 的自定义 HTTP头部(后者被接受为了兼容Django).</p>
+<p>查看 <a href="http://en.wikipedia.org/wiki/Cross-site_request_forgery" rel="nofollow noreferrer">http://en.wikipedia.org/wiki/...</a></p>
+<p>发布1.1.1 之前, 这个检查会被忽略如果当前的HTTP头部是 X-Requested-With: XMLHTTPRequest . 这个异常已被证明是 不安全的并且已经被移除. 更多信息请查看 <a href="http://www.djangoproject.com/weblog/2011/feb/08/security/" rel="nofollow noreferrer">http://www.djangoproject.com/...</a> http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails</p>
+<p>在 3.2.2 版更改: 添加cookie 2版本的支持. 支持版本1和2.</p>
+<h3>RequestHandler.compute_etag()</h3>
+<p>计算被用于这个请求的etag头.</p>
+<p>到目前为止默认使用输出内容的hash值.</p>
+<p>可以被复写来提供自定义的etag实现, 或者可以返回None来禁止 tornado 默认的etag支持.</p>
+<h3>RequestHandler.create_template_loader(template_path)</h3>
+<p>返回给定路径的新模板装载器.</p>
+<p>可以被子类复写. 默认返回一个在给定路径上基于目录的装载器, 使用应用程序的 autoescape 和 template_whitespace 设置. 如果应用设置中提供了一个 template_loader , 则使用它来替代.</p>
+<h3>RequestHandler.current_user</h3>
+<p>返回请求中被认证的用户.</p>
+<p>可以使用以下两者之一的方式来设置:</p>
+<p>子类可以复写 get_current_user(), 这将会在第一次访问 self.current_user 时自动被调用. get_current_user() 在每次请求时只会被调用一次, 并为 将来访问做缓存:</p>
+<pre><code>def get_current_user(self):
+    user_cookie = self.get_secure_cookie("user")
+    if user_cookie:
+        return json.loads(user_cookie)
+    return None
+</code></pre>
+<p>它可以被设置为一个普通的变量, 通常在来自被复写的 prepare():</p>
+<pre><code>@gen.coroutine
+def prepare(self):
+    user_id_cookie = self.get_secure_cookie("user_id")
+    if user_id_cookie:
+        self.current_user = yield load_user(user_id_cookie)
+</code></pre>
+<p>注意 prepare() 可能是一个协程, 尽管 get_current_user() 可能不是, 所以如果加载用户需要异步操作后面的形式是必要的.</p>
+<p>用户对象可以是application选择的任意类型.</p>
+<h3>RequestHandler.get_browser_locale(default='en_US')</h3>
+<p>从 Accept-Language 头决定用户的位置.</p>
+<p>参考 <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4" rel="nofollow noreferrer">http://www.w3.org/Protocols/r...</a></p>
+<h3>RequestHandler.get_current_user()</h3>
+<p>复写来实现获取当前用户, e.g., 从cookie得到.</p>
+<p>这个方法可能不是一个协程.</p>
+<h3>RequestHandler.get_login_url()</h3>
+<p>复写这个方法自定义基于请求的登陆URL.</p>
+<p>默认情况下, 我们使用application设置中的 login_url 值.</p>
+<h3>RequestHandler.get_status()</h3>
+<p>返回响应的状态码.</p>
+<h3>RequestHandler.get_template_path()</h3>
+<p>可以复写为每个handler指定自定义模板路径.</p>
+<p>默认情况下, 我们使用应用设置中的 template_path . 如果返回None则使用调用文件的相对路径加载模板.</p>
+<h3>RequestHandler.get_user_locale()</h3>
+<p>复写这个方法确定认证过的用户所在位置.</p>
+<p>如果返回了None , 我们退回选择 get_browser_locale().</p>
+<p>这个方法应该返回一个 tornado.locale.Locale 对象, 就像调用 tornado.locale.get("en") 得到的那样</p>
+<h3>RequestHandler.locale</h3>
+<p>返回当前session的位置.</p>
+<p>通过 get_user_locale 来确定, 你可以复写这个方法设置 获取locale的条件, e.g., 记录在数据库中的用户偏好, 或 get_browser_locale, 使用 Accept-Language 头部.</p>
+<h3>RequestHandler.log_exception(typ, value, tb)</h3>
+<p>复写来自定义未捕获异常的日志.</p>
+<p>默认情况下 HTTPError 的日志实例作为警告(warning)没有堆栈追踪(在 tornado.general logger), 其他作为错误(error)的异常带有堆栈 追踪(在 tornado.application logger).</p>
+<p>3.1 新版功能.</p>
+<h3>RequestHandler.on_connection_close()</h3>
+<p>在异步处理中, 如果客户端关闭了连接将会被调用.</p>
+<p>复写这个方法来清除与长连接相关的资源. 注意这个方法只有当在异步处理 连接被关闭才会被调用; 如果你需要在每个请求之后做清理, 请复写 on_finish 方法来代替.</p>
+<p>在客户端离开后, 代理可能会保持连接一段时间 (也可能是无限期), 所以这个方法在终端用户关闭他们的连接时可能不会被立即执行.</p>
+<h3>RequestHandler.require_setting(name, feature='this feature')</h3>
+<p>如果给定的app设置未定义则抛出一个异常.</p>
+<h3>RequestHandler.reverse_url(name, *args)</h3>
+<p>Application.reverse_url 的别名.</p>
+<h3>RequestHandler.set_etag_header()</h3>
+<p>设置响应的Etag头使用 self.compute_etag() 计算.</p>
+<p>注意: 如果 compute_etag() 返回 None 将不会设置头.</p>
+<p>这个方法在请求结束的时候自动调用.</p>
+<h3>RequestHandler.settings</h3>
+<p>self.application.settings 的别名.</p>
+<h3>RequestHandler.static_url(path, include_host=None, **kwargs)</h3>
+<p>为给定的相对路径的静态文件返回一个静态URL.</p>
+<p>这个方法需要你在你的应用中设置 static_path (既你 静态文件的根目录).</p>
+<p>这个方法返回一个带有版本的url (默认情况下会添加 ?v=&lt;signature&gt;), 这会允许静态文件被无限期缓存. 这可以被 禁用通过传递 include_version=False (默认已经实现; 其他静态文件的实现不需要支持这一点, 但它们可能支持其他选项).</p>
+<p>默认情况下这个方法返回当前host的相对URL, 但是如果 include_host 为true则返回的将是绝对路径的URL. 如果这个处理函数有一个 include_host 属性, 该值将被所有的 static_url 调用默认使用, 而不需要传递 include_host 作为一个关键字参数.</p>
+<h3>RequestHandler.xsrf_form_html()</h3>
+<p>一个将被包含在所有POST表单中的HTML &lt;input/&gt; 标签.</p>
+<p>它定义了我们在所有POST请求中为了预防伪造跨站请求所检查的 _xsrf 的输入值. 如果你设置了 xsrf_cookies application设置, 你必须包含这个HTML 在你所有的HTML表单.</p>
+<p>在一个模板中, 这个方法应该使用 {% module xsrf_form_html() %} 这种方式调用</p>
+<p>查看上面的 check_xsrf_cookie() 了解更多信息.</p>
+<h3>RequestHandler.xsrf_token</h3>
+<p>当前用户/会话的XSRF-prevention token.</p>
+<p>为了防止伪造跨站请求, 我们设置一个 ‘_xsrf’ cookie 并在所有POST 请求中包含相同的 ‘_xsrf’ 值作为一个参数. 如果这两个不匹配, 我们会把这个提交当作潜在的伪造请求而拒绝掉.</p>
+<p>查看 <a href="http://en.wikipedia.org/wiki/Cross-site_request_forgery" rel="nofollow noreferrer">http://en.wikipedia.org/wiki/...</a></p>
+<p>在 3.2.2 版更改: 该xsrf token现在已经在每个请求都有一个随机mask这使得它 可以简洁的把token包含在页面中是安全的. 查看 <a href="http://breachattack.com" rel="nofollow noreferrer">http://breachattack.com</a> 浏览更多信息关于这个更改修复的 问题. 旧(版本1)cookies 将被转换到版本2 当这个方法被调用 除非 xsrf_cookie_version Application 被设置为1.</p>
+<p>在 4.3 版更改: 该 xsrf_cookie_kwargs Application 设置可能被用来 补充额外的cookie 选项(将会直接传递给 set_cookie). 例如, xsrf_cookie_kwargs=dict(httponly=True, secure=True) 将设置 secure 和 httponly 标志在 _xsrf cookie.</p>
+<h3>应用程序配置</h3>
+<p>class tornado.web.Application(handlers=None, default_host='', transforms=None, **settings)<br>组成一个web应用程序的请求处理程序的集合.</p>
+<p>该类的实例是可调用的并且可以被直接传递给HTTPServer为应用程序 提供服务:</p>
+<pre><code>application = web.Application([
+    (r"/", MainPageHandler),
+])
+http_server = httpserver.HTTPServer(application)
+http_server.listen(8080)
+ioloop.IOLoop.current().start()
+</code></pre>
+<p>这个类的构造器带有一个列表包含 URLSpec 对象或 (正则表达式, 请求类)元组. 当我们接收到请求, 我们按顺序迭代该列表 并且实例化和请求路径相匹配的正则表达式所对应的第一个请求类. 请求类可以被指定为一个类对象或一个(完全有资格的)名字.</p>
+<p>每个元组可以包含另外的部分, 只要符合 URLSpec 构造器参数的条件. (在Tornado 3.2之前, 只允许包含两个或三个元素的元组).</p>
+<p>一个字典可以作为该元组的第三个元素被传递, 它将被用作处理程序 构造器的关键字参数和 initialize 方法. 这种模式也被用于例子中的 StaticFileHandler (注意一个 StaticFileHandler 可以被自动挂载连带下面的static_path设置):</p>
+<pre><code>application = web.Application([
+    (r"/static/(.*)", web.StaticFileHandler, {"path": "/var/www"}),
+])
+</code></pre>
+<p>我们支持虚拟主机通过 add_handlers 方法, 该方法带有一个主机 正则表达式作为第一个参数:</p>
+<pre><code>application.add_handlers(r"www\.myhost\.com", [
+    (r"/article/([0-9]+)", ArticleHandler),
+])
+</code></pre>
+<p>你可以提供静态文件服务通过传递 static_path 配置作为关键字 参数. 我们将提供这些文件从 /static/ URI (这是可配置的通过 static_url_prefix 配置), 并且我们将提供 /favicon.ico 和 /robots.txt 从相同目录下. 一个 StaticFileHandler 的 自定义子类可以被指定, 通过 static_handler_class 设置.</p>
+<h3>settings</h3>
+<p>传递给构造器的附加关键字参数保存在 settings 字典中, 并经常在文档中被称为”application settings”. Settings被用于 自定义Tornado的很多方面(虽然在一些情况下, 更丰富的定制可能 是通过在 RequestHandler 的子类中复写方法). 一些应用程序 也喜欢使用 settings 字典作为使一些处理程序可以使用应用 程序的特定设置的方法, 而无需使用全局变量. Tornado中使用的 Setting描述如下.</p>
+<h2>一般设置(General settings):</h2>
+<p>autoreload: 如果为 True, 服务进程将会在任意资源文件 改变的时候重启, 正如 Debug模式和自动重载 中描述的那样. 这个选项是Tornado 3.2中新增的; 在这之前这个功能是由 debug 设置控制的.<br>debug: 一些调试模式设置的速记, 正如 Debug模式和自动重载 中描述的那样. debug=True 设置等同于 autoreload=True, compiled_template_cache=False, static_hash_cache=False, serve_traceback=True.<br>default_handler_class 和 default_handler_args: 如果没有发现其他匹配则会使用这个处理程序; 使用这个来实现自 定义404页面(Tornado 3.2新增).<br>compress_response: 如果为 True, 以文本格式的响应 将被自动压缩. Tornado 4.0新增.<br>gzip: 不推荐使用的 compress_response 别名自从 Tornado 4.0.<br>log_function: 这个函数将在每次请求结束的时候调用以记录 结果(有一次参数, 该 RequestHandler 对象). 默认实现是写入 logging 模块的根logger. 也可以通过复写 Application.log_request 自定义.<br>serve_traceback: 如果为true, 默认的错误页将包含错误信息 的回溯. 这个选项是在Tornado 3.2中新增的; 在此之前这个功能 由 debug 设置控制.<br>ui_modules 和 ui_methods: 可以被设置为 UIModule 或UI methods 的映射提供给模板. 可以被设置为一个模块, 字典, 或一个模块的列表和/或字典. 参见 UI 模块 了解更多 细节.<br>认证和安全设置(Authentication and security settings):</p>
+<p>cookie_secret: 被 RequestHandler.get_secure_cookie 使用, set_secure_cookie 用来给cookies签名.<br>key_version: 被requestHandler set_secure_cookie 使用一个特殊的key给cookie签名当 cookie_secret 是一个 key字典.<br>login_url: authenticated 装饰器将会重定向到这个url 如果该用户没有登陆. 更多自定义特性可以通过复写 RequestHandler.get_login_url 实现<br>xsrf_cookies: 如果true, 跨站请求伪造(防护) 将被开启.<br>xsrf_cookie_version: 控制由该server产生的新XSRF cookie的版本. 一般应在默认情况下(这将是最高支持的版本), 但是可以被暂时设置为一个较低的值, 在版本切换之间. 在Tornado 3.2.2 中新增, 这里引入了XSRF cookie 版本2.<br>xsrf_cookie_kwargs: 可设置为额外的参数字典传递给 RequestHandler.set_cookie 为该XSRF cookie.<br>twitter_consumer_key, twitter_consumer_secret, friendfeed_consumer_key, friendfeed_consumer_secret, google_consumer_key, google_consumer_secret, facebook_api_key, facebook_secret: 在 tornado.auth 模块中使用来验证各种APIs.<br>模板设置:</p>
+<p>autoescape: 控制对模板的自动转义. 可以被设置为 None 以禁止转义, 或设置为一个所有输出都该传递过去的函数 name . 默认是 "xhtml_escape". 可以在每个模板中改变使用 {% autoescape %} 指令.<br>compiled_template_cache: 默认是 True; 如果是 False 模板将会在每次请求重新编译. 这个选项是Tornado 3.2中新增的; 在这之前这个功能由 debug 设置控制.<br>template_path: 包含模板文件的文件夹. 可以通过复写 RequestHandler.get_template_path 进一步定制<br>template_loader: 分配给 tornado.template.BaseLoader 的一个实例自定义模板加载. 如果使用了此设置, 则 template_path 和 autoescape 设置都会被忽略. 可 通过复写 RequestHandler.create_template_loader 进一步 定制.<br>template_whitespace: 控制处理模板中的空格; 参见 tornado.template.filter_whitespace 查看允许的值. 在Tornado 4.3中新增.<br>静态文件设置:</p>
+<p>static_hash_cache: 默认为 True; 如果是 False 静态url将会在每次请求重新计算. 这个选项是Tornado 3.2中 新增的; 在这之前这个功能由 debug 设置控制.<br>static_path: 将被提供服务的静态文件所在的文件夹.<br>static_url_prefix: 静态文件的Url前缀, 默认是 "/static/".<br>static_handler_class, static_handler_args: 可 设置成为静态文件使用不同的处理程序代替默认的 tornado.web.StaticFileHandler. static_handler_args, 如果设置, 应该是一个关键字参数的字典传递给处理程序 的 initialize 方法.<br>listen(port, address='', **kwargs)<br>为应用程序在给定端口上启动一个HTTP server.</p>
+<p>这是一个方便的别名用来创建一个 HTTPServer 对象并调用它 的listen方法. HTTPServer.listen 不支持传递关键字参数给 HTTPServer 构造器. 对于高级用途 (e.g. 多进程模式), 不要使用这个方法; 创建一个 HTTPServer 并直接调用它的 TCPServer.bind/TCPServer.start 方法.</p>
+<p>注意在调用这个方法之后你仍然需要调用 IOLoop.current().start() 来启动该服务.</p>
+<p>返回 HTTPServer 对象.</p>
+<p>在 4.3 版更改: 现在返回 HTTPServer 对象.</p>
+<h3>add_handlers(host_pattern, host_handlers)</h3>
+<p>添加给定的handler到我们的handler表.</p>
+<p>Host 模式将按照它们的添加顺序进行处理. 所有匹配模式将被考虑.</p>
+<h3>reverse_url(name, *args)</h3>
+<p>返回名为 name 的handler的URL路径</p>
+<p>处理程序必须作为 URLSpec 添加到应用程序.</p>
+<p>捕获组的参数将在 URLSpec 的正则表达式被替换. 如有必要它们将被转换成string, 编码成utf8,及 网址转义(url-escaped).</p>
+<h3>log_request(handler)</h3>
+<p>写一个完成的HTTP 请求到日志中.</p>
+<p>默认情况下会写到python 根(root)logger. 要改变这种行为 无论是子类应用和复写这个方法, 或者传递一个函数到应用的 设置字典中作为 log_function.</p>
+<h3>class tornado.web.URLSpec(pattern, handler, kwargs=None, name=None)</h3>
+<p>指定URL和处理程序之间的映射.</p>
+<p>Parameters:</p>
+<p>pattern: 被匹配的正则表达式. 任何在正则表达式的group 都将作为参数传递给处理程序的get/post/等方法.<br>handler: 被调用的 RequestHandler 子类.<br>kwargs (optional): 将被传递给处理程序构造器的额外 参数组成的字典.<br>name (optional): 该处理程序的名称. 被 Application.reverse_url 使用.<br>URLSpec 类在 tornado.web.url 名称下也是可用的.</p>
+<p>装饰器(Decorators)<br>tornado.web.asynchronous(method)<br>用这个包装请求处理方法如果它们是异步的.</p>
+<p>这个装饰器适用于回调式异步方法; 对于协程, 使用 @gen.coroutine 装饰器而没有 @asynchronous. (这是合理的, 因为遗留原因使用两个 装饰器一起来提供 @asynchronous 在第一个, 但是在这种情况下 @asynchronous 将被忽略)</p>
+<p>这个装饰器应仅适用于 HTTP verb methods; 它的行为是未定义的对于任何其他方法. 这个装饰器不会 使 一个方法异步; 它告诉框架该方法 是 异步(执行)的. 对于这个装饰器, 该方法必须(至少有时)异步的做一 些事情这是有用的.</p>
+<p>如果给定了这个装饰器, 当方法返回的时候响应并没有结束. 它是由请求处理程序调用 self.finish() 来结束该HTTP请求的. 没有这个装饰器, 请求会自动结束当 get() 或 post() 方法返回时. 例如:</p>
+<pre><code>class MyRequestHandler(RequestHandler):
+    @asynchronous
+    def get(self):
+       http = httpclient.AsyncHTTPClient()
+       http.fetch("http://friendfeed.com/", self._on_download)
+
+    def _on_download(self, response):
+       self.write("Downloaded!")
+       self.finish()
+</code></pre>
+<p>在 3.1 版更改: 可以使用 @gen.coroutine 而不需 @asynchronous.</p>
+<p>在 4.3 版更改: 可以返回任何东西但 None 或者一个 可yield的对象来自于被 @asynchronous 装饰的方法是错误的. 这样的返回值之前是默认忽略的.</p>
+<h3>tornado.web.authenticated(method)</h3>
+<p>使用这个装饰的方法要求用户必须登陆.</p>
+<p>如果用户未登陆, 他们将被重定向到已经配置的 login url.</p>
+<p>如果你配置login url带有查询参数, Tornado将假设你知道你正在 做什么并使用它. 如果不是, 它将添加一个 next 参数这样登陆 页就会知道一旦你登陆后将把你送到哪里.</p>
+<h3>tornado.web.addslash(method)</h3>
+<p>使用这个装饰器给请求路径中添加丢失的slash.</p>
+<p>例如, 使用了这个装饰器请求 /foo 将被重定向到 /foo/ . 你的请求处理映射应该使用正则表达式类似 r'/foo/?' 和使用装饰器相结合.</p>
+<h3>tornado.web.removeslash(method)</h3>
+<p>使用这个装饰器移除请求路径尾部的斜杠(slashes).</p>
+<p>例如, 使用了这个装饰器请求 /foo/ 将被重定向到 /foo . 你的请求处理映射应该使用正则表达式类似 r'/foo/*' 和使用装饰器相结合.</p>
+<h3>tornado.web.stream_request_body(cls)</h3>
+<p>适用于 RequestHandler 子类以开启流式body支持.</p>
+<p>这个装饰器意味着以下变化:</p>
+<p>HTTPServerRequest.body 变成了未定义, 并且body参数将不再被 RequestHandler.get_argument 所包含.<br>RequestHandler.prepare 被调用当读到请求头而不是在整个请求体 都被读到之后.<br>子类必须定义一个方法 data_received(self, data):, 这将被调 用0次或多次当数据是可用状态时. 注意如果该请求的body是空的, data_received 可能不会被调用.<br>prepare 和 data_received 可能返回Futures对象(就像通过 @gen.coroutine, 在这种情况下下一个方法将不会被调用直到这些 futures完成.<br>常规的HTTP方法 (post, put, 等)将在整个body被读取后被 调用.<br>在 data_received 和asynchronous之间有一个微妙的互动 prepare: data_received 的第一次调用可能出现在任何地方 在调用 prepare 已经返回 或 yielded.</p>
+<h2>其他(Everything else)</h2>
+<h3>exception tornado.web.HTTPError(status_code=500, log_message=None, <em>args, </em>*kwargs)</h3>
+<p>一个将会成为HTTP错误响应的异常.</p>
+<p>抛出一个 HTTPError 是一个更方便的选择比起调用 RequestHandler.send_error 因为它自动结束当前的函数.</p>
+<p>为了自定义 HTTPError 的响应, 复写 RequestHandler.write_error.</p>
+<p>参数:    <br>status_code (int) – HTTP状态码. 必须列在 httplib.responses 之中除非给定了 reason 关键字参数.<br>log_message (string) – 这个错误将会被写入日志的信息(除非该 Application 是debug模式否则不会展示给用户). 可能含有 %s-风格的占位符, 它将填补剩余的位置参数.<br>reason (string) – 唯一的关键字参数. HTTP “reason” 短语 将随着 status_code 传递给状态行. 通常从 status_code, 自动确定但可以使用一个非标准的数字代码.</p>
+<h3>exception tornado.web.Finish</h3>
+<p>一个会结束请求但不会产生错误响应的异常.</p>
+<p>当一个 RequestHandler 抛出 Finish , 该请求将会结束(调用 RequestHandler.finish 如果该方法尚未被调用), 但是错误处理方法 (包括 RequestHandler.write_error)将不会被调用.</p>
+<p>如果 Finish() 创建的时候没有携带参数, 则会发送一个pending响应. 如果 Finish() 给定了参数, 则参数将会传递给 RequestHandler.finish().</p>
+<p>这是比复写 write_error 更加便利的方式用来实现自定义错误页 (尤其是在library代码中):</p>
+<pre><code>if self.current_user is None:
+    self.set_status(401)
+    self.set_header('WWW-Authenticate', 'Basic realm="something"')
+    raise Finish()
+</code></pre>
+<p>在 4.3 版更改: 传递给 Finish() 的参数将被传递给 RequestHandler.finish.</p>
+<h3>exception tornado.web.MissingArgumentError(arg_name)</h3>
+<p>由 RequestHandler.get_argument 抛出的异常.</p>
+<p>这是 HTTPError 的一个子类, 所以如果是未捕获的400响应码将被 用来代替500(并且栈追踪不会被记录到日志).</p>
+<p>3.1 新版功能.</p>
+<h3>class tornado.web.UIModule(handler)</h3>
+<p>一个在页面上可复用, 模块化的UI单元.</p>
+<p>UI模块经常执行附加的查询, 它们也可以包含额外的CSS和 JavaScript, 这些将包含在输出页面上, 在页面渲染的时候自动插入.</p>
+<p>UIModule的子类必须复写 render 方法.</p>
+<h3>render(<em>args, </em>*kwargs)</h3>
+<p>在子类中复写以返回这个模块的输出.</p>
+<h3>embedded_javascript()</h3>
+<p>复写以返回一个被嵌入页面的JavaScript字符串.</p>
+<h3>javascript_files()</h3>
+<p>复写以返回这个模块需要的JavaScript文件列表.</p>
+<p>如果返回值是相对路径, 它们将被传递给 RequestHandler.static_url; 否则会被原样使用.</p>
+<h3>embedded_css()</h3>
+<p>复写以返回一个将被嵌入页面的CSS字符串.</p>
+<h3>css_files()</h3>
+<p>复写以返回这个模块需要的CSS文件列表.</p>
+<p>如果返回值是相对路径, 它们将被传递给 RequestHandler.static_url; 否则会被原样使用.</p>
+<h3>html_head()</h3>
+<p>复写以返回一个将被放入&lt;head/&gt;标签的HTML字符串.</p>
+<h3>html_body()</h3>
+<p>复写以返回一个将被放入&lt;body/&gt;标签最后的HTML字符串.</p>
+<h3>render_string(path, **kwargs)</h3>
+<p>渲染一个模板并且将它作为一个字符串返回.</p>
+<h3>class tornado.web.ErrorHandler(application, request, **kwargs)</h3>
+<p>为所有请求生成一个带有 status_code 的错误响应.</p>
+<h3>class tornado.web.FallbackHandler(application, request, **kwargs)</h3>
+<p>包装其他HTTP server回调的 RequestHandler .</p>
+<p>fallback是一个可调用的对象, 它接收一个 HTTPServerRequest, 诸如一个 Application 或 tornado.wsgi.WSGIContainer. 这对于在相同server中同时使用 Tornado RequestHandlers 和WSGI是非常有用的. 用法:</p>
+<pre><code>wsgi_app = tornado.wsgi.WSGIContainer(
+    django.core.handlers.wsgi.WSGIHandler())
+application = tornado.web.Application([
+    (r"/foo", FooHandler),
+    (r".*", FallbackHandler, dict(fallback=wsgi_app),
+])
+</code></pre>
+<h3>class tornado.web.RedirectHandler(application, request, **kwargs)</h3>
+<p>将所有GET请求重定向到给定的URL.</p>
+<p>你需要为处理程序提供 url 关键字参数, e.g.:</p>
+<pre><code>application = web.Application([
+    (r"/oldpath", web.RedirectHandler, {"url": "/newpath"}),
+])
+</code></pre>
+<h3>class tornado.web.StaticFileHandler(application, request, **kwargs)</h3>
+<p>可以为一个目录提供静态内容服务的简单处理程序.</p>
+<p>StaticFileHandler 是自动配置的如果你传递了 static_path 关键字参数给 Application. 这个处理程序可以被自定义通过 static_url_prefix, static_handler_class, 和 static_handler_args 配置.</p>
+<p>为了将静态数据目录映射一个额外的路径给这个处理程序你可以在你应用程序中 添加一行例如:</p>
+<pre><code>application = web.Application([
+    (r"/content/(.*)", web.StaticFileHandler, {"path": "/var/www"}),
+])
+</code></pre>
+<p>处理程序构造器需要一个 path 参数, 该参数指定了将被服务内容的本地根 目录.</p>
+<p>注意在正则表达式的捕获组需要解析 path 参数的值给get()方法(不同于 上面的构造器的参数); 参见 URLSpec 了解细节.</p>
+<p>为了自动的提供一个文件例如 index.html 当一个目录被请求的时候, 设置 static_handler_args=dict(default_filename="index.html") 在你的应用程序设置中(application settings), 或添加 default_filename 作为你的 StaticFileHandler 的初始化参数.</p>
+<p>为了最大限度的提高浏览器缓存的有效性, 这个类支持版本化的url(默认情 况下使用 ?v= 参数). 如果给定了一个版本, 我们指示浏览器无限期 的缓存该文件. make_static_url (也可作为 RequestHandler.static_url) 可以被用来构造一个版本化的url.</p>
+<p>该处理程序主要用户开发和轻量级处理文件服务; 对重型传输,使用专用的 静态文件服务是更高效的(例如nginx或Apache). 我们支持HTTP Accept-Ranges 机制来返回部分内容(因为一些浏览器需要此功能是 为了查找在HTML5音频或视频中).</p>
+<p>子类注意事项</p>
+<p>这个类被设计是可以让子类继承的, 但由于静态url是被类方法生成的 而不是实例方法的方式, 继承模式有点不同寻常. 一定要使用 @classmethod 装饰器当复写一个类方法时. 实例方法可以使用 self.path self.absolute_path, 和 self.modified 属性.</p>
+<p>子类应该只复写在本节讨论的方法; 复写其他方法很容易出错. 最重要的 StaticFileHandler.get 问题尤其严重, 由于与 compute_etag 还有其他方法紧密耦合.</p>
+<p>为了改变静态url生成的方式(e.g. 匹配其他服务或CDN), 复写 make_static_url, parse_url_path, get_cache_time, 和/或 get_version.</p>
+<p>为了代替所有与文件系统的相互作用(e.g. 从数据库提供静态内容服务), 复写 get_content, get_content_size, get_modified_time, get_absolute_path, 和 validate_absolute_path.</p>
+<p>在 3.1 版更改: 一些为子类设计的方法在Tornado 3.1 被添加.</p>
+<h3>compute_etag()</h3>
+<p>设置 Etag 头基于static url版本.</p>
+<p>这允许高效的针对缓存版本的 If-None-Match 检查, 并发送正确的 Etag 给局部的响应(i.e. 相同的 Etag 为完整的文件).</p>
+<p>3.1 新版功能.</p>
+<h3>set_headers()</h3>
+<p>设置响应的内容和缓存头.</p>
+<p>3.1 新版功能.</p>
+<h3>should_return_304()</h3>
+<p>如果头部表明我们应该返回304则返回True.</p>
+<p>3.1 新版功能.</p>
+<h3>classmethod get_absolute_path(root, path)</h3>
+<p>返回 path 相对于 root 的绝对路径.</p>
+<p>root 是这个 StaticFileHandler 配置的路径(在大多数情 况下是 Application 的 static_path 设置).</p>
+<p>这个类方法可能在子类中被复写. 默认情况下它返回一个文件系统 路径, 但其他字符串可以被使用, 只要它们是独特的并且被 子类复写的 get_content 理解.</p>
+<p>3.1 新版功能.</p>
+<h3>validate_absolute_path(root, absolute_path)</h3>
+<p>验证并返回绝对路径.</p>
+<p>root 是 StaticFileHandler 配置的路径,并且 path 是 get_absolute_path 的结果.</p>
+<p>这是一个实例方法在请求过程中被调用, 所以它可能抛出 HTTPError 或者使用类似 RequestHandler.redirect (返回None在重定向到停止进一步处理之后) 这种方法. 如果丢失文件将会生成404错误.</p>
+<p>这个方法可能在返回路径之前修改它, 但是注意任何这样的 修改将不会被 make_static_url 理解.</p>
+<p>在实例方法, 这个方法的结果对 self.absolute_path 是可用的.</p>
+<p>3.1 新版功能.</p>
+<h3>classmethod get_content(abspath, start=None, end=None)</h3>
+<p>检索位于所给定绝对路径的请求资源的内容.</p>
+<p>这个类方法可以被子类复写. 注意它的特征不同于其他可复写 的类方法(没有 settings 参数); 这是经过深思熟虑的以 确保 abspath 能依靠自己作为缓存键(cache key) .</p>
+<p>这个方法返回一个字节串或一个可迭代的字节串. 对于大文件 后者是更优的选择因为它有助于减少内存碎片.</p>
+<p>3.1 新版功能.</p>
+<h3>classmethod get_content_version(abspath)</h3>
+<p>返回给定路径资源的一个版本字符串.</p>
+<p>这个类方法可以被子类复写. 默认的实现是对文件内容的hash.</p>
+<p>3.1 新版功能.</p>
+<h3>get_content_size()</h3>
+<p>检索给定路径中资源的总大小.</p>
+<p>这个方法可以被子类复写.</p>
+<p>3.1 新版功能.</p>
+<p>在 4.0 版更改: 这个方法总是被调用, 而不是仅在部分结果被请求时.</p>
+<h3>get_modified_time()</h3>
+<p>返回 self.absolute_path 的最后修改时间.</p>
+<p>可以被子类复写. 应当返回一个 datetime 对象或None.</p>
+<p>3.1 新版功能.</p>
+<h3>get_content_type()</h3>
+<p>返回这个请求使用的 Content-Type 头.</p>
+<p>3.1 新版功能.</p>
+<h3>set_extra_headers(path)</h3>
+<p>为了子类给响应添加额外的头部</p>
+<h3>get_cache_time(path, modified, mime_type)</h3>
+<p>复写来自定义缓存控制行为.</p>
+<p>返回一个正的秒数作为结果可缓存的时间的量或者返回0标记资源 可以被缓存一个未指定的时间段(受浏览器自身的影响).</p>
+<p>默认情况下带有 v 请求参数的资源返回的缓存过期时间是10年.</p>
+<h3>classmethod make_static_url(settings, path, include_version=True)</h3>
+<p>为给定路径构造一个的有版本的url.</p>
+<p>这个方法可以在子类中被复写(但是注意他是一个类方法而不是一个 实例方法). 子类只需实现签名 make_static_url(cls, settings, path); 其他关键字参数可 以通过 static_url 传递, 但这不是标准.</p>
+<p>settings 是 Application.settings 字典. path 是被请求的静态路径. 返回的url应该是相对于当前host的.</p>
+<p>include_version 决定生成的URL是否应该包含含有给定 path 相对应文件的hash版本查询字符串.</p>
+<h3>parse_url_path(url_path)</h3>
+<p>将静态URL路径转换成文件系统路径.</p>
+<p>url_path 是由去掉 static_url_prefix 的URL组成. 返回值应该是相对于 static_path 的文件系统路径.</p>
+<p>这是逆 make_static_url .</p>
+<h3>classmethod get_version(settings, path)</h3>
+<p>生成用于静态URL的版本字符串.</p>
+<p>settings 是 Application.settings 字典并且 path 是请求资源在文件系统中的相对位置. 返回值应该是一个字符串 或 None 如果没有版本可以被确定.</p>
+<p>在 3.1 版更改: 这个方法之前建议在子类中复写; get_content_version 现在是首选因为它允许基类来处理结果的缓存.</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000004707229"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="Tornado 4.3文档翻译: web框架-RequestHandler和Application 类"
+ data-url="https://segmentfault.com/a/1190000004707229" data-shorturl="http://sfau.lt/b5tUJd"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000004707229"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000004707229"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">4</span></button><br><button type="button" data-id="1190000004707229"
+                                        class="btn btn-danger btn-lg mt15 article__reward-btn">
+                                    赞赏支持
+                                </button></div><div class="mt30 mb30 text-center article__reward-info"><span class="mr10">如果觉得我的文章对你有用，请随意赞赏</span></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000004707229" data-user-id="" data-author-id="1030000000438563 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000004707229/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181120.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181120.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542687473000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _Of55 = //'fxH'
+'e'+'3'//'qBo'
++//'qX'
+'94'+//'F'
+'9c8'+'b'//'iAE'
++//'Mi'
+'Mi'+'3'//'0Kf'
++'943'//'0'
++//'bS'
+'0e'+//'f9'
+'c'+//'BTi'
+'5dc'+'F'//'F'
++//'a'
+'90'+//'s'
+'s'+'3ca'//'g'
++//'Onp'
+'8c2'+//'2BR'
+'8cb'+//'DC'
+'48b', _lbs = [[8,10],[18,19],[20,21]];
+
+    for (var i = 0; i < _lbs.length; i ++) {
+        _Of55 = _Of55.substring(0, _lbs[i][0]) + _Of55.substring(_lbs[i][1]);
+    }
+
+    return _Of55;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"Tornado 4.3\u6587\u6863\u7ffb\u8bd1: web\u6846\u67b6-RequestHandler\u548cApplication \u7c7b","desc":"Tornado 4.3\u4e8e2015\u5e7411\u67086\u65e5\u53d1\u5e03\uff0c\u8be5\u7248\u672c\u6b63\u5f0f\u652f\u6301Python3.5\u7684async\/await\u5173\u952e\u5b57\uff0c\u5e76\u4e14\u7528\u65e7\u7248\u672cCPython\u7f16\u8bd1Tornado\u540c\u6837\u53ef\u4ee5\u4f7f\u7528\u8fd9\u4e24\u4e2a\u5173\u952e\u5b57\uff0c\u8fd9\u65e0\u7591\u662f\u4e00\u79cd\u8fdb\u6b65\u3002\u5176\u6b21\uff0c\u8fd9\u662f\u6700\u540e\u4e00\u4e2a\u652f\u6301Python2.6\u548cPython3.2\u7684\u7248...","link":"https:\/\/segmentfault.com\/a\/1190000004707229","imgUrl":"https:\/\/avatar-static.segmentfault.com\/257\/052\/2570524486-1030000000438563_huge256"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542687473,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

@@ -1,0 +1,1507 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>学习笔记CB012: LSTM 简单实现、完整实现、torch、小说训练word2vec lstm机器人 - 个人文章 - SegmentFault 思否</title><meta name="description" content="LSTM（Long Short Tem Memory）特殊递归神经网络，神经元保存历史记忆，解决自然语言处理统计方法只能考虑最近n个词语而忽略更久前词语的问题。用途：word representation（embedding）(词语向量)、sequence to s..."/><meta name="keywords" content="python,神经网络,机器人"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python,神经网络,机器人'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000014707397" class="hidden" />
+
+<div class="wrap" data-blogid="">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="阿里云云栖社区"
+                                         data-userslug="yunqishequ_5aa899aad5395"
+                                         data-useravatar="https://avatar-static.segmentfault.com/371/353/3713533620-5aa89a4f14a02_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/yunqishequ_5aa899aad5395">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/371/353/3713533620-5aa89a4f14a02_big64" alt="阿里云云栖社区">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/yunqishequ_5aa899aad5395" class="mr5 "><strong>阿里云云栖社区</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">1.9k</span>
+
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                            <button type="button"
+                                                                class="btn btn-xs btn-success follow-user"
+                                                                data-do="follow"
+                                                                data-type="user"
+                                                                data-id="1030000013722374">关注作者
+                                                        </button>
+                                                                                                                                                    </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-05-03 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000014707397">
+                                            <a href="/a/1190000014707397"> 学习笔记CB012: LSTM 简单实现、完整实现、torch、小说训练word2vec lstm机器人</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="神经网络"
+                                                                                data-id="1040000000636902">
+                                                                                                                      神经网络
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E6%9C%BA%E5%99%A8%E4%BA%BA/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="机器人"
+                                                                                data-id="1040000000090534">
+                                                                                                                      机器人
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                395 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 97 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000014707397" data-license="">
+                    
+<p>真正掌握一种算法，最实际的方法，完全手写出来。</p>
+<p>LSTM（Long Short Tem Memory）特殊递归神经网络，神经元保存历史记忆，解决自然语言处理统计方法只能考虑最近n个词语而忽略更久前词语的问题。用途：word representation（embedding）(词语向量)、sequence to sequence learning（输入句子预测句子）、机器翻译、语音识别等。</p>
+<p>100多行原始python代码实现基于LSTM二进制加法器。<a href="https://iamtrask.github.io/2015/11/15/anyone-can-code-lstm/" rel="nofollow noreferrer">https://iamtrask.github.io/20...</a> ，翻译<a href="http://blog.csdn.net/zzukun/article/details/49968129" rel="nofollow noreferrer">http://blog.csdn.net/zzukun/a...</a> ：</p>
+<p>import copy, numpy as np<br>np.random.seed(0)<br>最开始引入numpy库，矩阵操作。</p>
+<p>def sigmoid(x):</p>
+<pre><code>output = 1/(1+np.exp(-x))
+return output</code></pre>
+<p>声明sigmoid激活函数，神经网络基础内容，常用激活函数sigmoid、tan、relu等，sigmoid取值范围[0, 1]，tan取值范围[-1,1]，x是向量，返回output是向量。</p>
+<p>def sigmoid_output_to_derivative(output):</p>
+<pre><code>return output*(1-output)</code></pre>
+<p>声明sigmoid求导函数。<br>加法器思路：二进制加法是二进制位相加，记录满二进一进位，训练时随机c=a+b样本，输入a、b输出c是整个lstm预测过程，训练由a、b二进制向c各种转换矩阵和权重，神经网络。</p>
+<p>int2binary = {}<br>声明词典，由整型数字转成二进制，存起来不用随时计算，提前存好读取更快。</p>
+<p>binary_dim = 8<br>largest_number = pow(2,binary_dim)<br>声明二进制数字维度，8，二进制能表达最大整数2^8=256，largest_number。</p>
+<p>binary = np.unpackbits(</p>
+<pre><code>                   np.array([range(largest_number)],dtype=np.uint8).T,axis=1)</code></pre>
+<p>for i in range(largest_number):</p>
+<pre><code>int2binary[i] = binary[i]</code></pre>
+<p>预先把整数到二进制转换词典存起来。</p>
+<p>alpha = 0.1<br>input_dim = 2<br>hidden_dim = 16<br>output_dim = 1<br>设置参数，alpha是学习速度，input_dim是输入层向量维度，输入a、b两个数，是2，hidden_dim是隐藏层向量维度，隐藏层神经元个数，output_dim是输出层向量维度，输出一个c，是1维。从输入层到隐藏层权重矩阵是216维，从隐藏层到输出层权重矩阵是161维，隐藏层到隐藏层权重矩阵是16*16维：</p>
+<p>synapse_0 = 2*np.random.random((input_dim,hidden_dim)) - 1<br>synapse_1 = 2*np.random.random((hidden_dim,output_dim)) - 1<br>synapse_h = 2*np.random.random((hidden_dim,hidden_dim)) - 1<br>2x-1，np.random.random生成从0到1之间随机浮点数，2x-1使其取值范围在[-1, 1]。</p>
+<p>synapse_0_update = np.zeros_like(synapse_0)<br>synapse_1_update = np.zeros_like(synapse_1)<br>synapse_h_update = np.zeros_like(synapse_h)<br>声明三个矩阵更新，Delta。</p>
+<p>for j in range(10000):<br>进行10000次迭代。</p>
+<p>a_int = np.random.randint(largest_number/2)<br>a = int2binary[a_int]<br>b_int = np.random.randint(largest_number/2)<br>b = int2binary[b_int]<br>c_int = a_int + b_int<br>c = int2binary[c_int]<br>随机生成样本，包含二进制a、b、c，c=a+b，a_int、b_int、c_int分别是a、b、c对应整数格式。</p>
+<p>d = np.zeros_like(c)<br>d存模型对c预测值。</p>
+<p>overallError = 0<br>全局误差，观察模型效果。<br>layer_2_deltas = list()<br>存储第二层(输出层)残差，输出层残差计算公式推导公式<a href="http://deeplearning.stanford.edu/wiki/index.php/%E5%8F%8D%E5%90%91%E4%BC%A0%E5%AF%BC%E7%AE%97%E6%B3%95" rel="nofollow noreferrer">http://deeplearning.stanford....</a> 。</p>
+<p>layer_1_values = list()<br>layer_1_values.append(np.zeros(hidden_dim))<br>存储第一层(隐藏层)输出值，赋0值作为上一个时间值。</p>
+<p>for position in range(binary_dim):<br>遍历二进制每一位。</p>
+<p>X = np.array([[a[binary_dim - position - 1],b[binary_dim - position - 1]]])<br>y = np.array([[c[binary_dim - position - 1]]]).T<br>X和y分别是样本输入和输出二进制值第position位，X对于每个样本有两个值，分别是a和b对应第position位。把样本拆成每个二进制位用于训练，二进制加法存在进位标记正好适合利用LSTM长短期记忆训练，每个样本8个二进制位是一个时间序列。</p>
+<p>layer_1 = sigmoid(np.dot(X,synapse_0) + np.dot(layer_1_values[-1],synapse_h))<br>公式Ct = sigma(W0·Xt + Wh·Ct-1)</p>
+<p>layer_2 = sigmoid(np.dot(layer_1,synapse_1))<br>这里使用的公式是C2 = sigma(W1·C1)，</p>
+<p>layer_2_error = y - layer_2<br>计算预测值和真实值误差。</p>
+<p>layer_2_deltas.append((layer_2_error)*sigmoid_output_to_derivative(layer_2))<br>反向传导，计算delta，添加到数组layer_2_deltas</p>
+<p>overallError += np.abs(layer_2_error[0])<br>计算累加总误差，用于展示和观察。</p>
+<p>d[binary_dim - position - 1] = np.round(layer_20)<br>存储预测position位输出值。</p>
+<p>layer_1_values.append(copy.deepcopy(layer_1))<br>存储中间过程生成隐藏层值。</p>
+<p>future_layer_1_delta = np.zeros(hidden_dim)<br>存储下一个时间周期隐藏层历史记忆值，先赋一个空值。</p>
+<p>for position in range(binary_dim):<br>遍历二进制每一位。</p>
+<p>X = np.array([[a[position],b[position]]])<br>取出X值，从大位开始更新，反向传导按时序逆着一级一级更新。</p>
+<p>layer_1 = layer_1_values[-position-1]<br>取出位对应隐藏层输出。</p>
+<p>prev_layer_1 = layer_1_values[-position-2]<br>取出位对应隐藏层上一时序输出。</p>
+<p>layer_2_delta = layer_2_deltas[-position-1]<br>取出位对应输出层delta。</p>
+<p>layer_1_delta = (future_layer_1_delta.dot(synapse_h.T) + layer_2_delta.dot(synapse_1.T)) * sigmoid_output_to_derivative(layer_1)<br>神经网络反向传导公式，加上隐藏层?值。</p>
+<p>synapse_1_update += np.atleast_2d(layer_1).T.dot(layer_2_delta)<br>累加权重矩阵更新，对权重(权重矩阵)偏导等于本层输出与下一层delta点乘。</p>
+<p>synapse_h_update += np.atleast_2d(prev_layer_1).T.dot(layer_1_delta)<br>前一时序隐藏层权重矩阵更新，前一时序隐藏层输出与本时序delta点乘。</p>
+<p>synapse_0_update += X.T.dot(layer_1_delta)<br>输入层权重矩阵更新。</p>
+<p>future_layer_1_delta = layer_1_delta<br>记录本时序隐藏层delta。</p>
+<p>synapse_0 += synapse_0_update * alpha<br>synapse_1 += synapse_1_update * alpha<br>synapse_h += synapse_h_update * alpha<br>权重矩阵更新。</p>
+<p>synapse_0_update *= 0<br>synapse_1_update *= 0<br>synapse_h_update *= 0<br>更新变量归零。</p>
+<p>if(j % 1000 == 0):</p>
+<pre><code>    print "Error:" + str(overallError)
+    print "Pred:" + str(d)
+    print "True:" + str(c)
+    out = 0
+    for index,x in enumerate(reversed(d)):
+        out += x*pow(2,index)
+    print str(a_int) + " + " + str(b_int) + " = " + str(out)
+    print "------------"</code></pre>
+<p>每训练1000个样本输出总误差信息，运行时看收敛过程。<br>LSTM最简单实现，没有考虑偏置变量，只有两个神经元。</p>
+<p>完整LSTM python实现。完全参照论文great intro paper实现,代码来源<a href="https://github.com/nicodjimenez/lstm" rel="nofollow noreferrer">https://github.com/nicodjimen...</a> ，作者解释<a href="http://nicodjimenez.github.io/2014/08/08/lstm.html" rel="nofollow noreferrer">http://nicodjimenez.github.io...</a> ，具体过程参考<a href="http://colah.github.io/posts/2015-08-Understanding-LSTMs/" rel="nofollow noreferrer">http://colah.github.io/posts/...</a> 图。</p>
+<p>import random<br>import numpy as np<br>import math</p>
+<p>def sigmoid(x):</p>
+<pre><code>return 1. / (1 + np.exp(-x))</code></pre>
+<p>声明sigmoid函数。</p>
+<p>def rand_arr(a, b, *args):</p>
+<pre><code>np.random.seed(0)
+return np.random.rand(*args) * (b - a) + a</code></pre>
+<p>生成随机矩阵，取值范围[a,b)，shape用args指定。</p>
+<p>class LstmParam:</p>
+<pre><code>def __init__(self, mem_cell_ct, x_dim):
+    self.mem_cell_ct = mem_cell_ct
+    self.x_dim = x_dim
+    concat_len = x_dim + mem_cell_ct
+    # weight matrices
+    self.wg = rand_arr(-0.1, 0.1, mem_cell_ct, concat_len)
+    self.wi = rand_arr(-0.1, 0.1, mem_cell_ct, concat_len)
+    self.wf = rand_arr(-0.1, 0.1, mem_cell_ct, concat_len)
+    self.wo = rand_arr(-0.1, 0.1, mem_cell_ct, concat_len)
+    # bias terms
+    self.bg = rand_arr(-0.1, 0.1, mem_cell_ct)
+    self.bi = rand_arr(-0.1, 0.1, mem_cell_ct)
+    self.bf = rand_arr(-0.1, 0.1, mem_cell_ct)
+    self.bo = rand_arr(-0.1, 0.1, mem_cell_ct)
+    # diffs (derivative of loss function w.r.t. all parameters)
+    self.wg_diff = np.zeros((mem_cell_ct, concat_len))
+    self.wi_diff = np.zeros((mem_cell_ct, concat_len))
+    self.wf_diff = np.zeros((mem_cell_ct, concat_len))
+    self.wo_diff = np.zeros((mem_cell_ct, concat_len))
+    self.bg_diff = np.zeros(mem_cell_ct)
+    self.bi_diff = np.zeros(mem_cell_ct)
+    self.bf_diff = np.zeros(mem_cell_ct)
+    self.bo_diff = np.zeros(mem_cell_ct)</code></pre>
+<p>LstmParam类传递参数，mem_cell_ct是lstm神经元数目，x_dim是输入数据维度，concat_len是mem_cell_ct与x_dim长度和，wg是输入节点权重矩阵，wi是输入门权重矩阵，wf是忘记门权重矩阵，wo是输出门权重矩阵，bg、bi、bf、bo分别是输入节点、输入门、忘记门、输出门偏置，wg_diff、wi_diff、wf_diff、wo_diff分别是输入节点、输入门、忘记门、输出门权重损失，bg_diff、bi_diff、bf_diff、bo_diff分别是输入节点、输入门、忘记门、输出门偏置损失，初始化按照矩阵维度初始化，损失矩阵归零。</p>
+<pre><code>def apply_diff(self, lr = 1):
+    self.wg -= lr * self.wg_diff
+    self.wi -= lr * self.wi_diff
+    self.wf -= lr * self.wf_diff
+    self.wo -= lr * self.wo_diff
+    self.bg -= lr * self.bg_diff
+    self.bi -= lr * self.bi_diff
+    self.bf -= lr * self.bf_diff
+    self.bo -= lr * self.bo_diff
+    # reset diffs to zero
+    self.wg_diff = np.zeros_like(self.wg)
+    self.wi_diff = np.zeros_like(self.wi)
+    self.wf_diff = np.zeros_like(self.wf)
+    self.wo_diff = np.zeros_like(self.wo)
+    self.bg_diff = np.zeros_like(self.bg)
+    self.bi_diff = np.zeros_like(self.bi)
+    self.bf_diff = np.zeros_like(self.bf)
+    self.bo_diff = np.zeros_like(self.bo)</code></pre>
+<p>定义权重更新过程，先减损失，再把损失矩阵归零。</p>
+<p>class LstmState:</p>
+<pre><code>def __init__(self, mem_cell_ct, x_dim):
+    self.g = np.zeros(mem_cell_ct)
+    self.i = np.zeros(mem_cell_ct)
+    self.f = np.zeros(mem_cell_ct)
+    self.o = np.zeros(mem_cell_ct)
+    self.s = np.zeros(mem_cell_ct)
+    self.h = np.zeros(mem_cell_ct)
+    self.bottom_diff_h = np.zeros_like(self.h)
+    self.bottom_diff_s = np.zeros_like(self.s)
+    self.bottom_diff_x = np.zeros(x_dim)</code></pre>
+<p>LstmState存储LSTM神经元状态，包括g、i、f、o、s、h，s是内部状态矩阵(记忆)，h是隐藏层神经元输出矩阵。</p>
+<p>class LstmNode:</p>
+<pre><code>def __init__(self, lstm_param, lstm_state):
+    # store reference to parameters and to activations
+    self.state = lstm_state
+    self.param = lstm_param
+    # non-recurrent input to node
+    self.x = None
+    # non-recurrent input concatenated with recurrent input
+    self.xc = None</code></pre>
+<p>LstmNode对应样本输入，x是输入样本x，xc是用hstack把x和递归输入节点拼接矩阵（hstack是横拼矩阵，vstack是纵拼矩阵）。</p>
+<pre><code>def bottom_data_is(self, x, s_prev = None, h_prev = None):
+    # if this is the first lstm node in the network
+    if s_prev == None: s_prev = np.zeros_like(self.state.s)
+    if h_prev == None: h_prev = np.zeros_like(self.state.h)
+    # save data for use in backprop
+    self.s_prev = s_prev
+    self.h_prev = h_prev
+
+    # concatenate x(t) and h(t-1)
+    xc = np.hstack((x,  h_prev))
+    self.state.g = np.tanh(np.dot(self.param.wg, xc) + self.param.bg)
+    self.state.i = sigmoid(np.dot(self.param.wi, xc) + self.param.bi)
+    self.state.f = sigmoid(np.dot(self.param.wf, xc) + self.param.bf)
+    self.state.o = sigmoid(np.dot(self.param.wo, xc) + self.param.bo)
+    self.state.s = self.state.g * self.state.i + s_prev * self.state.f
+    self.state.h = self.state.s * self.state.o
+    self.x = x
+    self.xc = xc</code></pre>
+<p>bottom和top是两个方向，输入样本从底部输入，反向传导从顶部向底部传导，bottom_data_is是输入样本过程，把x和先前输入拼接成矩阵，用公式wx+b分别计算g、i、f、o值，激活函数tanh和sigmoid。<br>每个时序神经网络有四个神经网络层(激活函数)，最左边忘记门，直接生效到记忆C，第二个输入门，依赖输入样本数据，按照一定“比例”影响记忆C，“比例”通过第三个层(tanh)实现，取值范围是[-1,1]可以正向影响也可以负向影响，最后一个输出门，每一时序产生输出既依赖输入样本x和上一时序输出，还依赖记忆C，设计模仿生物神经元记忆功能。</p>
+<pre><code>def top_diff_is(self, top_diff_h, top_diff_s):
+    # notice that top_diff_s is carried along the constant error carousel
+    ds = self.state.o * top_diff_h + top_diff_s
+    do = self.state.s * top_diff_h
+    di = self.state.g * ds
+    dg = self.state.i * ds
+    df = self.s_prev * ds
+
+    # diffs w.r.t. vector inside sigma / tanh function
+    di_input = (1. - self.state.i) * self.state.i * di
+    df_input = (1. - self.state.f) * self.state.f * df
+    do_input = (1. - self.state.o) * self.state.o * do
+    dg_input = (1. - self.state.g ** 2) * dg
+
+    # diffs w.r.t. inputs
+    self.param.wi_diff += np.outer(di_input, self.xc)
+    self.param.wf_diff += np.outer(df_input, self.xc)
+    self.param.wo_diff += np.outer(do_input, self.xc)
+    self.param.wg_diff += np.outer(dg_input, self.xc)
+    self.param.bi_diff += di_input
+    self.param.bf_diff += df_input
+    self.param.bo_diff += do_input
+    self.param.bg_diff += dg_input
+
+    # compute bottom diff
+    dxc = np.zeros_like(self.xc)
+    dxc += np.dot(self.param.wi.T, di_input)
+    dxc += np.dot(self.param.wf.T, df_input)
+    dxc += np.dot(self.param.wo.T, do_input)
+    dxc += np.dot(self.param.wg.T, dg_input)
+
+    # save bottom diffs
+    self.state.bottom_diff_s = ds * self.state.f
+    self.state.bottom_diff_x = dxc[:self.param.x_dim]
+    self.state.bottom_diff_h = dxc[self.param.x_dim:]</code></pre>
+<p>反向传导，整个训练过程核心。假设在t时刻lstm输出预测值h(t)，实际输出值是y(t)，之间差别是损失，假设损失函数为l(t) = f(h(t), y(t)) = ||h(t) - y(t)||^2，欧式距离，整体损失函数是L(t) = ∑l(t)，t从1到T，T表示整个事件序列最大长度。最终目标是用梯度下降法让L(t)最小化，找到一个最优权重w使得L(t)最小，当w发生微小变化L(t)不再变化，达到局部最优，即L对w偏导梯度为0。<br>dL/dw表示当w发生单位变化L变化多少，dh(t)/dw表示当w发生单位变化h(t)变化多少，dL/dh(t)表示当h(t)发生单位变化时L变化多少，(dL/dh(t)) * (dh(t)/dw)表示第t时序第i个记忆单元w发生单位变化L变化多少，把所有由1到M的i和所有由1到T的t累加是整体dL/dw。</p>
+<p>第i个记忆单元，h(t)发生单位变化，整个从1到T时序所有局部损失l的累加和，是dL/dh(t)，h(t)只影响从t到T时序局部损失l。</p>
+<p>假设L(t)表示从t到T损失和，L(t) = ∑l(s)。</p>
+<p>h(t)对w导数。</p>
+<p>L(t) = l(t) + L(t+1)，dL(t)/dh(t) = dl(t)/dh(t) + dL(t+1)/dh(t)，用下一时序导数得出当前时序导数，规律推导，计算T时刻导数往前推，在T时刻，dL(T)/dh(T) = dl(T)/dh(T)。</p>
+<p>class LstmNetwork():</p>
+<pre><code>def __init__(self, lstm_param):
+    self.lstm_param = lstm_param
+    self.lstm_node_list = []
+    # input sequence
+    self.x_list = []
+
+def y_list_is(self, y_list, loss_layer):
+    """
+    Updates diffs by setting target sequence
+    with corresponding loss layer.
+    Will *NOT* update parameters.  To update parameters,
+    call self.lstm_param.apply_diff()
+    """
+    assert len(y_list) == len(self.x_list)
+    idx = len(self.x_list) - 1
+    # first node only gets diffs from label ...
+    loss = loss_layer.loss(self.lstm_node_list[idx].state.h, y_list[idx])
+    diff_h = loss_layer.bottom_diff(self.lstm_node_list[idx].state.h, y_list[idx])
+    # here s is not affecting loss due to h(t+1), hence we set equal to zero
+    diff_s = np.zeros(self.lstm_param.mem_cell_ct)
+    self.lstm_node_list[idx].top_diff_is(diff_h, diff_s)
+    idx -= 1
+
+    ### ... following nodes also get diffs from next nodes, hence we add diffs to diff_h
+    ### we also propagate error along constant error carousel using diff_s
+    while idx &gt;= 0:
+        loss += loss_layer.loss(self.lstm_node_list[idx].state.h, y_list[idx])
+        diff_h = loss_layer.bottom_diff(self.lstm_node_list[idx].state.h, y_list[idx])
+        diff_h += self.lstm_node_list[idx + 1].state.bottom_diff_h
+        diff_s = self.lstm_node_list[idx + 1].state.bottom_diff_s
+        self.lstm_node_list[idx].top_diff_is(diff_h, diff_s)
+        idx -= 1
+
+    return loss</code></pre>
+<p>diff_h(预测结果误差发生单位变化损失L多少，dL(t)/dh(t)数值计算)，由idx从T往前遍历到1，计算loss_layer.bottom_diff和下一个时序bottom_diff_h和作为diff_h(第一次遍历即T不加bottom_diff_h)。<br>loss_layer.bottom_diff：</p>
+<pre><code>def bottom_diff(self, pred, label):
+    diff = np.zeros_like(pred)
+    diff[0] = 2 * (pred[0] - label)
+    return diff</code></pre>
+<p>l(t) = f(h(t), y(t)) = ||h(t) - y(t)||^2导数l'(t) = 2 * (h(t) - y(t))<br>。当s(t)发生变化，L(t)变化来源s(t)影响h(t)和h(t+1)，影响L(t)。<br>h(t+1)不会影响l(t)。<br>左边式子(dL(t)/dh(t)) * (dh(t)/ds(t))，由t+1到t来逐级反推dL(t)/ds(t)。<br>神经元self.state.h = self.state.s self.state.o，h(t) = s(t) o(t)，dh(t)/ds(t) = o(t)，dL(t)/dh(t)是top_diff_h。</p>
+<p>top_diff_is，Bottom means input to the layer, top means output of the layer. Caffe also uses this terminology. bottom表示神经网络层输入，top表示神经网络层输出，和caffe概念一致。<br>def top_diff_is(self, top_diff_h, top_diff_s):<br>top_diff_h表示当前t时序dL(t)/dh(t), top_diff_s表示t+1时序记忆单元dL(t)/ds(t)。</p>
+<pre><code>    ds = self.state.o * top_diff_h + top_diff_s
+    do = self.state.s * top_diff_h
+    di = self.state.g * ds
+    dg = self.state.i * ds
+    df = self.s_prev * ds</code></pre>
+<p>前缀d表达误差L对某一项导数(directive)。<br>ds是在根据公式dL(t)/ds(t)计算当前t时序dL(t)/ds(t)。<br>do是计算dL(t)/do(t)，h(t) = s(t) o(t)，dh(t)/do(t) = s(t)，dL(t)/do(t) = (dL(t)/dh(t)) (dh(t)/do(t)) = top_diff_h * s(t)。<br>di是计算dL(t)/di(t)。s(t) = f(t) s(t-1) + i(t) g(t)。dL(t)/di(t) = (dL(t)/ds(t)) (ds(t)/di(t)) = ds g(t)。<br>dg是计算dL(t)/dg(t)，dL(t)/dg(t) = (dL(t)/ds(t)) (ds(t)/dg(t)) = ds i(t)。<br>df是计算dL(t)/df(t)，dL(t)/df(t) = (dL(t)/ds(t)) (ds(t)/df(t)) = ds s(t-1)。</p>
+<pre><code>    di_input = (1. - self.state.i) * self.state.i * di
+    df_input = (1. - self.state.f) * self.state.f * df
+    do_input = (1. - self.state.o) * self.state.o * do
+    dg_input = (1. - self.state.g ** 2) * dg</code></pre>
+<p>sigmoid函数导数，tanh函数导数。di_input，(1. - self.state.i) * self.state.i，sigmoid导数，当i神经元输入发生单位变化时输出值有多大变化，再乘di表示当i神经元输入发生单位变化时误差L(t)发生多大变化，dL(t)/d i_input(t)。</p>
+<pre><code>    self.param.wi_diff += np.outer(di_input, self.xc)
+    self.param.wf_diff += np.outer(df_input, self.xc)
+    self.param.wo_diff += np.outer(do_input, self.xc)
+    self.param.wg_diff += np.outer(dg_input, self.xc)
+    self.param.bi_diff += di_input
+    self.param.bf_diff += df_input
+    self.param.bo_diff += do_input
+    self.param.bg_diff += dg_input</code></pre>
+<p>w_diff是权重矩阵误差，b_diff是偏置误差，用于更新。</p>
+<pre><code>    dxc = np.zeros_like(self.xc)
+    dxc += np.dot(self.param.wi.T, di_input)
+    dxc += np.dot(self.param.wf.T, df_input)
+    dxc += np.dot(self.param.wo.T, do_input)
+    dxc += np.dot(self.param.wg.T, dg_input)</code></pre>
+<p>累加输入xdiff，x在四处起作用，四处diff加和后作xdiff。</p>
+<pre><code>    self.state.bottom_diff_s = ds * self.state.f
+    self.state.bottom_diff_x = dxc[:self.param.x_dim]
+    self.state.bottom_diff_h = dxc[self.param.x_dim:]</code></pre>
+<p>bottom_diff_s是在t-1时序上s变化和t时序上s变化时f倍关系。dxc是x和h横向合并矩阵，分别取两部分diff信息bottom_diff_x和bottom_diff_h。</p>
+<p>def x_list_clear(self):</p>
+<pre><code>    self.x_list = []
+
+def x_list_add(self, x):
+    self.x_list.append(x)
+    if len(self.x_list) &gt; len(self.lstm_node_list):
+        # need to add new lstm node, create new state mem
+        lstm_state = LstmState(self.lstm_param.mem_cell_ct, self.lstm_param.x_dim)
+        self.lstm_node_list.append(LstmNode(self.lstm_param, lstm_state))
+
+    # get index of most recent x input
+    idx = len(self.x_list) - 1
+    if idx == 0:
+        # no recurrent inputs yet
+        self.lstm_node_list[idx].bottom_data_is(x)
+    else:
+        s_prev = self.lstm_node_list[idx - 1].state.s
+        h_prev = self.lstm_node_list[idx - 1].state.h
+        self.lstm_node_list[idx].bottom_data_is(x, s_prev, h_prev)</code></pre>
+<p>添加训练样本，输入x数据。</p>
+<p>def example_0():</p>
+<pre><code># learns to repeat simple sequence from random inputs
+np.random.seed(0)
+
+# parameters for input data dimension and lstm cell count
+mem_cell_ct = 100
+x_dim = 50
+concat_len = x_dim + mem_cell_ct
+lstm_param = LstmParam(mem_cell_ct, x_dim)
+lstm_net = LstmNetwork(lstm_param)
+y_list = [-0.5,0.2,0.1, -0.5]
+input_val_arr = [np.random.random(x_dim) for _ in y_list]
+
+for cur_iter in range(100):
+    print "cur iter: ", cur_iter
+    for ind in range(len(y_list)):
+        lstm_net.x_list_add(input_val_arr[ind])
+        print "y_pred[%d] : %f" % (ind, lstm_net.lstm_node_list[ind].state.h[0])
+
+    loss = lstm_net.y_list_is(y_list, ToyLossLayer)
+    print "loss: ", loss
+    lstm_param.apply_diff(lr=0.1)
+    lstm_net.x_list_clear()</code></pre>
+<p>初始化LstmParam，指定记忆存储单元数为100，指定输入样本x维度是50。初始化LstmNetwork训练模型，生成4组各50个随机数，分别以[-0.5,0.2,0.1, -0.5]作为y值训练，每次喂50个随机数和一个y值，迭代100次。<br>lstm输入一串连续质数预估下一个质数。小测试，生成100以内质数，循环拿出50个质数序列作x，第51个质数作y，拿出10个样本参与训练1w次，均方误差由0.17973最终达到了1.05172e-06，几乎完全正确：</p>
+<p>import numpy as np<br>import sys</p>
+<p>from lstm import LstmParam, LstmNetwork</p>
+<p>class ToyLossLayer:</p>
+<pre><code>"""
+Computes square loss with first element of hidden layer array.
+"""
+@classmethod
+def loss(self, pred, label):
+    return (pred[0] - label) ** 2
+
+@classmethod
+def bottom_diff(self, pred, label):
+    diff = np.zeros_like(pred)
+    diff[0] = 2 * (pred[0] - label)
+    return diff
+</code></pre>
+<p>class Primes:</p>
+<pre><code>def __init__(self):
+    self.primes = list()
+    for i in range(2, 100):
+        is_prime = True
+        for j in range(2, i-1):
+            if i % j == 0:
+                is_prime = False
+        if is_prime:
+            self.primes.append(i)
+    self.primes_count = len(self.primes)
+def get_sample(self, x_dim, y_dim, index):
+    result = np.zeros((x_dim+y_dim))
+    for i in range(index, index + x_dim + y_dim):
+        result[i-index] = self.primes[i%self.primes_count]/100.0
+    return result
+</code></pre>
+<p>def example_0():</p>
+<pre><code>mem_cell_ct = 100
+x_dim = 50
+concat_len = x_dim + mem_cell_ct
+lstm_param = LstmParam(mem_cell_ct, x_dim)
+lstm_net = LstmNetwork(lstm_param)
+
+primes = Primes()
+x_list = []
+y_list = []
+for i in range(0, 10):
+    sample = primes.get_sample(x_dim, 1, i)
+    x = sample[0:x_dim]
+    y = sample[x_dim:x_dim+1].tolist()[0]
+    x_list.append(x)
+    y_list.append(y)
+
+for cur_iter in range(10000):
+    if cur_iter % 1000 == 0:
+        print "y_list=", y_list
+    for ind in range(len(y_list)):
+        lstm_net.x_list_add(x_list[ind])
+        if cur_iter % 1000 == 0:
+            print "y_pred[%d] : %f" % (ind, lstm_net.lstm_node_list[ind].state.h[0])
+
+    loss = lstm_net.y_list_is(y_list, ToyLossLayer)
+    if cur_iter % 1000 == 0:
+        print "loss: ", loss
+    lstm_param.apply_diff(lr=0.01)
+    lstm_net.x_list_clear()
+</code></pre>
+<p>if <strong>name</strong> == "__main__":</p>
+<pre><code>example_0()</code></pre>
+<p>质数列表全都除以100，这个代码训练数据必须是小于1数值。</p>
+<p>torch是深度学习框架。1）tensorflow，谷歌主推，时下最火，小型试验和大型计算都可以，基于python，缺点是上手相对较难，速度一般；2）torch，facebook主推，用于小型试验，开源应用较多，基于lua，上手较快，网上文档较全，缺点是lua语言相对冷门；3）mxnet，Amazon主推，主要用于大型计算，基于python和R，缺点是网上开源项目较少；4）caffe，facebook主推，用于大型计算，基于c++、python，缺点是开发不是很方便；5）theano，速度一般，基于python，评价很好。</p>
+<p>torch github上lstm实现项目比较多。</p>
+<p>在mac上安装torch。<a href="https://github.com/torch/torch7/wiki/Cheatsheet#installing-and-running-torch" rel="nofollow noreferrer">https://github.com/torch/torc...</a> 。</p>
+<p>git clone <a href="https://github.com/torch/distro.git" rel="nofollow noreferrer">https://github.com/torch/dist...</a> ~/torch --recursive<br>cd ~/torch; bash install-deps;<br>./install.sh<br>qt安装不成功问题，自己单独安装。</p>
+<p>brew install cartr/qt4/qt<br>安装后需要手工加到~/.bash_profile中。</p>
+<p>. ~/torch/install/bin/torch-activate<br>source ~/.bash_profile后执行th使用torch。<br>安装itorch，安装依赖</p>
+<p>brew install zeromq<br>brew install openssl<br>luarocks install luacrypto OPENSSL_DIR=/usr/local/opt/openssl/</p>
+<p>git clone <a href="https://github.com/facebook/iTorch.git" rel="nofollow noreferrer">https://github.com/facebook/i...</a><br>cd iTorch<br>luarocks make <br>用卷积神经网络实现图像识别。<br>创建pattern_recognition.lua：</p>
+<p>require 'nn'<br>require 'paths'<br>if (not paths.filep("cifar10torchsmall.zip")) then</p>
+<pre><code>os.execute('wget -c https://s3.amazonaws.com/torch7/data/cifar10torchsmall.zip')
+os.execute('unzip cifar10torchsmall.zip')</code></pre>
+<p>end<br>trainset = torch.load('cifar10-train.t7')<br>testset = torch.load('cifar10-test.t7')<br>classes = {'airplane', 'automobile', 'bird', 'cat',<br>'deer', 'dog', 'frog', 'horse', 'ship', 'truck'}<br>setmetatable(trainset,<br>{__index = function(t, i)</p>
+<pre><code>return {t.data[i], t.label[i]}</code></pre>
+<p>end}<br>);<br>trainset.data = trainset.data:double() -- convert the data from a ByteTensor to a DoubleTensor.</p>
+<p>function trainset:size()</p>
+<pre><code>return self.data:size(1)</code></pre>
+<p>end<br>mean = {} -- store the mean, to normalize the test set in the future<br>stdv  = {} -- store the standard-deviation for the future<br>for i=1,3 do -- over each image channel</p>
+<pre><code>mean[i] = trainset.data[{ {}, {i}, {}, {}  }]:mean() -- mean estimation
+print('Channel ' .. i .. ', Mean: ' .. mean[i])
+trainset.data[{ {}, {i}, {}, {}  }]:add(-mean[i]) -- mean subtraction
+
+stdv[i] = trainset.data[{ {}, {i}, {}, {}  }]:std() -- std estimation
+print('Channel ' .. i .. ', Standard Deviation: ' .. stdv[i])
+trainset.data[{ {}, {i}, {}, {}  }]:div(stdv[i]) -- std scaling</code></pre>
+<p>end<br>net = nn.Sequential()<br>net:add(nn.SpatialConvolution(3, 6, 5, 5)) -- 3 input image channels, 6 output channels, 5x5 convolution kernel<br>net:add(nn.ReLU())                       -- non-linearity<br>net:add(nn.SpatialMaxPooling(2,2,2,2))     -- A max-pooling operation that looks at 2x2 windows and finds the max.<br>net:add(nn.SpatialConvolution(6, 16, 5, 5))<br>net:add(nn.ReLU())                       -- non-linearity<br>net:add(nn.SpatialMaxPooling(2,2,2,2))<br>net:add(nn.View(16<em>5</em>5))                    -- reshapes from a 3D tensor of 16x5x5 into 1D tensor of 16<em>5</em>5<br>net:add(nn.Linear(16<em>5</em>5, 120))             -- fully connected layer (matrix multiplication between input and weights)<br>net:add(nn.ReLU())                       -- non-linearity<br>net:add(nn.Linear(120, 84))<br>net:add(nn.ReLU())                       -- non-linearity<br>net:add(nn.Linear(84, 10))                   -- 10 is the number of outputs of the network (in this case, 10 digits)<br>net:add(nn.LogSoftMax())                     -- converts the output to a log-probability. Useful for classification problems<br>criterion = nn.ClassNLLCriterion()<br>trainer = nn.StochasticGradient(net, criterion)<br>trainer.learningRate = 0.001<br>trainer.maxIteration = 5<br>trainer:train(trainset)<br>testset.data = testset.data:double()   -- convert from Byte tensor to Double tensor<br>for i=1,3 do -- over each image channel</p>
+<pre><code>testset.data[{ {}, {i}, {}, {}  }]:add(-mean[i]) -- mean subtraction
+testset.data[{ {}, {i}, {}, {}  }]:div(stdv[i]) -- std scaling</code></pre>
+<p>end<br>predicted = net:forward(testset.data[100])<br>print(classes[testset.label[100]])<br>print(predicted:exp())<br>for i=1,predicted:size(1) do</p>
+<pre><code>print(classes[i], predicted[i])</code></pre>
+<p>end<br>correct = 0<br>for i=1,10000 do</p>
+<pre><code>local groundtruth = testset.label[i]
+local prediction = net:forward(testset.data[i])
+local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
+if groundtruth == indices[1] then
+    correct = correct + 1
+end</code></pre>
+<p>end</p>
+<p>print(correct, 100*correct/10000 .. ' % ')<br>class_performance = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}<br>for i=1,10000 do</p>
+<pre><code>local groundtruth = testset.label[i]
+local prediction = net:forward(testset.data[i])
+local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
+if groundtruth == indices[1] then
+    class_performance[groundtruth] = class_performance[groundtruth] + 1
+end</code></pre>
+<p>end</p>
+<p>for i=1,#classes do</p>
+<pre><code>print(classes[i], 100*class_performance[i]/1000 .. ' %')</code></pre>
+<p>end<br>执行th pattern_recognition.lua。</p>
+<p>首先下载cifar10torchsmall.zip样本，有50000张训练用图片，10000张测试用图片，分别都标注，包括airplane、automobile等10种分类，对trainset绑定__index和size方法，兼容nn.Sequential使用，绑定函数看lua教程：<a href="http://tylerneylon.com/a/learn-lua/" rel="nofollow noreferrer">http://tylerneylon.com/a/lear...</a> ,trainset数据正规化，数据转成均值为1方差为1的double类型张量。初始化卷积神经网络模型，包括两层卷积、两层池化、一个全连接以及一个softmax层，进行训练，学习率为0.001，迭代5次，模型训练好后对测试机第100号图片做预测，打印出整体正确率以及每种分类准确率。<a href="https://github.com/soumith/cvpr2015/blob/master/Deep%20Learning%20with%20Torch.ipynb" rel="nofollow noreferrer">https://github.com/soumith/cv...</a> 。</p>
+<p>torch可以方便支持gpu计算，需要对代码做修改。</p>
+<p>比较流行的seq2seq基本都用lstm组成编码器解码器模型实现，开源实现大都基于one-hot embedding(没有词向量表达信息量大)。word2vec词向量 seq2seq模型，只有一个lstm单元机器人。</p>
+<p>下载《甄环传》小说原文。上网随便百度“甄环传 txt”，下载下来，把文件转码成utf-8编码，把windows回车符都替换成n，以便后续处理。</p>
+<p>对甄环传切词。切词工具word_segment.py到github下载，地址在<a href="https://github.com/warmheartli/ChatBotCourse/blob/master/word_segment.py" rel="nofollow noreferrer">https://github.com/warmheartl...</a> 。</p>
+<p>python ./word_segment.py zhenhuanzhuan.txt zhenhuanzhuan.segment<br>生成词向量。用word2vec，word2vec源码 <a href="https://github.com/warmheartli/ChatBotCourse/tree/master/word2vec" rel="nofollow noreferrer">https://github.com/warmheartl...</a> 。make编译即可执行。</p>
+<p>./word2vec -train ./zhenhuanzhuan.segment -output vectors.bin -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15<br>生成一个vectors.bin文件，基于甄环传原文生成的词向量文件。</p>
+<p>训练代码。</p>
+<h1>-<em>- coding: utf-8 -</em>-</h1>
+<p>import sys<br>import math<br>import tflearn<br>import chardet<br>import numpy as np<br>import struct</p>
+<p>seq = []</p>
+<p>max_w = 50<br>float_size = 4<br>word_vector_dict = {}</p>
+<p>def load_vectors(input):</p>
+<pre><code>"""从vectors.bin加载词向量，返回一个word_vector_dict的词典，key是词，value是200维的向量
+"""
+print "begin load vectors"
+
+input_file = open(input, "rb")
+
+# 获取词表数目及向量维度
+words_and_size = input_file.readline()
+words_and_size = words_and_size.strip()
+words = long(words_and_size.split(' ')[0])
+size = long(words_and_size.split(' ')[1])
+print "words =", words
+print "size =", size
+
+for b in range(0, words):
+    a = 0
+    word = ''
+    # 读取一个词
+    while True:
+        c = input_file.read(1)
+        word = word + c
+        if False == c or c == ' ':
+            break
+        if a &lt; max_w and c != 'n':
+            a = a + 1
+    word = word.strip()
+
+    vector = []
+    for index in range(0, size):
+        m = input_file.read(float_size)
+        (weight,) = struct.unpack('f', m)
+        vector.append(weight)
+
+    # 将词及其对应的向量存到dict中
+    word_vector_dict[word.decode('utf-8')] = vector
+
+input_file.close()
+print "load vectors finish"
+</code></pre>
+<p>def init_seq():</p>
+<pre><code>"""读取切好词的文本文件，加载全部词序列
+"""
+file_object = open('zhenhuanzhuan.segment', 'r')
+vocab_dict = {}
+while True:
+    line = file_object.readline()
+    if line:
+        for word in line.decode('utf-8').split(' '):
+            if word_vector_dict.has_key(word):
+                seq.append(word_vector_dict[word])
+    else:
+        break
+file_object.close()
+</code></pre>
+<p>def vector_sqrtlen(vector):</p>
+<pre><code>len = 0
+for item in vector:
+    len += item * item
+len = math.sqrt(len)
+return len
+</code></pre>
+<p>def vector_cosine(v1, v2):</p>
+<pre><code>if len(v1) != len(v2):
+    sys.exit(1)
+sqrtlen1 = vector_sqrtlen(v1)
+sqrtlen2 = vector_sqrtlen(v2)
+value = 0
+for item1, item2 in zip(v1, v2):
+    value += item1 * item2
+return value / (sqrtlen1*sqrtlen2)
+</code></pre>
+<p>def vector2word(vector):</p>
+<pre><code>max_cos = -10000
+match_word = ''
+for word in word_vector_dict:
+    v = word_vector_dict[word]
+    cosine = vector_cosine(vector, v)
+    if cosine &gt; max_cos:
+        max_cos = cosine
+        match_word = word
+return (match_word, max_cos)
+</code></pre>
+<p>def main():</p>
+<pre><code>load_vectors("./vectors.bin")
+init_seq()
+xlist = []
+ylist = []
+test_X = None
+#for i in range(len(seq)-100):
+for i in range(10):
+    sequence = seq[i:i+20]
+    xlist.append(sequence)
+    ylist.append(seq[i+20])
+    if test_X is None:
+        test_X = np.array(sequence)
+        (match_word, max_cos) = vector2word(seq[i+20])
+        print "right answer=", match_word, max_cos
+
+X = np.array(xlist)
+Y = np.array(ylist)
+net = tflearn.input_data([None, 20, 200])
+net = tflearn.lstm(net, 200)
+net = tflearn.fully_connected(net, 200, activation='linear')
+net = tflearn.regression(net, optimizer='sgd', learning_rate=0.1,
+                                 loss='mean_square')
+model = tflearn.DNN(net)
+model.fit(X, Y, n_epoch=500, batch_size=10,snapshot_epoch=False,show_metric=True)
+model.save("model")
+predict = model.predict([test_X])
+#print predict
+#for v in test_X:
+#    print vector2word(v)
+(match_word, max_cos) = vector2word(predict[0])
+print "predict=", match_word, max_cos
+</code></pre>
+<p>main()</p>
+<p>load_vectors从vectors.bin加载词向量，init_seq加载甄环传切词文本并存到一个序列里，vector2word求距离某向量最近词，模型只有一个lstm单元。<br>经过500个epoch训练，均方损失降到0.33673，以0.941794432002余弦相似度预测出下一个字。<br>强大gpu，调整参数，整篇文章都训练，修改代码predict部分，不断输出下一个字，自动吐出甄环体。基于tflearn实现，tflearn官方文档examples实现seq2seq直接调用tensorflow中的tensorflow/python/ops/seq2seq.py，基于one-hot embedding方法，一定没有词向量效果好。<br>详情请<a href="http://click.aliyun.com/m/48697/" rel="nofollow noreferrer">阅读原文</a></p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000014707397"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="学习笔记CB012: LSTM 简单实现、完整实现、torch、小说训练word2vec lstm机器人"
+ data-url="https://segmentfault.com/a/1190000014707397" data-shorturl="http://sfau.lt/b59Sef"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000014707397"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000014707397"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">1</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000014707397" data-user-id="" data-author-id="1030000013722374 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000014707397/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542598801000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _a4i = '45'//'mf'
++'209'//'Y'
++'1'//'y'
++//'EAD'
+'EAD'+//'nzo'
+'a'+''///*'MzT'*/'MzT'
++//'6'
+'e58'+//'Oo'
+'976'+//'S6'
+'a24'+//'xLJ'
+'8fb'+//'ODv'
+'c'+//'vY'
+'d8a'+//'UbJ'
+'1'+//'gs'
+'a'+'f4'//'zW0'
++'90'//'yi'
++//'feh'
+'ea2', _YsUAO4 = [[6,9]];
+
+    for (var i = 0; i < _YsUAO4.length; i ++) {
+        _a4i = _a4i.substring(0, _YsUAO4[i][0]) + _a4i.substring(_YsUAO4[i][1]);
+    }
+
+    return _a4i;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u5b66\u4e60\u7b14\u8bb0CB012: LSTM \u7b80\u5355\u5b9e\u73b0\u3001\u5b8c\u6574\u5b9e\u73b0\u3001torch\u3001\u5c0f\u8bf4\u8bad\u7ec3word2vec lstm\u673a\u5668\u4eba","desc":"LSTM\uff08Long Short Tem Memory\uff09\u7279\u6b8a\u9012\u5f52\u795e\u7ecf\u7f51\u7edc\uff0c\u795e\u7ecf\u5143\u4fdd\u5b58\u5386\u53f2\u8bb0\u5fc6\uff0c\u89e3\u51b3\u81ea\u7136\u8bed\u8a00\u5904\u7406\u7edf\u8ba1\u65b9\u6cd5\u53ea\u80fd\u8003\u8651\u6700\u8fd1n\u4e2a\u8bcd\u8bed\u800c\u5ffd\u7565\u66f4\u4e45\u524d\u8bcd\u8bed\u7684\u95ee\u9898\u3002\u7528\u9014\uff1aword representation\uff08embedding\uff09(\u8bcd\u8bed\u5411\u91cf)\u3001sequence to s...","link":"https:\/\/segmentfault.com\/a\/1190000014707397","imgUrl":"https:\/\/avatar-static.segmentfault.com\/371\/353\/3713533620-5aa89a4f14a02_huge256"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542598801,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

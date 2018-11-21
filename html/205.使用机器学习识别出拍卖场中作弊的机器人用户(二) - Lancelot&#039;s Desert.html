@@ -1,0 +1,2188 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>使用机器学习识别出拍卖场中作弊的机器人用户(二) - Lancelot&#039;s Desert - SegmentFault 思否</title><meta name="description" content="数据预处理&amp;amp;特征工程——Feature_Engineering.ipynb &amp;amp; Feature_Engineering2.ipynb"/><meta name="keywords" content="python,机器学习"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python,机器学习'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000009101577" class="hidden" />
+
+<div class="wrap" data-blogid="1200000006867850">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/lancelotholmes">Lancelot&#039;s Desert</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="LancelotHolmes"
+                                         data-userslug="fornever"
+                                         data-useravatar="https://avatar-static.segmentfault.com/119/113/1191132939-57de5a15b6816_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/fornever">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/119/113/1191132939-57de5a15b6816_big64" alt="LancelotHolmes">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/fornever" class="mr5 "><strong>LancelotHolmes</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">36</span>
+
+                                                                                                发布于
+                                                <a href="/blog/lancelotholmes">Lancelot&#039;s Desert</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000006867850">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2017-04-18 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000009101577">
+                                            <a href="/a/1190000009101577"> 使用机器学习识别出拍卖场中作弊的机器人用户(二)</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="机器学习"
+                                                                                data-id="1040000000089788">
+                                                                                                                      机器学习
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                4.6k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 103 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000009101577" data-license="cc">
+                    
+<p>本文承接上一篇文章:<a href="https://segmentfault.com/a/1190000009101175">使用机器学习识别出拍卖场中作弊的机器人用户</a></p>
+<p>本项目为kaggle上Facebook举行的一次比赛，地址见数据来源，完整代码见我的<a href="https://github.com/LancelotHolmes/HumanOrRobot" rel="nofollow noreferrer">github</a>,欢迎来玩~</p>
+<h2>代码</h2>
+<ul>
+<li><p>数据探索——Data_Exploration.ipynb</p></li>
+<li><p>数据预处理&amp;特征工程——Feature_Engineering.ipynb &amp; Feature_Engineering2.ipynb</p></li>
+<li><p>模型设计及评测——Model_Design.ipynb</p></li>
+</ul>
+<h2>项目数据来源</h2>
+<ul><li><p><a href="https://www.kaggle.com/c/facebook-recruiting-iv-human-or-bot/data" rel="nofollow noreferrer">kaggle</a></p></li></ul>
+<h2>项目所需额外工具包</h2>
+<ul>
+<li><p><a href="http://www.numpy.org/" rel="nofollow noreferrer">numpy</a></p></li>
+<li><p><a href="http://pandas.pydata.org/" rel="nofollow noreferrer">pandas</a></p></li>
+<li><p><a href="https://matplotlib.org/index.html" rel="nofollow noreferrer">matplotlib</a></p></li>
+<li><p><a href="http://scikit-learn.org/stable/" rel="nofollow noreferrer">sklearn</a></p></li>
+<li><p><a href="https://xgboost.readthedocs.io/en/latest//parameter.html#parameters-for-tree-booster" rel="nofollow noreferrer">xgboost</a></p></li>
+<li><p><a href="https://github.com/Microsoft/LightGBM" rel="nofollow noreferrer">lightgbm</a></p></li>
+<li><p><a href="https://github.com/rasbt/mlxtend" rel="nofollow noreferrer">mlxtend</a>: 含有聚和算法Stacking<br> 项目整体运行时间预估为60min左右，在Ubuntu系统，8G内存，运行结果见所提交的jupyter notebook文件</p></li>
+</ul>
+<hr>
+<p>由于文章内容过长，所以分为两篇文章，总共包含四个部分</p>
+<ul>
+<li><p>数据探索</p></li>
+<li><p>数据预处理及特征工程</p></li>
+<li><p>模型设计</p></li>
+<li><p>评估及总结</p></li>
+</ul>
+<hr>
+<h2>特征工程(续)</h2>
+<pre><code class="python">import numpy as np
+import pandas as pd
+import pickle
+%matplotlib inline
+from IPython.display import display</code></pre>
+<pre><code class="python"># bids = pd.read_csv('bids.csv')
+bids = pickle.load(open('bids.pkl'))</code></pre>
+<pre><code class="python">print bids.shape
+display(bids.head())</code></pre>
+<pre><code>(7656329, 9)
+
+</code></pre>
+<table class="dataframe">
+<thead><tr>
+<th></th>
+      <th>bid_id</th>
+      <th>bidder_id</th>
+      <th>auction</th>
+      <th>merchandise</th>
+      <th>device</th>
+      <th>time</th>
+      <th>country</th>
+      <th>ip</th>
+      <th>url</th>
+    </tr></thead>
+<tbody>
+<tr>
+<th>0</th>
+      <td>0</td>
+      <td>8dac2b259fd1c6d1120e519fb1ac14fbqvax8</td>
+      <td>ewmzr</td>
+      <td>jewelry</td>
+      <td>phone0</td>
+      <td>9759243157894736</td>
+      <td>us</td>
+      <td>69.166.231.58</td>
+      <td>vasstdc27m7nks3</td>
+    </tr>
+<tr>
+<th>1</th>
+      <td>1</td>
+      <td>668d393e858e8126275433046bbd35c6tywop</td>
+      <td>aeqok</td>
+      <td>furniture</td>
+      <td>phone1</td>
+      <td>9759243157894736</td>
+      <td>in</td>
+      <td>50.201.125.84</td>
+      <td>jmqlhflrzwuay9c</td>
+    </tr>
+<tr>
+<th>2</th>
+      <td>2</td>
+      <td>aa5f360084278b35d746fa6af3a7a1a5ra3xe</td>
+      <td>wa00e</td>
+      <td>home goods</td>
+      <td>phone2</td>
+      <td>9759243157894736</td>
+      <td>py</td>
+      <td>112.54.208.157</td>
+      <td>vasstdc27m7nks3</td>
+    </tr>
+<tr>
+<th>3</th>
+      <td>3</td>
+      <td>3939ac3ef7d472a59a9c5f893dd3e39fh9ofi</td>
+      <td>jefix</td>
+      <td>jewelry</td>
+      <td>phone4</td>
+      <td>9759243157894736</td>
+      <td>in</td>
+      <td>18.99.175.133</td>
+      <td>vasstdc27m7nks3</td>
+    </tr>
+<tr>
+<th>4</th>
+      <td>4</td>
+      <td>8393c48eaf4b8fa96886edc7cf27b372dsibi</td>
+      <td>jefix</td>
+      <td>jewelry</td>
+      <td>phone5</td>
+      <td>9759243157894736</td>
+      <td>in</td>
+      <td>145.138.5.37</td>
+      <td>vasstdc27m7nks3</td>
+    </tr>
+</tbody>
+</table>
+<pre><code class="python">bidders = bids.groupby('bidder_id')</code></pre>
+<h3>针对国家、商品单一特征多类别转换为多个独立特征进行统计</h3>
+<pre><code class="python">cates = (bids['merchandise'].unique()).tolist()
+countries = (bids['country'].unique()).tolist()
+
+def dummy_coun_cate(group):
+    coun_cate = dict.fromkeys(cates, 0)
+    coun_cate.update(dict.fromkeys(countries, 0))
+    for cat, value in group['merchandise'].value_counts().iteritems():
+        coun_cate[cat] = value
+
+    for c in group['country'].unique():
+        coun_cate[c] = 1
+
+    coun_cate = pd.Series(coun_cate)
+    return coun_cate
+</code></pre>
+<pre><code class="python">bidder_coun_cate = bidders.apply(dummy_coun_cate)</code></pre>
+<pre><code class="python">display(bidder_coun_cate.describe())
+bidder_coun_cate.to_csv('coun_cate.csv')</code></pre>
+<table class="dataframe">
+<thead><tr>
+<th></th>
+      <th>ad</th>
+      <th>ae</th>
+      <th>af</th>
+      <th>ag</th>
+      <th>al</th>
+      <th>am</th>
+      <th>an</th>
+      <th>ao</th>
+      <th>ar</th>
+      <th>at</th>
+      <th>...</th>
+      <th>vc</th>
+      <th>ve</th>
+      <th>vi</th>
+      <th>vn</th>
+      <th>ws</th>
+      <th>ye</th>
+      <th>za</th>
+      <th>zm</th>
+      <th>zw</th>
+      <th>zz</th>
+    </tr></thead>
+<tbody>
+<tr>
+<th>count</th>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>...</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+      <td>6609.000000</td>
+    </tr>
+<tr>
+<th>mean</th>
+      <td>0.002724</td>
+      <td>0.205629</td>
+      <td>0.054774</td>
+      <td>0.001059</td>
+      <td>0.048570</td>
+      <td>0.023907</td>
+      <td>0.000303</td>
+      <td>0.036314</td>
+      <td>0.120442</td>
+      <td>0.052655</td>
+      <td>...</td>
+      <td>0.000605</td>
+      <td>0.033591</td>
+      <td>0.000303</td>
+      <td>0.130882</td>
+      <td>0.001967</td>
+      <td>0.040551</td>
+      <td>0.274474</td>
+      <td>0.067181</td>
+      <td>0.069753</td>
+      <td>0.000757</td>
+    </tr>
+<tr>
+<th>std</th>
+      <td>0.052121</td>
+      <td>0.404191</td>
+      <td>0.227555</td>
+      <td>0.032530</td>
+      <td>0.214984</td>
+      <td>0.152770</td>
+      <td>0.017395</td>
+      <td>0.187085</td>
+      <td>0.325502</td>
+      <td>0.223362</td>
+      <td>...</td>
+      <td>0.024596</td>
+      <td>0.180186</td>
+      <td>0.017395</td>
+      <td>0.337297</td>
+      <td>0.044311</td>
+      <td>0.197262</td>
+      <td>0.446283</td>
+      <td>0.250354</td>
+      <td>0.254750</td>
+      <td>0.027497</td>
+    </tr>
+<tr>
+<th>min</th>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+    </tr>
+<tr>
+<th>25%</th>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+    </tr>
+<tr>
+<th>50%</th>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+    </tr>
+<tr>
+<th>75%</th>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>1.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+    </tr>
+<tr>
+<th>max</th>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>...</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+    </tr>
+</tbody>
+</table>
+<p>8 rows × 209 columns</p>
+<p>同样的，对于每个用户需要统计他对于自己每次竞拍行为的时间间隔情况</p>
+<pre><code class="python">def bidder_interval(group):
+    time_diff = np.ediff1d(group['time'])
+    bidder_interval = {}
+    if len(time_diff) == 0:
+        diff_mean = 0
+        diff_std = 0
+        diff_median = 0
+        diff_zeros = 0
+    else:
+        diff_mean = np.mean(time_diff)
+        diff_std = np.std(time_diff)
+        diff_median = np.median(time_diff)
+        diff_zeros = time_diff.shape[0] - np.count_nonzero(time_diff)
+    bidder_interval['tmean'] = diff_mean
+    bidder_interval['tstd'] = diff_std
+    bidder_interval['tmedian'] = diff_median
+    bidder_interval['tzeros'] = diff_zeros
+    bidder_interval = pd.Series(bidder_interval)
+    return bidder_interval</code></pre>
+<pre><code class="python">bidder_inv = bidders.apply(bidder_interval)</code></pre>
+<pre><code class="python">display(bidder_inv.describe())
+bidder_inv.to_csv('bidder_inv.csv')</code></pre>
+<table class="dataframe">
+<thead><tr>
+<th></th>
+      <th>tmean</th>
+      <th>tmedian</th>
+      <th>tstd</th>
+      <th>tzeros</th>
+    </tr></thead>
+<tbody>
+<tr>
+<th>count</th>
+      <td>6.609000e+03</td>
+      <td>6.609000e+03</td>
+      <td>6.609000e+03</td>
+      <td>6609.000000</td>
+    </tr>
+<tr>
+<th>mean</th>
+      <td>2.933038e+12</td>
+      <td>1.860285e+12</td>
+      <td>3.440901e+12</td>
+      <td>122.986231</td>
+    </tr>
+<tr>
+<th>std</th>
+      <td>8.552343e+12</td>
+      <td>7.993497e+12</td>
+      <td>6.512992e+12</td>
+      <td>3190.805229</td>
+    </tr>
+<tr>
+<th>min</th>
+      <td>0.000000e+00</td>
+      <td>0.000000e+00</td>
+      <td>0.000000e+00</td>
+      <td>0.000000</td>
+    </tr>
+<tr>
+<th>25%</th>
+      <td>1.192853e+10</td>
+      <td>2.578947e+09</td>
+      <td>1.749995e+09</td>
+      <td>0.000000</td>
+    </tr>
+<tr>
+<th>50%</th>
+      <td>2.641139e+11</td>
+      <td>5.726316e+10</td>
+      <td>5.510107e+11</td>
+      <td>0.000000</td>
+    </tr>
+<tr>
+<th>75%</th>
+      <td>1.847456e+12</td>
+      <td>6.339474e+11</td>
+      <td>2.911282e+12</td>
+      <td>0.000000</td>
+    </tr>
+<tr>
+<th>max</th>
+      <td>7.610295e+13</td>
+      <td>7.610295e+13</td>
+      <td>3.800092e+13</td>
+      <td>231570.000000</td>
+    </tr>
+</tbody>
+</table>
+<p>&lt;/div&gt;</p>
+<h3>按照用户-拍卖场分组进一步分析</h3>
+<p>之前的统计是按照用户进行分组，针对各个用户从整体上针对竞标行为统计其各项特征，下面根据拍卖场来对用户进一步细分，看一看每个用户在不同拍卖场的行为模式,类似上述按照用户分组来统计各个用户的各项特征，针对用户-拍卖场结对分组进行统计以下特征</p>
+<ul>
+<li><p>基本计数统计，针对各个用户在各个拍卖场统计设备、国家、ip、url、商品类别、竞标次数等特征的数目作为新的特征</p></li>
+<li><p>时间间隔统计：统计各个用户在各个拍卖场每次竞拍的时间间隔的 均值、方差、中位数和0值</p></li>
+<li><p>针对商品类别、国家进一步转化为多类别进行统计</p></li>
+</ul>
+<pre><code class="python">def auc_features_count(group):
+    time_diff = np.ediff1d(group['time'])
+    
+    if len(time_diff) == 0:
+        diff_mean = 0
+        diff_std = 0
+        diff_median = 0
+        diff_zeros = 0
+    else:
+        diff_mean = np.mean(time_diff)
+        diff_std = np.std(time_diff)
+        diff_median = np.median(time_diff)
+        diff_zeros = time_diff.shape[0] - np.count_nonzero(time_diff)
+
+    row = dict.fromkeys(cates, 0)
+    row.update(dict.fromkeys(countries, 0))
+
+    row['devices_c'] = group['device'].unique().shape[0]
+    row['countries_c'] = group['country'].unique().shape[0]
+    row['ip_c'] = group['ip'].unique().shape[0]
+    row['url_c'] = group['url'].unique().shape[0]
+#     row['merch_c'] = group['merchandise'].unique().shape[0]
+    row['bids_c'] = group.shape[0]
+    row['tmean'] = diff_mean
+    row['tstd'] = diff_std
+    row['tmedian'] = diff_median
+    row['tzeros'] = diff_zeros
+
+    for cat, value in group['merchandise'].value_counts().iteritems():
+        row[cat] = value
+
+    for c in group['country'].unique():
+        row[c] = 1
+
+    row = pd.Series(row)
+    return row</code></pre>
+<pre><code class="python">bidder_auc = bids.groupby(['bidder_id', 'auction']).apply(auc_features_count)</code></pre>
+<pre><code class="python">bidder_auc.to_csv('bids_auc.csv')</code></pre>
+<pre><code class="python">print bidder_auc.shape</code></pre>
+<pre><code>(382336, 218)
+</code></pre>
+<h2>模型设计与参数评估</h2>
+<h3>合并特征</h3>
+<p>对之前生成的各项特征进行合并产生最终的特征空间</p>
+<pre><code class="python">import numpy as np
+import pandas as pd
+%matplotlib inline
+from IPython.display import display</code></pre>
+<p>首先将之前根据用户分组的统计特征合并起来，然后将其与按照用户-拍卖场结对分组的特征合并起来，最后加上时间特征，分别于训练集、测试集连接生成后续进行训练和预测的特征数据文件</p>
+<pre><code class="python">def merge_data():    
+    train = pd.read_csv('train.csv')
+    test = pd.read_csv('test.csv')
+
+    time_differences = pd.read_csv('tdiff.csv', index_col=0)
+    bids_auc = pd.read_csv('bids_auc.csv')
+
+    bids_auc = bids_auc.groupby('bidder_id').mean()
+    
+    bidders = pd.read_csv('cnt_bidder.csv', index_col=0)
+    country_cate = pd.read_csv('coun_cate.csv', index_col=0)
+    bidder_inv = pd.read_csv('bidder_inv.csv', index_col=0)
+    bidders = bidders.merge(country_cate, right_index=True, left_index=True)
+    bidders = bidders.merge(bidder_inv, right_index=True, left_index=True)
+
+    bidders = bidders.merge(bids_auc, right_index=True, left_index=True)
+    bidders = bidders.merge(time_differences, right_index=True,
+                            left_index=True)
+
+    train = train.merge(bidders, left_on='bidder_id', right_index=True)
+    train.to_csv('train_full.csv', index=False)
+
+    test = test.merge(bidders, left_on='bidder_id', right_index=True)
+    test.to_csv('test_full.csv', index=False)    </code></pre>
+<pre><code class="python">merge_data()</code></pre>
+<pre><code class="python">train_full = pd.read_csv('train_full.csv')
+test_full = pd.read_csv('test_full.csv')
+print train_full.shape
+print test_full.shape</code></pre>
+<pre><code>(1983, 445)
+(4626, 444)
+
+</code></pre>
+<pre><code class="python">train_full['outcome'] = train_full['outcome'].astype(int)
+ytrain = train_full['outcome']
+train_full.drop('outcome', 1, inplace=True)
+
+test_ids = test_full['bidder_id']
+
+labels = ['payment_account', 'address', 'bidder_id']
+train_full.drop(labels=labels, axis=1, inplace=True)
+test_full.drop(labels=labels, axis=1, inplace=True)</code></pre>
+<h3>设计交叉验证</h3>
+<h3>模型选择</h3>
+<p>根据之前的分析，由于当前的数据集中存在正负例不均衡的问题，所以考虑选取了RandomForestClassfier, GradientBoostingClassifier, xgboost, lightgbm等四种模型来针对数据及进行训练和预测，确定最终模型的基本思路如下：</p>
+<ul>
+<li><p>对四个模型分别使用评价函数roc_auc进行交叉验证并绘制auc曲线，对各个模型的多轮交叉验证得分取平均值并输出</p></li>
+<li>
+<p>根据得分确定最终选用的一个或多个模型</p>
+<ul>
+<li><p>若最后发现一个模型的表现大幅度优于其他所有模型，则选择该模型进一步调参</p></li>
+<li><p>若最后发现多个模型表现都不错，则进行模型的集成，得到聚合模型</p></li>
+<li><p>使用GridSearchCV来从人为设定的参数列表中选择最佳的参数组合确定最终的模型</p></li>
+</ul>
+</li>
+</ul>
+<pre><code class="python">from scipy import interp
+import matplotlib.pyplot as plt
+from itertools import cycle
+
+# from sklearn.cross_validation import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import roc_auc_score, roc_curve, auc
+
+def kfold_plot(train, ytrain, model):
+#     kf = StratifiedKFold(y=ytrain, n_folds=5)
+    kf = StratifiedKFold(n_splits=5)
+    scores = []
+    mean_tpr = 0.0
+    mean_fpr = np.linspace(0, 1, 100)
+    exe_time = []
+    
+    colors = cycle(['cyan', 'indigo', 'seagreen', 'yellow', 'blue'])
+    lw = 2
+    
+    i=0
+    for (train_index, test_index), color in zip(kf.split(train, ytrain), colors):
+        X_train, X_test = train.iloc[train_index], train.iloc[test_index]
+        y_train, y_test = ytrain.iloc[train_index], ytrain.iloc[test_index]
+        begin_t = time.time()
+        predictions = model(X_train, X_test, y_train)
+        end_t = time.time()
+        exe_time.append(round(end_t-begin_t, 3))
+#         model = model
+#         model.fit(X_train, y_train)    
+#         predictions = model.predict_proba(X_test)[:, 1]        
+        scores.append(roc_auc_score(y_test.astype(float), predictions))        
+        fpr, tpr, thresholds = roc_curve(y_test, predictions)
+        mean_tpr += interp(mean_fpr, fpr, tpr)
+        mean_tpr[0] = 0.0
+        roc_auc = auc(fpr, tpr)
+        plt.plot(fpr, tpr, lw=lw, color=color, label='ROC fold %d (area = %0.2f)' % (i, roc_auc))
+        i += 1
+    plt.plot([0, 1], [0, 1], linestyle='--', lw=lw, color='k', label='Luck')
+    
+    mean_tpr /= kf.get_n_splits(train, ytrain)
+    mean_tpr[-1] = 1.0
+    mean_auc = auc(mean_fpr, mean_tpr)
+    plt.plot(mean_fpr, mean_tpr, color='g', linestyle='--', label='Mean ROC (area = %0.2f)' % mean_auc, lw=lw)
+    
+    plt.xlim([-0.05, 1.05])
+    plt.ylim([-0.05, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic')
+    plt.legend(loc='lower right')
+    plt.show()
+    
+#     print 'scores: ', scores
+    print 'mean scores: ', np.mean(scores)
+    print 'mean model process time: ', np.mean(exe_time), 's'
+    
+    return scores, np.mean(scores), np.mean(exe_time)</code></pre>
+<p>收集各个模型进行交叉验证的结果包括每轮交叉验证的auc得分、auc的平均得分以及模型的训练时间</p>
+<pre><code class="python">dct_scores = {}
+mean_score = {}
+mean_time = {}</code></pre>
+<h4>RandomForestClassifier</h4>
+<pre><code class="python">from sklearn.model_selection import GridSearchCV
+import time</code></pre>
+<pre><code class="python">from sklearn.ensemble import RandomForestClassifier
+
+def forest_model(X_train, X_test, y_train):
+#     begin_t = time.time()
+    model = RandomForestClassifier(n_estimators=160, max_features=35, max_depth=8, random_state=7)
+    model.fit(X_train, y_train)    
+#     end_t = time.time()
+#     print 'train time of forest model: ',round(end_t-begin_t, 3), 's'
+    predictions = model.predict_proba(X_test)[:, 1]
+    return predictions</code></pre>
+<pre><code class="python">dct_scores['forest'], mean_score['forest'], mean_time['forest'] = kfold_plot(train_full, ytrain, forest_model)
+# kfold_plot(train_full, ytrain, model_forest)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVMlRE?w=389&amp;h=278" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="forest_auc" title="forest_auc"></span></p>
+<pre><code>mean scores:  0.909571935157
+mean model process time:  0.643 s
+
+</code></pre>
+<pre><code class="python">from sklearn.ensemble import GradientBoostingClassifier
+def gradient_model(X_train, X_test, y_train):
+    model = GradientBoostingClassifier(n_estimators=200, random_state=7, max_depth=5, learning_rate=0.03)
+    model.fit(X_train, y_train)
+    predictions = model.predict_proba(X_test)[:, 1]
+    return predictions</code></pre>
+<pre><code class="python">dct_scores['gbm'], mean_score['gbm'], mean_time['gbm'] = kfold_plot(train_full, ytrain, gradient_model)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVMlRM?w=389&amp;h=278" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="gbm_auc" title="gbm_auc"></span></p>
+<pre><code>mean scores:  0.911847771023
+mean model process time:  4.1948 s
+
+</code></pre>
+<pre><code class="python">import xgboost as xgb
+def xgboost_model(X_train, X_test, y_train):
+    X_train = xgb.DMatrix(X_train.values, label=y_train.values)
+    X_test = xgb.DMatrix(X_test.values)
+    params = {'objective': 'binary:logistic', 'eval_metric': 'auc', 'silent': 1, 'seed': 7,
+              'max_depth': 6, 'eta': 0.01}    
+    model = xgb.train(params, X_train, 600)
+    predictions = model.predict(X_test)
+    return predictions</code></pre>
+<pre><code>/home/lancelot/anaconda2/envs/udacity/lib/python2.7/site-packages/sklearn/cross_validation.py:44: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
+  "This module will be removed in 0.20.", DeprecationWarning)
+
+</code></pre>
+<pre><code class="python">dct_scores['xgboost'], mean_score['xgboost'], mean_time['xgboost'] = kfold_plot(train_full, ytrain, xgboost_model)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVMlRR?w=389&amp;h=278" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="xgb_auc" title="xgb_auc"></span></p>
+<pre><code>mean scores:  0.915372340426
+mean model process time:  3.1482 s
+
+</code></pre>
+<pre><code class="python">import lightgbm as lgb
+def lightgbm_model(X_train, X_test, y_train):
+    X_train = lgb.Dataset(X_train.values, y_train.values)
+    params = {'objective': 'binary', 'metric': {'auc'}, 'learning_rate': 0.01, 'max_depth': 6, 'seed': 7}
+    model = lgb.train(params, X_train, num_boost_round=600)
+    predictions = model.predict(X_test)
+    return predictions</code></pre>
+<pre><code class="python">dct_scores['lgbm'], mean_score['lgbm'], mean_time['lgbm'] = kfold_plot(train_full, ytrain, lightgbm_model)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVPLGo?w=389&amp;h=278" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="lgbm_auc" title="lgbm_auc"></span></p>
+<pre><code>mean scores:  0.921512158055
+mean model process time:  0.3558 s
+
+</code></pre>
+<h3>模型比较</h3>
+<p>比较四个模型在交叉验证机上的roc_auc平均得分和模型训练的时间</p>
+<pre><code class="python">def plot_model_comp(title, y_label, dct_result):
+    data_source = dct_result.keys()
+    y_pos = np.arange(len(data_source))
+    # model_auc = [0.910, 0.912, 0.915, 0.922]
+    model_auc = dct_result.values()
+    barlist = plt.bar(y_pos, model_auc, align='center', alpha=0.5)
+    # get the index of highest score
+    max_val = max(model_auc)
+    idx = model_auc.index(max_val)
+    barlist[idx].set_color('r')
+    plt.xticks(y_pos, data_source)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.show()
+    print 'The highest auc score is {0} of model: {1}'.format(max_val, data_source[idx])</code></pre>
+<pre><code class="python">plot_model_comp('Model Performance', 'roc-auc score', mean_score)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVPLGp?w=389&amp;h=264" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="model_performance" title="model_performance"></span></p>
+<pre><code>The highest auc score is 0.921512158055 of model: lgbm
+
+</code></pre>
+<pre><code class="python">def plot_time_comp(title, y_label, dct_result):
+    data_source = dct_result.keys()
+    y_pos = np.arange(len(data_source))
+    # model_auc = [0.910, 0.912, 0.915, 0.922]
+    model_auc = dct_result.values()
+    barlist = plt.bar(y_pos, model_auc, align='center', alpha=0.5)
+    # get the index of highest score
+    min_val = min(model_auc)
+    idx = model_auc.index(min_val)
+    barlist[idx].set_color('r')
+    plt.xticks(y_pos, data_source)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.show()
+    print 'The shortest time is {0} of model: {1}'.format(min_val, data_source[idx])</code></pre>
+<pre><code class="python">plot_time_comp('Time of Building Model', 'time(s)', mean_time)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVPLGq?w=389&amp;h=264" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="model_time" title="model_time"></span></p>
+<pre><code>The shortest time is 0.3558 of model: lgbm
+
+</code></pre>
+<pre><code class="python">auc_forest = dct_scores['forest']
+auc_gb = dct_scores['gbm']
+auc_xgb = dct_scores['xgboost']
+auc_lgb = dct_scores['lgbm']
+print 'std of forest auc score: ',np.std(auc_forest)
+print 'std of gbm auc score: ',np.std(auc_gb)
+print 'std of xgboost auc score: ',np.std(auc_xgb)
+print 'std of lightgbm auc score: ',np.std(auc_lgb)
+data_source = ['roc-fold-1', 'roc-fold-2', 'roc-fold-3', 'roc-fold-4', 'roc-fold-5']
+y_pos = np.arange(len(data_source))
+plt.plot(y_pos, auc_forest, 'b-', label='forest')
+plt.plot(y_pos, auc_gb, 'r-', label='gbm')
+plt.plot(y_pos, auc_xgb, 'y-', label='xgboost')
+plt.plot(y_pos, auc_lgb, 'g-', label='lightgbm')
+plt.title('roc-auc score of each epoch')
+plt.xlabel('epoch')
+plt.ylabel('roc-auc score')
+plt.legend()
+plt.show()</code></pre>
+<pre><code>std of forest auc score:  0.0413757504568
+std of gbm auc score:  0.027746291638
+std of xgboost auc score:  0.0232931322563
+std of lightgbm auc score:  0.0287156755513
+
+</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVPLGr?w=396&amp;h=278" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="stability" title="stability"></span></p>
+<p>单从5次交叉验证的各模型roc-auc得分来看，xgboost的得分相对比较稳定</p>
+<h3>聚合模型</h3>
+<p>由上面的模型比较可以发现，四个模型的经过交叉验证的表现都不错，但是综合而言，xgboost和lightgbm更胜一筹，而且两者的训练时间也相对更短一些，所以接下来考虑进行模型的聚合，思路如下：</p>
+<ul>
+<li><p>先通过GridSearchCV分别针对四个模型在整个训练集上进行调参获得最佳的子模型</p></li>
+<li>
+<p>针对子模型使用</p>
+<ul>
+<li><p>stacking: 第三方库<a href="https://github.com/rasbt/mlxtend" rel="nofollow noreferrer">mlxtend</a>里的stacking方法对子模型进行聚合得到聚合模型，并采用之前相同的cv方法对该模型进行打分评价</p></li>
+<li><p>voting: 使用sklearn内置的VotingClassifier进行四个模型的聚合</p></li>
+</ul>
+</li>
+<li><p>最终对聚合模型在一次进行cv验证评分，根据结果确定最终的模型</p></li>
+</ul>
+<p>先通过交叉验证针对模型选择参数组合</p>
+<pre><code class="python">def choose_xgb_model(X_train, y_train): 
+    tuned_params = [{'objective': ['binary:logistic'], 'learning_rate': [0.01, 0.03, 0.05], 
+                     'n_estimators': [100, 150, 200], 'max_depth':[4, 6, 8]}]
+    begin_t = time.time()
+    clf = GridSearchCV(xgb.XGBClassifier(seed=7), tuned_params, scoring='roc_auc')
+    clf.fit(X_train, y_train)
+    end_t = time.time()
+    print 'train time: ',round(end_t-begin_t, 3), 's'
+    print 'current best parameters of xgboost: ',clf.best_params_
+    return clf.best_estimator_</code></pre>
+<pre><code class="python">bst_xgb = choose_xgb_model(train_full, ytrain)</code></pre>
+<pre><code>train time:  48.141 s
+current best parameters of xgboost:  {'n_estimators': 150, 'objective': 'binary:logistic', 'learning_rate': 0.05, 'max_depth': 4}
+
+</code></pre>
+<pre><code class="python">def choose_lgb_model(X_train, y_train): 
+    tuned_params = [{'objective': ['binary'], 'learning_rate': [0.01, 0.03, 0.05], 
+                     'n_estimators': [100, 150, 200], 'max_depth':[4, 6, 8]}]
+    begin_t = time.time()
+    clf = GridSearchCV(lgb.LGBMClassifier(seed=7), tuned_params, scoring='roc_auc')
+    clf.fit(X_train, y_train)
+    end_t = time.time()
+    print 'train time: ',round(end_t-begin_t, 3), 's'
+    print 'current best parameters of lgb: ',clf.best_params_
+    return clf.best_estimator_</code></pre>
+<pre><code class="python">bst_lgb = choose_lgb_model(train_full, ytrain)</code></pre>
+<pre><code>train time:  12.543 s
+current best parameters of lgb:  {'n_estimators': 150, 'objective': 'binary', 'learning_rate': 0.05, 'max_depth': 4}
+
+</code></pre>
+<p>先使用stacking集成两个综合表现最佳的模型lgb和xgb，此处元分类器使用较为简单的LR模型来在已经训练好了并且经过参数选择的模型上进一步优化预测结果</p>
+<pre><code class="python">from mlxtend.classifier import StackingClassifier
+from sklearn import linear_model
+
+def stacking_model(X_train, X_test, y_train):    
+    lr = linear_model.LogisticRegression(random_state=7)
+    sclf = StackingClassifier(classifiers=[bst_xgb, bst_lgb], use_probas=True, average_probas=False, 
+                              meta_classifier=lr)
+    sclf.fit(X_train, y_train)
+    predictions = sclf.predict_proba(X_test)[:, 1]
+    return predictions</code></pre>
+<pre><code class="python">dct_scores['stacking_1'], mean_score['stacking_1'], mean_time['stacking_1'] = kfold_plot(train_full, ytrain, stacking_model)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVPLGw?w=389&amp;h=278" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="stack_1" title="stack_1"></span></p>
+<pre><code>mean scores:  0.92157674772
+mean model process time:  0.7022 s
+
+</code></pre>
+<p>可以看到相对之前的得分最高的模型lightgbm，将lightgbm与xgboost经过stacking集成并且使用lr作为元分类器得到的auc得分有轻微的提升，接下来考虑进一步加入另外的RandomForest和GBDT模型看看增加一点模型的差异性使用Stacking是不是会有所提升</p>
+<pre><code class="python">def choose_forest_model(X_train, y_train):    
+    tuned_params = [{'n_estimators': [100, 150, 200], 'max_features': [8, 15, 30], 'max_depth':[4, 8, 10]}]
+    begin_t = time.time()
+    clf = GridSearchCV(RandomForestClassifier(random_state=7), tuned_params, scoring='roc_auc')
+    clf.fit(X_train, y_train)
+    end_t = time.time()
+    print 'train time: ',round(end_t-begin_t, 3), 's'
+    print 'current best parameters: ',clf.best_params_
+    return clf.best_estimator_</code></pre>
+<pre><code class="python">bst_forest = choose_forest_model(train_full, ytrain)</code></pre>
+<pre><code>train time:  42.201 s
+current best parameters:  {'max_features': 15, 'n_estimators': 150, 'max_depth': 8}
+
+</code></pre>
+<pre><code class="python">def choose_gradient_model(X_train, y_train):    
+    tuned_params = [{'n_estimators': [100, 150, 200], 'learning_rate': [0.03, 0.05, 0.07], 
+                     'min_samples_leaf': [8, 15, 30], 'max_depth':[4, 6, 8]}]
+    begin_t = time.time()
+    clf = GridSearchCV(GradientBoostingClassifier(random_state=7), tuned_params, scoring='roc_auc')
+    clf.fit(X_train, y_train)
+    end_t = time.time()
+    print 'train time: ',round(end_t-begin_t, 3), 's'
+    print 'current best parameters: ',clf.best_params_
+    return clf.best_estimator_</code></pre>
+<pre><code class="python">bst_gradient = choose_gradient_model(train_full, ytrain)</code></pre>
+<pre><code>train time:  641.872 s
+current best parameters:  {'n_estimators': 100, 'learning_rate': 0.03, 'max_depth': 8, 'min_samples_leaf': 30}
+
+</code></pre>
+<pre><code class="python">def stacking_model2(X_train, X_test, y_train):    
+    lr = linear_model.LogisticRegression(random_state=7)
+    sclf = StackingClassifier(classifiers=[bst_xgb, bst_forest, bst_gradient, bst_lgb], use_probas=True, 
+                              average_probas=False, meta_classifier=lr)
+    sclf.fit(X_train, y_train)
+    predictions = sclf.predict_proba(X_test)[:, 1]
+    return predictions</code></pre>
+<pre><code class="python">dct_scores['stacking_2'], mean_score['stacking_2'], mean_time['stacking_2'] = kfold_plot(train_full, ytrain, stacking_model2)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVPLGz?w=389&amp;h=278" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="stack_2" title="stack_2"></span></p>
+<pre><code>mean scores:  0.92686550152
+mean model process time:  4.0878 s
+
+</code></pre>
+<p>可以看到四个模型的聚合效果比用两个模型的stacking聚合效果要好不少，接下来尝试使用voting对四个模型进行聚合</p>
+<pre><code class="python">from sklearn.ensemble import VotingClassifier
+
+def voting_model(X_train, X_test, y_train):    
+    vclf = VotingClassifier(estimators=[('xgb', bst_xgb), ('rf', bst_forest), ('gbm',bst_gradient),
+                                       ('lgb', bst_lgb)], voting='soft', weights=[2, 1, 1, 2])
+    vclf.fit(X_train, y_train)
+    predictions = vclf.predict_proba(X_test)[:, 1]
+    return predictions</code></pre>
+<pre><code class="python">dct_scores['voting'], mean_score['voting'], mean_time['voting'] = kfold_plot(train_full, ytrain, voting_model)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVMlSC?w=389&amp;h=278" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="voting" title="voting"></span></p>
+<pre><code>mean scores:  0.926889564336
+mean model process time:  4.055 s
+
+</code></pre>
+<p>再次比较单模型与集成模型的得分</p>
+<pre><code class="python">plot_model_comp('Model Performance', 'roc-auc score', mean_score)</code></pre>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVPLGH?w=389&amp;h=265" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="result" title="result"></span></p>
+<pre><code>The highest auc score is 0.926889564336 of model: voting
+
+</code></pre>
+<p>由上可以看到最终通过voting将四个模型进行聚合可以得到得分最高的模型，确定为最终用来预测的模型</p>
+<h3>综合模型，对测试文件进行最终预测</h3>
+<pre><code class="python"># predict(train_full, test_full, y_train)
+def submit(X_train, X_test, y_train, test_ids):
+    predictions = voting_model(X_train, X_test, y_train)
+
+    sub = pd.read_csv('sampleSubmission.csv')
+    result = pd.DataFrame()
+    result['bidder_id'] = test_ids
+    result['outcome'] = predictions
+    sub = sub.merge(result, on='bidder_id', how='left')
+
+    # Fill missing values with mean
+    mean_pred = np.mean(predictions)
+    sub.fillna(mean_pred, inplace=True)
+
+    sub.drop('prediction', 1, inplace=True)
+    sub.to_csv('result.csv', index=False, header=['bidder_id', 'prediction'])</code></pre>
+<pre><code class="python">submit(train_full, test_full, ytrain, test_ids)</code></pre>
+<p>最终结果提交到kaggle上进行评分，得分如下<br><span class="img-wrap"><img src="https://segmentfault.com/img/bVPLGJ?w=800&amp;h=569" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="point" title="point"></span></p>
+<p>以上就是整个完整的流程，当然还有很多模型可以尝试，很多聚合方法也可以使用，此外，特征工程部分还有很多空间可以挖掘，就留给大家去探索啦~</p>
+<p>参考资料</p>
+<ul>
+<li><p>Chen, K. T., Pao, H. K. K., &amp; Chang, H. C. (2008, October). Game bot identification based on manifold learning. In Proceedings of the 7th ACM SIGCOMM Workshop on Network and System Support for Games (pp. 21-26). ACM.</p></li>
+<li><p>Alayed, H., Frangoudes, F., &amp; Neuman, C. (2013, August). Behavioral-based cheating detection in online first person shooters using machine learning techniques. In Computational Intelligence in Games (CIG), 2013 IEEE Conference on (pp. 1-8). IEEE.</p></li>
+<li><p><a href="https://www.kaggle.com/c/facebook-recruiting-iv-human-or-bot/data" rel="nofollow noreferrer">https://www.kaggle.com/c/face...</a></p></li>
+<li><p><a href="http://stats.stackexchange.com/a/132832/152084" rel="nofollow noreferrer">http://stats.stackexchange.co...</a></p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic" rel="nofollow noreferrer">https://en.wikipedia.org/wiki...</a></p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Random_forest" rel="nofollow noreferrer">https://en.wikipedia.org/wiki...</a></p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Gradient_boosting" rel="nofollow noreferrer">https://en.wikipedia.org/wiki...</a></p></li>
+<li><p><a href="https://xgboost.readthedocs.io/en/latest//parameter.html#parameters-for-tree-booster" rel="nofollow noreferrer">https://xgboost.readthedocs.i...</a></p></li>
+<li><p><a href="https://github.com/Microsoft/LightGBM" rel="nofollow noreferrer">https://github.com/Microsoft/...</a></p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic" rel="nofollow noreferrer">https://en.wikipedia.org/wiki...</a></p></li>
+<li><p><a href="http://stackoverflow.com/questions/29530232/python-pandas-check-if-any-value-is-nan-in-dataframe" rel="nofollow noreferrer">http://stackoverflow.com/ques...</a></p></li>
+<li><p><a href="http://pandas.pydata.org/pandas-docs/stable/missing_data.html" rel="nofollow noreferrer">http://pandas.pydata.org/pand...</a></p></li>
+<li><p><a href="http://stackoverflow.com/a/18272653/6653189" rel="nofollow noreferrer">http://stackoverflow.com/a/18...</a></p></li>
+<li><p><a href="http://www.cnblogs.com/jasonfreak/p/5720137.html" rel="nofollow noreferrer">http://www.cnblogs.com/jasonf...</a></p></li>
+</ul>
+<p><strong>修改日志</strong></p>
+<ul><li><p>感谢评论区@<a href="https://segmentfault.com/u/frank_5900eefc0b41c">Frank</a>同学的指正，已修改原文中的stacking的错误，此外针对绘图等细节做了点优化处理。</p></li></ul>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000009101577"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="使用机器学习识别出拍卖场中作弊的机器人用户(二)"
+ data-url="https://segmentfault.com/a/1190000009101577" data-shorturl="http://sfau.lt/b5MlTN"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000009101577"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000009101577"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">5</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000009101577" data-user-id="" data-author-id="1030000002628073 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">6 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000009104400">
+            <div class="pull-left">
+                <a href="/u/fanrong33" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000009104400" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/fanrong33">蔡繁荣</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2017年04月18日</span>
+                </div>
+
+                <div class="fmt mb10"><p>膜拜下大神，向大神学习。看到最后，这满满的参考资料不得不赞！另外，吃惊?的是，kaggle上两年前的比赛还可以提交吗？</p></div>
+
+                <form action="/api/comment/1050000009104400/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >膜拜下大神，向大神学习。看到最后，这满满的参考资料不得不赞！另外，吃惊?的是，kaggle上两年前的比赛还可以提交吗？</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list ">
+
+                    
+                        <div class="reply-item" data-id="1050000009105696">
+                            <span class="pull-left comment-ops " style="position:absolute;">
+                                <span class="mr20 comments-zan ">
+                                    <span class="comments-zan-value 
+                                         islike0-10
+                                        ">
+                                        1
+                                    </span>
+                                    <i class="fa fa-thumbs-up comment-showhide ml5" aria-hidden="true"></i>
+                                </span>
+                            </span>
+
+                            <div class="reply-content-block">
+                                <div class="reply-content"><p>你好，kaggle上已经结束的比赛时可以提交的，但是不参与排名，可以看到你的结果的private/public得分</p></div>
+                                <form action="/api/comment/1050000009105696/edit">
+                                    <div class="form-group">
+                                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >你好，kaggle上已经结束的比赛时可以提交的，但是不参与排名，可以看到你的结果的private/public得分</textarea>
+                                    </div>
+                                </form>
+                                <div class="comment-func inline-block">
+                                    
+
+                                    <span class="pull-right commentTools ml15">
+                                                                                                                                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-module="comment"
+                                           data-id="1050000009105696" data-action='report' data-typetext="评论" data-placement="top" title="举报">
+                                            <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+                                        </a>
+                                    </span>
+
+                                    <span class="comment-meta inline-block">
+                                        <span> — </span>
+                                        <a target="_blank" href="/u/fornever">
+                                            <strong>LancelotHolmes</strong>
+                                        </a> 
+                                        <span class="comments-isAuthor ">
+                                            作者
+                                        </span> 
+                                        <span class="text-muted-plus">  ·  2017年04月18日</span>
+                                                                            </span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000009212806">
+            <div class="pull-left">
+                <a href="/u/frank_5900eefc0b41c" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000009212806" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/frank_5900eefc0b41c">Frank</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2017年04月27日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>感谢分享，读了后有所收获。但是，最后一大部分“模型设计与参数评估”，可能你要重新做一遍了。</p>
+<p>先说我发现的2个非常明显的BUG：<br>def stacking_model(X_train, X_test, y_train):    <br>   sclf = StackingClassifier(classifiers=[bst_xgb], use_probas=True, average_probas=False,      meta_classifier=bst_lgb) <br>这里，meta_classfier显然不应该是bst_lgb。因为根据上面的bst_lgb的来源，你是通过训练集的X_train和y_train训练的，是基分类器(base-model)，而不是元分类器(meta-model)。如果你还不了解它们的区别，请阅读  <a href="http://rasbt.github.io/mlxtend/user_guide/classifier/StackingCVClassifier/" rel="nofollow noreferrer">http://rasbt.github.io/mlxten...</a>  的例子</p>
+<p>所以正确的写法是<br>def stacking_model(X_train, X_test, y_train):    <br>  lr =LogisticRegression()<br>  sclf = StackingClassifier(classifiers=[bst_xgb,bst_lgb], use_probas=True, average_probas=False,      meta_classifier= lr) </p>
+<p>*注意：meta-classfier考虑优先使用简单的模型。根据奥卡姆剃刀原理，简单模型的泛化能力最强，所以可以先尝试逻辑回归、LR等最基本的模型。如果效果不好，再尝试其他高阶的模型（rf/xgb/ann）。</p>
+<p>同样的错误出现在了stacking_model2上。这里不再赘述</p>
+<p>最后是一个提醒，一般来说正常的Stacking带来的提升至少是0，如果是负提高，要考虑是否出现了严重过拟合（记住剃刀原则）；另外，Base model的差异越大，stacking的提升空间越大。</p>
+<p>2.提一个小建议：<br>在尝试Stacking时，StackingClassifier可以考虑换成StackingCVClassifier，后者直接输出CV performance，无需再写k-fold</p>
+<p>另外，有一个问题，希望共同探讨：</p>
+<p>你的两篇文章的特征工程只有增加特征，而没有做特征的验证、筛选。但是实际的特征工程的过程并不是这样的，因为一些不好的特征会使boosting tree的结果严重变坏。</p>
+<p>如果要做特征筛选，就意味着要对基分类器分别做特征筛选，which means，对每个base model，要用Sequential Feature Selector做一个grid search的特征筛选和调参（<a href="http://rasbt.github.io/mlxtend/user_guide/feature_selection/SequentialFeatureSelector/#example-7-sequential-feature-selection-and-gridsearch" rel="nofollow noreferrer">http://rasbt.github.io/mlxten...</a>）。</p>
+<p>综上，我个人正确的顺序：<br>数据探索-&gt;数据探索-&gt;缺失值处理-&gt;特征构造-&gt;特征筛选和模型设计-&gt;基模型评估-&gt;模型组合-&gt;综合模型-&gt;提交</p>
+<p>so明天我先把你的bug改一下，试试能提高多少；另外，我试试再把基模型的种类和个数丰富一下。等时间跟过了，我也试着做一些特征筛选吧:) 看看就同样一个训练集，仅改模型，上限能跑到多少。</p>
+<p>我也是新手..欢迎拍砖 。联系方式在Kaggle主页: www.kaggle.com/sysufrank</p>
+</div>
+
+                <form action="/api/comment/1050000009212806/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >感谢分享，读了后有所收获。但是，最后一大部分“模型设计与参数评估”，可能你要重新做一遍了。
+
+先说我发现的2个非常明显的BUG：
+def stacking_model(X_train, X_test, y_train):    
+   sclf = StackingClassifier(classifiers=[bst_xgb], use_probas=True, average_probas=False,      meta_classifier=bst_lgb) 
+这里，meta_classfier显然不应该是bst_lgb。因为根据上面的bst_lgb的来源，你是通过训练集的X_train和y_train训练的，是基分类器(base-model)，而不是元分类器(meta-model)。如果你还不了解它们的区别，请阅读  http://rasbt.github.io/mlxtend/user_guide/classifier/StackingCVClassifier/  的例子
+
+所以正确的写法是
+def stacking_model(X_train, X_test, y_train):    
+  lr =LogisticRegression()
+  sclf = StackingClassifier(classifiers=[bst_xgb,bst_lgb], use_probas=True, average_probas=False,      meta_classifier= lr) 
+
+*注意：meta-classfier考虑优先使用简单的模型。根据奥卡姆剃刀原理，简单模型的泛化能力最强，所以可以先尝试逻辑回归、LR等最基本的模型。如果效果不好，再尝试其他高阶的模型（rf/xgb/ann）。
+
+同样的错误出现在了stacking_model2上。这里不再赘述
+
+最后是一个提醒，一般来说正常的Stacking带来的提升至少是0，如果是负提高，要考虑是否出现了严重过拟合（记住剃刀原则）；另外，Base model的差异越大，stacking的提升空间越大。
+
+2.提一个小建议：
+在尝试Stacking时，StackingClassifier可以考虑换成StackingCVClassifier，后者直接输出CV performance，无需再写k-fold
+
+
+另外，有一个问题，希望共同探讨：
+
+你的两篇文章的特征工程只有增加特征，而没有做特征的验证、筛选。但是实际的特征工程的过程并不是这样的，因为一些不好的特征会使boosting tree的结果严重变坏。
+
+如果要做特征筛选，就意味着要对基分类器分别做特征筛选，which means，对每个base model，要用Sequential Feature Selector做一个grid search的特征筛选和调参（http://rasbt.github.io/mlxtend/user_guide/feature_selection/SequentialFeatureSelector/#example-7-sequential-feature-selection-and-gridsearch）。
+
+综上，我个人正确的顺序：
+数据探索-&gt;数据探索-&gt;缺失值处理-&gt;特征构造-&gt;特征筛选和模型设计-&gt;基模型评估-&gt;模型组合-&gt;综合模型-&gt;提交
+
+
+so明天我先把你的bug改一下，试试能提高多少；另外，我试试再把基模型的种类和个数丰富一下。等时间跟过了，我也试着做一些特征筛选吧:) 看看就同样一个训练集，仅改模型，上限能跑到多少。
+
+我也是新手..欢迎拍砖 。联系方式在Kaggle主页: www.kaggle.com/sysufrank</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list ">
+
+                    
+                        <div class="reply-item" data-id="1050000009213267">
+                            <span class="pull-left comment-ops " style="position:absolute;">
+                                <span class="mr20 comments-zan ">
+                                    <span class="comments-zan-value comment-showhide
+                                         islike0-10
+                                        ">
+                                        0
+                                    </span>
+                                    <i class="fa fa-thumbs-up comment-showhide ml5" aria-hidden="true"></i>
+                                </span>
+                            </span>
+
+                            <div class="reply-content-block">
+                                <div class="reply-content"><p>谢谢批评指正，对于Stacking这里也是初次尝试，理解不到位，由于最近在准备京东的比赛，所以后面会找时间更正，关于特征筛选，确实如你所述在这个项目里面做的不到位，关于这一块，我本人也在学习中，之前看到一份不错的博客<a href="http://www.cnblogs.com/jasonfreak/p/5448385.html" rel="nofollow noreferrer">http://www.cnblogs.com/jasonf...</a>，但是要用于实践那还是需要具体情况具体分析，后续我也会尝试修改，谢谢</p></div>
+                                <form action="/api/comment/1050000009213267/edit">
+                                    <div class="form-group">
+                                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >谢谢批评指正，对于Stacking这里也是初次尝试，理解不到位，由于最近在准备京东的比赛，所以后面会找时间更正，关于特征筛选，确实如你所述在这个项目里面做的不到位，关于这一块，我本人也在学习中，之前看到一份不错的博客http://www.cnblogs.com/jasonfreak/p/5448385.html，但是要用于实践那还是需要具体情况具体分析，后续我也会尝试修改，谢谢</textarea>
+                                    </div>
+                                </form>
+                                <div class="comment-func inline-block">
+                                    
+
+                                    <span class="pull-right commentTools ml15">
+                                                                                                                                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-module="comment"
+                                           data-id="1050000009213267" data-action='report' data-typetext="评论" data-placement="top" title="举报">
+                                            <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+                                        </a>
+                                    </span>
+
+                                    <span class="comment-meta inline-block">
+                                        <span> — </span>
+                                        <a target="_blank" href="/u/fornever">
+                                            <strong>LancelotHolmes</strong>
+                                        </a> 
+                                        <span class="comments-isAuthor ">
+                                            作者
+                                        </span> 
+                                        <span class="text-muted-plus">  ·  2017年04月27日</span>
+                                                                            </span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="reply-item" data-id="1050000009220891">
+                            <span class="pull-left comment-ops " style="position:absolute;">
+                                <span class="mr20 comments-zan ">
+                                    <span class="comments-zan-value comment-showhide
+                                         islike0-10
+                                        ">
+                                        0
+                                    </span>
+                                    <i class="fa fa-thumbs-up comment-showhide ml5" aria-hidden="true"></i>
+                                </span>
+                            </span>
+
+                            <div class="reply-content-block">
+                                <div class="reply-content"><p>@LancelotHolmes 谢谢分享。我觉得你的整个过程很结构化也很严谨，我学到了很多。话说我前两天刚打完kaggle，现在也正在准备京东的比赛:)</p></div>
+                                <form action="/api/comment/1050000009220891/edit">
+                                    <div class="form-group">
+                                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >@LancelotHolmes 谢谢分享。我觉得你的整个过程很结构化也很严谨，我学到了很多。话说我前两天刚打完kaggle，现在也正在准备京东的比赛:)</textarea>
+                                    </div>
+                                </form>
+                                <div class="comment-func inline-block">
+                                    
+
+                                    <span class="pull-right commentTools ml15">
+                                                                                                                                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-module="comment"
+                                           data-id="1050000009220891" data-action='report' data-typetext="评论" data-placement="top" title="举报">
+                                            <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+                                        </a>
+                                    </span>
+
+                                    <span class="comment-meta inline-block">
+                                        <span> — </span>
+                                        <a target="_blank" href="/u/frank_5900eefc0b41c">
+                                            <strong>Frank</strong>
+                                        </a> 
+                                        <span class="comments-isAuthor hide">
+                                            
+                                        </span> 
+                                        <span class="text-muted-plus">  ·  2017年04月27日</span>
+                                                                            </span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="reply-item" data-id="1050000009225530">
+                            <span class="pull-left comment-ops " style="position:absolute;">
+                                <span class="mr20 comments-zan ">
+                                    <span class="comments-zan-value comment-showhide
+                                         islike0-10
+                                        ">
+                                        0
+                                    </span>
+                                    <i class="fa fa-thumbs-up comment-showhide ml5" aria-hidden="true"></i>
+                                </span>
+                            </span>
+
+                            <div class="reply-content-block">
+                                <div class="reply-content"><p>@LancelotHolmes 更改后，用简单的逻辑回归做元分类器，随机森林和xgb的stack_model1是0.92158，四个模型的stack_model2是0.92650，voting是0.92639。可以看到stack_model2是最优的。</p></div>
+                                <form action="/api/comment/1050000009225530/edit">
+                                    <div class="form-group">
+                                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >@LancelotHolmes 更改后，用简单的逻辑回归做元分类器，随机森林和xgb的stack_model1是0.92158，四个模型的stack_model2是0.92650，voting是0.92639。可以看到stack_model2是最优的。</textarea>
+                                    </div>
+                                </form>
+                                <div class="comment-func inline-block">
+                                    
+
+                                    <span class="pull-right commentTools ml15">
+                                                                                                                                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-module="comment"
+                                           data-id="1050000009225530" data-action='report' data-typetext="评论" data-placement="top" title="举报">
+                                            <span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+                                        </a>
+                                    </span>
+
+                                    <span class="comment-meta inline-block">
+                                        <span> — </span>
+                                        <a target="_blank" href="/u/frank_5900eefc0b41c">
+                                            <strong>Frank</strong>
+                                        </a> 
+                                        <span class="comments-isAuthor hide">
+                                            
+                                        </span> 
+                                        <span class="text-muted-plus">  ·  2017年04月27日</span>
+                                                                            </span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000009101577/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542617078000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _rt2tit = //'BwC'
+'96'+'54'//'n'
++//'e'
+'9ea'+'22'//'t'
++//'v'
+'ef8'+//'n'
+'1e'+'251'//'PD'
++'60'//'59'
++/* '0'//'0' */''+//'x'
+'c'+'1'//'ku6'
++//'2'
+'ad'+//'d'
+'10'+//'o'
+'4c4'+//'ke'
+'c'+//'gGZ'
+'gGZ'+'93'//'t'
++'8'//'le'
+, _7do = [[29,32]];
+
+    for (var i = 0; i < _7do.length; i ++) {
+        _rt2tit = _rt2tit.substring(0, _7do[i][0]) + _rt2tit.substring(_7do[i][1]);
+    }
+
+    return _rt2tit;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u4f7f\u7528\u673a\u5668\u5b66\u4e60\u8bc6\u522b\u51fa\u62cd\u5356\u573a\u4e2d\u4f5c\u5f0a\u7684\u673a\u5668\u4eba\u7528\u6237(\u4e8c)","desc":"\u6570\u636e\u9884\u5904\u7406&amp;\u7279\u5f81\u5de5\u7a0b\u2014\u2014Feature_Engineering.ipynb &amp; Feature_Engineering2.ipynb","link":"https:\/\/segmentfault.com\/a\/1190000009101577","imgUrl":"https:\/\/segmentfault.com\/img\/bVMlRE?w=389&amp;h=278"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542617078,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

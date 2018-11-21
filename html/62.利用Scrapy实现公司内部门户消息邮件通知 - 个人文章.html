@@ -1,0 +1,1290 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>利用Scrapy实现公司内部门户消息邮件通知 - 个人文章 - SegmentFault 思否</title><meta name="description" content="我本人所在公司是一个国有企业，自建有较大的内部网络门户群，几乎所有部门发布各类通知、工作要求等消息都在门户网站进行。由于对应的上级部门比较多，各类通知通告、领导讲话等内容类目繁多，要看一遍真需要花..."/><meta name="keywords" content="python,scrapy"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python,scrapy'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000015846612" class="hidden" />
+
+<div class="wrap" data-blogid="">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="Jero"
+                                         data-userslug="jerochina"
+                                         data-useravatar="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/jerochina">
+                                                    <img class="avatar-40" src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt="Jero">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/jerochina" class="mr5 "><strong>Jero</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">23</span>
+
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                            <button type="button"
+                                                                class="btn btn-xs btn-success follow-user"
+                                                                data-do="follow"
+                                                                data-type="user"
+                                                                data-id="1030000012908101">关注作者
+                                                        </button>
+                                                                                                                                                    </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2018-08-01 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000015846612">
+                                            <a href="/a/1190000015846612"> 利用Scrapy实现公司内部门户消息邮件通知</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-1-before" target="_blank" data-content="
+                                                                                        原创
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/scrapy/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/352/587/3525872212-1040000000120211_big64" data-placement="top"
+                                                                                data-original-title="scrapy"
+                                                                                data-id="1040000000120211">
+                                                                                                                      scrapy
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                219 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 47 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000015846612" data-license="">
+                    
+<h1>一、项目背景</h1>
+<p>　　我本人所在公司是一个国有企业，自建有较大的内部网络门户群，几乎所有部门发布各类通知、工作要求等消息都在门户网站进行。由于对应的上级部门比较多，各类通知通告、领导讲话等内容类目繁多，要看一遍真需要花费点时间。更重要的是有些会议通知等时效性比较强的消息一旦遗漏错过重要会议就比较麻烦。为了改变这种状况，就想建立一个内部网络消息跟踪、通知系统。</p>
+<h1>二、基本功能</h1>
+<p>　　主要功能：系统功能比较简单，主要就是爬取内部网络固定的一些通知页面，发现新的通知就向指定的人发送通知邮件。<br>　　涉及到的功能点：<br>　　1.常规页面请求<br>　　2.post请求<br>　　3.数据存储<br>　　4.识别新消息<br>　　5.邮件通知<br>　　6.定时启动，循环运行</p>
+<h1>三、详细说明</h1>
+<h2>（一）文件结构</h2>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVbeD0G?w=324&amp;h=579" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>　　上图显示了完成状态的文件结构，与新建的scrapy项目相比增加的文件有两部分：<br>　　一是spiders目录下的6个爬虫文件，对应了6个栏目，以后根据需要还会再增加；<br>　　二是涉及定时启动、循环运行功能的几个文件，分别是commands文件夹、noticeStart.py、setup.py、autorun.bat</p>
+<h2>（二）各部分代码</h2>
+<h3>1. items.py</h3>
+<pre><code>import scrapy
+
+class JlshNoticeItem(scrapy.Item):
+    # define the fields for your item here like:
+    # name = scrapy.Field()
+    noticeType = scrapy.Field()     #通知类别
+    noticeTitle = scrapy.Field()    #通知标题
+    noticeDate = scrapy.Field()     #通知日期
+    noticeUrl = scrapy.Field()      #通知URL
+    noticeContent = scrapy.Field()  #通知内容</code></pre>
+<h3>2. spider</h3>
+<p>　　篇幅关系，这里只拿一个爬虫做例子，其它的爬虫只是名称和start_url不同，下面代码尽量做到逐句注释。</p>
+<h4>代码</h4>
+<pre><code>from scrapy import Request
+from scrapy import FormRequest
+from scrapy.spiders import Spider
+from jlsh_notice.items import JlshNoticeItem
+from jlsh_notice.settings import DOWNLOAD_DELAY
+from scrapy.crawler import CrawlerProcess
+from datetime import date
+import requests
+import lxml
+import random
+import re
+#=======================================================
+class jlsh_notice_spider_gongsitongzhi(Spider):
+    #爬虫名称
+    name = 'jlsh_gongsitongzhi'
+    
+    start_urls = [
+        'http://www.jlsh.petrochina/sites/jlsh/news/inform/Pages/default.aspx', #公司通知
+    ]
+#=======================================================
+    #处理函数
+    def parse(self, response):
+        noticeList = response.xpath('//ul[@class="w_newslistpage_list"]//li')
+#=======================================================
+        #创建item实例
+        item = JlshNoticeItem()
+        for i, notice in enumerate(noticeList):
+            item['noticeType'] = '公司通知'
+
+            item['noticeTitle'] = notice.xpath('.//a/@title').extract()[0]
+
+            item['noticeUrl'] = notice.xpath('.//a/@href').extract()[0]
+#=======================================================
+            dateItem = notice.xpath('.//span[2]/text()').extract()[0]
+            pattern = re.compile(r'\d+')
+            datetime = pattern.findall(dateItem)
+            yy = int(datetime[0])+2000
+            mm = int(datetime[1])
+            dd = int(datetime[2])
+            item['noticeDate'] = date(yy,mm,dd)
+#=======================================================
+            content_html = requests.get(item['noticeUrl']).text
+            content_lxml = lxml.etree.HTML(content_html)
+            content_table = content_lxml.xpath( \
+                '//div[@id="contentText"]/div[2]/div | \
+                //div[@id="contentText"]/div[2]/p')
+            
+            
+            item['noticeContent'] = []
+            for j, p in enumerate(content_table):
+                p = p.xpath('string(.)')
+                #print('p:::::',p)
+                p = p.replace('\xa0',' ')
+                p = p.replace('\u3000', ' ')
+                item['noticeContent'].append(p)
+
+            yield item
+#=======================================================
+        pages = response.xpath('//div[@class="w_newslistpage_pager"]//span')
+        nextPage = 0
+        for i, page_tag in enumerate(pages):
+            page = page_tag.xpath('./a/text()').extract()[0]
+            page_url = page_tag.xpath('./a/@href').extract()
+            if page == '下一页&gt;&gt;':
+                pattern = re.compile(r'\d+')
+                page_url = page_url[0]
+                nextPage = int(pattern.search(page_url).group(0))
+                break
+#=======================================================
+        if nextPage &gt; 0 :
+            postUrl = self.start_urls[0]
+            formdata = {
+                'MSOWebPartPage_PostbackSource':'',
+                'MSOTlPn_SelectedWpId':'',
+                'MSOTlPn_View':'0',
+                'MSOTlPn_ShowSettings':'False',
+                'MSOGallery_SelectedLibrary':'',
+                'MSOGallery_FilterString':'',
+                'MSOTlPn_Button':'none',
+                '__EVENTTARGET':'',
+                '__EVENTARGUMENT':'',
+                '__REQUESTDIGEST':'',
+                'MSOSPWebPartManager_DisplayModeName':'Browse',
+                'MSOSPWebPartManager_ExitingDesignMode':'false',
+                'MSOWebPartPage_Shared':'',
+                'MSOLayout_LayoutChanges':'',
+                'MSOLayout_InDesignMode':'',
+                '_wpSelected':'',
+                '_wzSelected':'',
+                'MSOSPWebPartManager_OldDisplayModeName':'Browse',
+                'MSOSPWebPartManager_StartWebPartEditingName':'false',
+                'MSOSPWebPartManager_EndWebPartEditing':'false',
+                '_maintainWorkspaceScrollPosition':'0',
+                '__LASTFOCUS':'',
+                '__VIEWSTATE':'',
+                '__VIEWSTATEGENERATOR':'15781244',
+                'query':'',
+                'database':'GFHGXS-GFJLSH',
+                'sUsername':'',
+                'sAdmin':'',
+                'sRoles':'',
+                'activepage':str(nextPage),
+                '__spDummyText1':'',
+                '__spDummyText2':'',
+                '_wpcmWpid':'',
+                'wpcmVal':'',
+            }
+
+            yield FormRequest(postUrl,formdata=formdata, callback=self.parse)
+</code></pre>
+<h4>说明，以下说明要配合上面源码来看，不单独标注了</h4>
+<blockquote>start_urls #要爬取的页面地址，由于各个爬虫要爬取的页面规则略有差异，所以做了6个爬虫，而不是在一个爬虫中写入6个URL。通过查看scrapy源码，我们能够看到，start_urls中的地址会传给一个内件函数start_request（这个函数可以根据自己需要进行重写），start_request向这个start_urls发送请求以后，所得到的response会直接转到下面parse函数处理。</blockquote>
+<blockquote>xpath ，下图是页面源码：<br><span class="img-wrap"><img src="https://segmentfault.com/img/bVbeD57?w=254&amp;h=246" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><p>通过xpath获取到response中class类是'w_newslistpage_list'的ul标签下的所有li标签，这里所得到的就是通知的列表，接下来我们在这个列表中做循环。</p>
+</blockquote>
+<blockquote>先看下li标签内的结构：<br><span class="img-wrap"><img src="https://segmentfault.com/img/bVbeD6S?w=592&amp;h=131" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><p>notice.xpath('.//a/@title').extract()[0] #获取li标签内a标签中的title属性内容，这里就是通知标题<br>notice.xpath('.//a/@href').extract()[0] #获取li标签内a标签中的href属性内容，这里就是通知链接<br>notice.xpath('.//span[2]/text()').extract()[0] #获取li标签内第二个span标签中的内容，这里是通知发布的日期<br>接下来几行就是利用正则表达式讲日期中的年、月、日三组数字提取出来，在转换为日期类型存入item中。</p>
+</blockquote>
+<blockquote>再下一段，是获得通知内容，这里其实有两种方案，一个是用scrapy的request发送给内部爬虫引擎，得到另外一个response后再进行处理，另一种就是我现在这样直接去请求页面。由于内容页面比较简单，只要获得html代码即可，所以就不麻烦scrapy处理了。<br>request.get得到请求页面的html代码<br>利用lxml库的etree方法格式化html为xml结构<br>利用xpath获取到div[@id="contentText"]内所有p标签、div标签节点。（可以得到99%以上的页面内容）<br>所得到的所有节点将是一个list类型数据，所有我们做一个for in循环<br>p.xpath('string(.)') 是获取到p标签或div标签中的所有文本，而无视其他html标签。<br>用replace替换到页面中的半角、全角空格（xa0、u3000）<br>每得到一行清洗过的数据，就将其存入item['noticeContent']中<br>最后将item输出</blockquote>
+<blockquote>在scrapy中，yield item后，item会提交给scrapy引擎，再又引擎发送给pipeline处理。pipeline一会再说。</blockquote>
+<blockquote>接下来的代码就是处理翻页。这里的页面翻页是利用js提交请求完成的，提交请求后，会response一个新的页面列表<br><span class="img-wrap"><img src="https://segmentfault.com/img/bVbeEf1?w=394&amp;h=125" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span><p>首先利用xpath找到页面导航栏的节点，在获取到的所有节点中做for in循环，直到找到带有“下一页”的节点，这里有下一页的页码，还是利用正则表达式来得到它，并将其转为int类型。</p>
+</blockquote>
+<blockquote>yield FormRequest(postUrl,formdata=formdata, callback=self.parse)</blockquote>
+<blockquote>利用scrpay自带的FormRequest发送post请求，这里的formdata是跟踪post请求时得到的，要根据自己的网站调整，callback指示讲得到的response反馈给parse函数处理（也就是新的一页列表）</blockquote>
+<blockquote>到此为止，就是spider文件的所有，这个文件唯一对外的输出就是item，它会有scrapy引擎转给pipeline处理</blockquote>
+<h3>3. pipeline</h3>
+<h4>代码</h4>
+<pre><code>
+from scrapy import signals
+from scrapy.contrib.exporter import CsvItemExporter
+from jlsh_notice import settings
+import pymysql
+import time
+
+import smtplib
+from email.mime.text import MIMEText
+from email.utils import formataddr
+
+
+class JlshNoticePipeline(object):
+    def process_item(self, item, spider):
+        return item
+
+
+# 用于数据库存储
+class MySQLPipeline(object):
+    def process_item(self, item, spider):
+#=======================================================
+        self.connect = pymysql.connect(
+            host=settings.MYSQL_HOST,
+            port=3306,
+            db=settings.MYSQL_DBNAME,
+            user=settings.MYSQL_USER,
+            passwd=settings.MYSQL_PASSWD,
+            charset='utf8',
+            use_unicode=True)
+
+        # 通过cursor执行增删查改
+        self.cursor = self.connect.cursor()
+#=======================================================
+        # 查重处理
+        self.cursor.execute(
+            """select * from jlsh_weblist where 
+                noticeType = %s and 
+                noticeTitle = %s and
+                noticeDate = %s """,
+            (item['noticeType'], item['noticeTitle'], item['noticeDate']))
+        # 是否有重复数据
+        repetition = self.cursor.fetchone()
+#=======================================================
+        # 重复
+        if repetition:
+            print('===== Pipelines.MySQLPipeline ===== 数据重复，跳过，继续执行..... =====')
+        else:
+            # 插入数据
+            content_html = ''
+            for p in item['noticeContent']:
+                content_html = content_html + '&lt;p&gt;' + p + '&lt;/p&gt;'
+
+            self.cursor.execute(
+                """insert into jlsh_weblist(noticeType, noticeTitle, noticeDate, noticeUrl, noticeContent, record_time)
+                value (%s, %s, %s, %s, %s, %s)""",
+                (item['noticeType'], item['noticeTitle'], item['noticeDate'], item['noticeUrl'], content_html, time.localtime(time.time())))
+
+            try:
+                # 提交sql语句
+                self.connect.commit()
+                print('===== Insert Success ! =====', \
+                    item['noticeType'], item['noticeTitle'], item['noticeDate'], item['noticeUrl'])
+            except Exception as error:
+                # 出现错误时打印错误日志
+                print('===== Insert error: %s ====='%error)
+#=======================================================
+            #定向发送邮件
+            if settings.SEND_MAIL:
+                sender='***@***.com'    # 发件人邮箱账号
+                password = '********'              # 发件人邮箱密码
+                receiver='*****@*****.com'      # 收件人邮箱账号，我这边发送给自己
+                title = item['noticeTitle']
+                content = """
+                    &lt;p&gt;%s&lt;/p&gt;
+                    &lt;p&gt;&lt;a href="%s"&gt;%s&lt;/a&gt;&lt;/p&gt;
+                    &lt;p&gt;%s&lt;/p&gt;
+                    %s
+                    """ % (item['noticeType'], item['noticeUrl'], item['noticeTitle'], item['noticeDate'], content_html)
+
+                ret=self.sendMail(sender, password, receiver, title, content)
+                if ret:
+                    print("邮件发送成功")
+                else:
+                    print("邮件发送失败")
+                pass
+            
+        self.connect.close()
+        return item
+#=======================================================
+    def sendMail(self, sender, password, receiver, title, content):
+        ret=True
+        try:
+            msg=MIMEText(content,'html','utf-8')
+            msg['From']=formataddr(['', sender])            # 括号里的对应发件人邮箱昵称、发件人邮箱账号
+            msg['To']=formataddr(["",receiver])             # 括号里的对应收件人邮箱昵称、收件人邮箱账号
+            msg['Subject']="邮件的主题 " + title    # 邮件的主题，也可以说是标题
+    
+            server=smtplib.SMTP("smtp.*****.***", 25)  # 发件人邮箱中的SMTP服务器，端口是25
+            server.login(sender, password)  # 括号中对应的是发件人邮箱账号、邮箱密码
+            server.sendmail(sender,[receiver,],msg.as_string())  # 括号中对应的是发件人邮箱账号、收件人邮箱账号、发送邮件
+            server.quit()  # 关闭连接
+        except Exception:  # 如果 try 中的语句没有执行，则会执行下面的 ret=False
+            ret=False
+        return ret
+#=======================================================   </code></pre>
+<h4>说明</h4>
+<blockquote>这里的pipeline是我自己建立的，写好后在setting中改一下设置就可以了。因为scrapy的去重机制只针对爬虫一次运行过程有效，多次循环爬取就不行了，所以为了实现不爬取重复数据，使用mysql就是比较靠谱的选择了。</blockquote>
+<blockquote>pymysql是python链接mysql的包，没有的话pip安装即可。<br>首先建立一个pymysql.connect实例，将连接mysql的几个参数写进去，我这里是先写到setting里面再导入，也可以直接写，值得注意的是port参数（默认是3306）不要加引号，因为它必须是int类型的。</blockquote>
+<blockquote>接下来建立一个cursor实例，用于对数据表进行增删查改。<br>cursor.execute() 方法是定义要执行的sql命令，这里注意就是execute只是定义，不是执行。<br>cursor.fetchone() 方法是执行sql并返回成功与否的结果。这里进行了数据查询，如果能够查到，说明这条记录已经建立，如果没有，就可以新增数据了。</blockquote>
+<blockquote>由mysql数据库不接受list类型的数据，所以接下来要对item['noticeContent']做一下处理（他是list类型的，还记得么^_^）。在item['noticeContent']中做for in循环，把他的每一项内容用&lt;p&gt;标签包起来，组成一个长字符串。</blockquote>
+<blockquote>接下来还是写sql命令：insert into .....<br>写完以后用connect.commit()提交执行</blockquote>
+<blockquote>最后就是发送邮件了，自建一个sendMail函数，发送邮件用到了两个python包：smtplib 和 email，具体没啥说的，照着写就行了，我是一次成功。。</blockquote>
+<blockquote>到此为止，就可以运行爬虫了，可以看到数据库中已经有了爬取的内容。。。</blockquote>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVbeEre?w=1260&amp;h=132" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<h3>4. settings.py</h3>
+<blockquote>注册pipeline</blockquote>
+<pre><code>ITEM_PIPELINES = {
+    'jlsh_notice.pipelines.MySQLPipeline': 300,
+}</code></pre>
+<blockquote>log输出的定义，四个任选其一</blockquote>
+<pre><code>LOG_LEVEL = 'INFO'
+LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = 'WARNING'
+LOG_LEVEL = 'CRITICAL'</code></pre>
+<blockquote>关于爬虫终止条件的定义，默认不设置</blockquote>
+<pre><code>#在指定时间过后，就终止爬虫程序.
+CLOSESPIDER_TIMEOUT = 60
+
+#抓取了指定数目的Item之后，就终止爬虫程序.
+CLOSESPIDER_ITEMCOUNT = 10
+
+#在收到了指定数目的响应之后，就终止爬虫程序.
+CLOSESPIDER_PAGECOUNT = 100
+
+#在发生了指定数目的错误之后，就终止爬虫程序.
+CLOSESPIDER_ERRORCOUNT = 100</code></pre>
+<h3>5. 实现自动执行</h3>
+<h4>(1) 同时执行多个爬虫。</h4>
+<p>首先，在项目目录下建立新的目录（与spider目录同级），名为“commands”，内建两个文件：</p>
+<blockquote>__init__.py    (空文件，但是要有）</blockquote>
+<blockquote>crawlall.py</blockquote>
+<pre><code>from scrapy.commands import ScrapyCommand
+from scrapy.utils.project import get_project_settings
+ 
+ 
+class Command(ScrapyCommand):
+ 
+    requires_project = True
+ 
+    def syntax(self):
+        return '[options]'
+ 
+    def short_desc(self):
+        return 'Runs all of the spiders'
+ 
+    def run(self, args, opts):
+        spider_list = self.crawler_process.spiders.list()
+        for name in spider_list:
+            self.crawler_process.crawl(name, **opts.__dict__)
+        self.crawler_process.start()</code></pre>
+<blockquote>然后在项目目录下建立一个setup.py文件</blockquote>
+<pre><code>from setuptools import setup, find_packages
+
+setup(name='scrapy-mymodule',
+    entry_points={
+        'scrapy.commands': [
+            'crawlall=jlsh_notice.commands:crawlall',
+            ],
+        },
+    )</code></pre>
+<blockquote>这个时候，在scrapy项目目录下执行scrapy crawlall即可运行所有的爬虫</blockquote>
+<h4>(2) 每隔一段时间运行爬虫。</h4>
+<p>在项目目录下新建一个noticeStart.py文件（名称任意）,利用python中的os和time包实现每隔一段时间运行一个命令。</p>
+<pre><code>import time
+import os
+
+while True:
+    os.system("scrapy crawlall")
+    remindTime = 5
+    remindCount = 0
+    sleepTime = 60
+    while remindCount * remindTime &lt; sleepTime:
+        time.sleep(remindTime*60)
+        remindCount = remindCount + 1
+        print('已等待%s分钟，距离下一次搜集数据还有%s分钟......'%(remindCount*remindTime,(sleepTime/remindTime-(remindCount))*remindTime))   
+    </code></pre>
+<h4>(3) 实现开机运行。</h4>
+<p>首先：由于cmd命令打开目录在c盘，我的scrapy项目在e盘，所以要做一个bat文件跳转目录并运行py文件</p>
+<blockquote>autorun.bat</blockquote>
+<pre><code>e:
+cd e:\PythonProjects\ScrapyProjects\jlsh_notice\jlsh_notice\
+python noticeStart.py</code></pre>
+<p>其次：打开计划任务程序，创建基本任务，运行程序选择刚刚的bat文件，值得说明的是，计划任务触发器不要设置启动后立即执行，不然可能会失败，要延迟1分钟运行。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/bVbeEAk?w=605&amp;h=522" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="clipboard.png" title="clipboard.png"></span></p>
+<p>到此为止，所有的代码完成，以后还要根据实际情况增加更多的通知类别，也可以根据不同领导的关注点不同，分别发送邮件提醒。欢迎有兴趣的朋友留言交流。。。</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000015846612"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="利用Scrapy实现公司内部门户消息邮件通知"
+ data-url="https://segmentfault.com/a/1190000015846612" data-shorturl="http://sfau.lt/b5beEAG"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000015846612"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000015846612"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">0</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000015846612" data-user-id="" data-author-id="1030000012908101 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000015846612/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181119.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181119.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542593724000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _JyHY = //'Cnj'
+'7'+'734'//'8nK'
++'0'//'rq'
++//'b'
+'af'+'e2'//'uac'
++'f'//'dyX'
++'18'//'Ex'
++'de0'//'s8'
++'d3'//'H'
++//'Vx'
+'44f'+'0'//'mL'
++'6ad'//'KqU'
++'873'//'c'
++//'eX'
+'acb'+//'Gbv'
+'1'+/* 'vF'//'vF' */''+'EO'//'EO'
++'5'//'5'
++//'3r'
+'1', _bboe = [[31,33],[31,32]];
+
+    for (var i = 0; i < _bboe.length; i ++) {
+        _JyHY = _JyHY.substring(0, _bboe[i][0]) + _JyHY.substring(_bboe[i][1]);
+    }
+
+    return _JyHY;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u5229\u7528Scrapy\u5b9e\u73b0\u516c\u53f8\u5185\u90e8\u95e8\u6237\u6d88\u606f\u90ae\u4ef6\u901a\u77e5","desc":"\u6211\u672c\u4eba\u6240\u5728\u516c\u53f8\u662f\u4e00\u4e2a\u56fd\u6709\u4f01\u4e1a\uff0c\u81ea\u5efa\u6709\u8f83\u5927\u7684\u5185\u90e8\u7f51\u7edc\u95e8\u6237\u7fa4\uff0c\u51e0\u4e4e\u6240\u6709\u90e8\u95e8\u53d1\u5e03\u5404\u7c7b\u901a\u77e5\u3001\u5de5\u4f5c\u8981\u6c42\u7b49\u6d88\u606f\u90fd\u5728\u95e8\u6237\u7f51\u7ad9\u8fdb\u884c\u3002\u7531\u4e8e\u5bf9\u5e94\u7684\u4e0a\u7ea7\u90e8\u95e8\u6bd4\u8f83\u591a\uff0c\u5404\u7c7b\u901a\u77e5\u901a\u544a\u3001\u9886\u5bfc\u8bb2\u8bdd\u7b49\u5185\u5bb9\u7c7b\u76ee\u7e41\u591a\uff0c\u8981\u770b\u4e00\u904d\u771f\u9700\u8981\u82b1...","link":"https:\/\/segmentfault.com\/a\/1190000015846612","imgUrl":"https:\/\/segmentfault.com\/img\/bVbeD0G?w=324&amp;h=579"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542593724,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

@@ -1,0 +1,1257 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>理解Ruby中的类 - enalix - SegmentFault 思否</title><meta name="description" content="源起于Python开发者&#039;公众号转载的深刻理解Python中的元类一文, 回忆着自己看过的 Ruby元编程 一书, 参照写个相应的Ruby版."/><meta name="keywords" content="元编程,python,ruby"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=元编程,python,ruby'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000005606426" class="hidden" />
+
+<div class="wrap" data-blogid="1200000005600347">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/enalix">enalix</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="enali"
+                                         data-userslug="enali"
+                                         data-useravatar="https://avatar-static.segmentfault.com/210/932/2109324280-574d7eb29b779_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/enali">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/210/932/2109324280-574d7eb29b779_big64" alt="enali">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/enali" class="mr5 "><strong>enali</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">1k</span>
+
+                                                                                                发布于
+                                                <a href="/blog/enalix">enalix</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000005600347">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2016-05-31 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000005606426">
+                                            <a href="/a/1190000005606426"> 理解Ruby中的类</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E5%85%83%E7%BC%96%E7%A8%8B/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="元编程"
+                                                                                data-id="1040000000337416">
+                                                                                                                      元编程
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/ruby/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/347/766/3477662614-1040000000089699_big64" data-placement="top"
+                                                                                data-original-title="ruby"
+                                                                                data-id="1040000000089699">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/336/760/3367608758-54cb53ca5a132_small">
+                                                                                                                      ruby
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                1.9k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 38 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">2</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000005606426" data-license="cc">
+                    
+<blockquote><p>live with scope</p></blockquote>
+<h2>序言</h2>
+<p>源起于Python开发者'公众号转载的<a>深刻理解Python中的元类</a>一文, 回忆着自己看过的 <em>Ruby元编程</em> 一书, 参照写个相应的Ruby版.</p>
+<p>Python和Ruby在很多方面都非常相像, 特别是Ruby的设计部分参考了Python. 但在很多方面, 它俩的很多概念并非一一对应的. 在这里的 <em>元类</em> 在Ruby 中并没有相应的概念, 如果理解为创建类的类, 最相近的应该是<code>Class</code> .</p>
+<p>这里不会将那篇文章的内容都复制过来, 只是挑选不一样的地方写一写, 因此, 你最好已经读过那篇文章了. 读这篇时, 最好对照着读.</p>
+<h2>类也是对象</h2>
+<p>相比Python, Ruby语言有着最纯粹的面向对象编程的设计. 同样的,Ruby的类的概念也是借鉴于Smalltalk. 关于什么是类, 我更倾向于理解为, 描述一个对象的状态(实例变量)和操作(方法)的代码段.</p>
+<pre><code class="rb">class ObjectCreator &lt; Object; end  #=&gt; nil
+my_object = ObjectCreator.new  #=&gt;#&lt;ObjectCreator:0x00000000b41400&gt;
+print my_object  #=&gt;nil</code></pre>
+<p>说明:</p>
+<ul>
+<li><p>类默认继承自<code>Object</code>, 因此<code>&lt; Object</code>非必要. 原文的<code>Python</code>代码也是.</p></li>
+<li><p>在Ruby 中, 在不引起歧义的前提下, 函数调用的<code>()</code>可以省略. 这里同原文的Python 代码虽然看起来相同, 但原理完全不同.Python2.7中, <code>print</code>实现为语句, 但在Python 3.x中, 实现为全局函数, 则必须加<code>()</code>表示调用.</p></li>
+<li><p>这里的<code>#=&gt;</code>表示输出的结果, <code>print</code>无输出, 即<code>nil</code>来表示无</p></li>
+</ul>
+<p>同Python, Ruby的类同样也是对象. 不同于Python, Ruby中的<code>class</code>实际是打开一个类, 如果类不存在则创建它. 换句话说, 在Python中重复<code>class</code>定义同一类, 后者会覆盖前者, 而在Ruby中, 类是同一个, 后者只是给这个类添加了新的方法或变量. </p>
+<p>Python:</p>
+<pre><code class="py">class N1:
+  def __init__(self, name):
+    self.name = name
+  def hello(self, s):
+    return self.name + s
+N1("lzp").hello(" is good man")  #=&gt; "lzp is good man"
+class N1:
+  def __init__(self, name):
+    self.name = name
+  def world(self, s):
+    return self.name + s
+N1("lzp").hello(" is good man")  #=&gt; AttributeError, 无属性
+N1("lzp").world(" is good man")  #=&gt; "lzp is good man"</code></pre>
+<p>Ruby:</p>
+<pre><code class="rb">class N1
+  def initialize(name)
+    @name = name
+  end
+  def hello(s)
+    @name + s
+  end
+end
+N1.new("lzp").hello(" is good man")  #=&gt; "lzp is good man"
+class N1
+  def initialize(name)
+    @name = name
+  end
+  def world(s) @name + s end
+end
+N1("lzp").hello(" is good man")  #=&gt; "lzp is good man"
+N1("lzp").world(" is good man")  #=&gt; "lzp is good man"</code></pre>
+<ul>
+<li><p>Ruby少了无语的<code>self</code>, 但多了无语的<code>end</code>.</p></li>
+<li><p>Ruby的函数默认返回最后一个表达式的值, 但在Python中则必须显示地<code>return</code>.</p></li>
+<li><p>Ruby的方法定义可以写成一行,Python来咬我啊</p></li>
+</ul>
+<p>很多语言都声称 _xx语言中一切都是对象_, 包括Java. 很明显, 不同语言中的对象概念应该是有区别的, 那么如何来理解对象呢. 这里我基本同意原文中所说, 可赋值, 可拷贝, 可增加属性, 可作参传递.</p>
+<p>注意, 不要将对象和对象的引用混淆, 对象的引用往往表现为常见的各种标识符.</p>
+<pre><code>Rb: ObjectCreator.to_s  #=&gt; "ObjectCreator"
+Py: str(ObjectCreator)  #=&gt; &lt;class '__main__.ObjectCreator'&gt;</code></pre>
+<p>由于<code>print</code>函数实际是调用对象转字符串后输出, 并无特殊意义. 下面的例子更好地展示了, 作参传递.</p>
+<p>Python:</p>
+<pre><code class="py">def new(o):  return o()
+oc1 = new(ObjectCreator)  #=&gt;&lt;__main__.ObjectCreator at 0x...&gt;, 新的实例对象</code></pre>
+<p>Ruby:</p>
+<pre><code class="rb">def new(o) o.new end
+oc1 = new(ObjectCreator)  #=&gt;#&lt;ObjectCreator:0x...&gt;, 新的实例对象</code></pre>
+<h2>Python属性操作</h2>
+<p>Python 中有3个全局函数, 用于对象的属性操作.</p>
+<ul>
+<li><p><code>hasattr(obj, 'attr_name')</code>判断对象是否有此属性,</p></li>
+<li><p><code>getattr(obj, 'attr_name')</code>获取对象指定属性,</p></li>
+<li><p><code>setattr(obj, 'attr_name', attr_value)</code>则是设置指定属性</p></li>
+<li><p><code>obj.new_attr = attr_value</code>设置属性.</p></li>
+<li><p><code>delattr(obj, 'attr_name')</code>删除属性.</p></li>
+</ul>
+<p>Python中的属性是一个宽泛的概念, 包括类变量, 实例变量, 类方法和实例方法. 这其中的区别是非常经典的, 且在不同语言中有不同的名称, 有不同的书面写法.</p>
+<ul>
+<li><p>类变量, 通常指依附于类本身而非类的实例的变量, 表述的是类的状态</p></li>
+<li><p>实例变量, 类的每个实例有独立的变量, 来表述实例对象的状态</p></li>
+<li><p>类方法, 通过类名调用的方法</p></li>
+<li><p>实例方法, 通过类的实例对象调用的方法</p></li>
+</ul>
+<p>在Python中, 通过给<code>self.var_name</code>赋值创建实例变量, 类定义中方法外赋值的非<code>self</code>变量都是类变量. 定义方法时, 传递有<code>self</code>参数的是实例方法, 否则为类方法.</p>
+<p>Python:</p>
+<pre><code class="py">class N2:
+  class_var = 3  # 类变量, 也能通过实例对象访问
+  def __init__(self, name):
+    self.name = name  #实例变量
+  def hello(self, s):
+    return "hello " + self.name + s
+  def world(s):
+    return "world " + N2.c_var + s
+n2 = N2("lzp")
+n2.hello(" is good man")  #=&gt; "hello lzp is good man"
+N2.hello(n2, " is good man")  #=&gt; "hello lzp is good man"
+n2.world(" lzp")  #=&gt; 函数只要参数, 但参数多余
+N2.world(" lzp")  #=&gt; "world lzp"</code></pre>
+<p>Python在类的方法设计上很取巧. 就如之后所说, Python其实是没有类方法一说的, 全部都是函数. 类的方法第一个参数是<code>self</code>, 像在<code>world</code>方法定义中, 没有<code>self</code>, 方法内是不能引用实例变量的. 且此处是不是<code>self</code>也无所谓, 任意标识符都可以, 基于惯例使用<code>self</code>. 且在对象上调用方法, 本质上只是将对象作为接收者, 作为第一参数传递给函数. 若函数的第一参数不是<code>self</code>, 则在对象上调用方法会提示多余参数.</p>
+<p>在Python中, 函数是对象, 同其他所有对象一样. 因此大一统的去理解Python的类概念就是: 类是对象, 对象有属性, 属性即变量名和其对应的对象. 若对应的对象是函数对象, 则对应的变量是函数名, 其中第一参数为<code>self</code>的为类实例方法.</p>
+<p>从属性的角度重新定义N2, Python:</p>
+<pre><code class="py">class N2: pass
+N2.c_var = 3
+def init(self, name):  self.name = name
+N2.__init__ = init
+N2.hello = lambda self, s: "hello" + self.name + s
+N2.world = lambda s: "world " + N2.c_var + s</code></pre>
+<p>这让我想起了<code>USB</code>, 支持热插拔, 即插即用, 想插就插,Python老爹真任性. 这里使用了<code>lambda</code>来定义匿名函数.</p>
+<h2>Ruby属性操作</h2>
+<p>Ruby没有属性一说, 但你也可以去宽泛地去理解. 相反的,Ruby的类变量, 实例变量, 类方法和实例方法是清晰地分开的, 毕竟是纯粹地面向对象. 另一个,Ruby其实没有函数一说, 所有函数都有其所属的类, 没有单独的函数, 或者说Ruby只有方法. 关于属性, 另一个其他面向对象语言中相似的概念是 _域_, 就是在类中占块地, 放变量还是函数都行.</p>
+<p>Ruby:</p>
+<pre><code class="rb">class N2
+  @c_i_var = 1  #类的实例变量
+  @@c_var = 3   #类变量, 子类可继承
+  def initialize(name)
+    @name = name
+  end
+  def hello(s)
+    "hello" + @name + s
+  end
+  def self.world(s)  #类方法
+    "world " + @@c_var.to_s + s
+  end
+end
+N2.new("lzp").hello(" is good man")  #=&gt; "lzp is good man"
+N2.world(" is good man") #=&gt; "world 3 is good man"</code></pre>
+<p>在这里, 类的实例变量可以理解为类作为对象的实例变量. 实例变量是专属于对象的. 而类变量则是属于整个类体系的, 即它的所有子类都可以访问.</p>
+<p>回到原文, Python中的属性对应Ruby的多个概念. 因此对属性的操作也是分不同的在进行.</p>
+<p>Ruby:</p>
+<pre><code class="rb">n1 = N1.new("lzp")
+n1.instance_variables  # 返回所有实例变量
+n1.instance_variable_set("@age", 3)  #=&gt; 设置实例变量
+n1.instance_variable_get("@age")  #=&gt;实例变量
+n1.instance_variable_defined?("@age")  #=&gt; 判断有无
+n1.class_variables  # 返回所有类变量
+n1.class_variable_get/set/defined?  #同上
+N1.instance_methods(false)  # 列出所有非继承的实例方法
+N1.singleton_methods  # 列出所有非继承的类方法</code></pre>
+<p>这里的<code>singleton_methods</code>可以理解为类方法. 但严格地说, 它是专属于对象的方法. 若专属于类, 则成为类方法. 换句话说,Ruby没有类方法一说, 称为单件方法.</p>
+<p>Ruby中, 一切皆对象. 因此有必要来理解下Ruby的对象模型, 详细地建议看 _Ruby元编程_一书.</p>
+<p>对象由状态, 所属类的引用和操作构成. 状态和操作都是专属的, 只能由本对象进行<code>.</code>运算. 普通对象的状态即实例变量, 操作即单件方法, 类对象的状态即类的实例变量即类变量, 类对象的操作即类的单件方法即类方法, 其实本质是相同的. 每个对象都存储有对所属类的引用, 以此来知晓可调用的实例方法. </p>
+<p>所谓所属类的引用, 很简单, 在对象上调用<code>#class</code>方法即可</p>
+<pre><code class="rb">1.class  #=&gt; Fixnum
+"1".class  #=&gt; String
+Fixnum.class  #=&gt; Class
+String.class  #=&gt; Class</code></pre>
+<p>在后文会看到Python中相应的概念<code>type</code>.</p>
+<h2>动态地创建类</h2>
+<p>Ruby也能在函数中创建类.</p>
+<pre><code class="rb">def choose_class(name)
+  if (name=='foo')
+    Class.new {def hello "hello" end}
+  else
+    Class.new {def world "world" end}
+  end
+end
+MyClass = choose_class('foo')
+MyClass.new.hello  #=&gt; "hello"</code></pre>
+<p>这里不能使用原文中相似的<code>class</code>, 会提示不能在<code>def</code>中定义类. 不得不提前使用大招<code>Class.new</code>.</p>
+<p>之前写到<code>String.class</code>为<code>Class</code>, 也就是说, 在Ruby中, 所有的类都是<code>Class</code>的对象. 注意大小写. 自然, 创建新的类, 也就是创建<code>Class</code>的实例对象, 使用<code>new</code>操作, 同其他所有类一样. 不过创建的是匿名类, 赋值给一个首字母大写的常量名即可.</p>
+<pre><code class="rb">a = Class.new
+a.name  #=&gt; nil
+a.new.class  #=&gt; xxx
+A = a
+A.name  #=&gt; A
+A.new.class  #=&gt; A</code></pre>
+<p>好了, 原文进行到了Python的所有类的<code>type</code>都是<code>type</code>. 在本质上, 一切类的生成都是通过调用<code>type</code>进行的.</p>
+<p>将上述Ruby代码原样翻译过来, 对应的Python代码为:</p>
+<pre><code class="rb">def choose_class(name):
+  if name=='foo':
+    return type('Foo', (), {'hello': lambda self:"hello"})
+  else:
+    return type('Bar', (), {'world': lambda self:"world"})
+MyClass = choose_class('foo')
+MyClass().hello()  #=&gt; "hello"</code></pre>
+<p>解释下参数, 第一个是类名字符串, 第二个基类的元组,Python支持多继承, 可以有多个基类, 所谓的基类可以理解为超类, 父类等概念. 第三个是属性, 由前所知, 类中的一切都是属性. 如此即可定义一个新类.</p>
+<p>但不同于Ruby, <code>type</code>的第一个参数即类名, 跟<code>MyClass</code>无关, 即赋值不会改变类名. 但Ruby是在将类对象第一次赋值给常量时生成类名的, 之后赋值也不会改变.</p>
+<p>在Ruby中, <code>Class.new(superclass)</code>来表示继承类.Ruby中只支持单继承, 通过模块来添加不同的功能. </p>
+<p>前文提到,Ruby的类有打开性质, 给类添加方法和变量是非常方便.</p>
+<h2>到底什么是元类</h2>
+<p>这里需要先普及几个常用的操作:</p>
+<p>Python:</p>
+<pre><code class="py">a = 1
+a.__class__  #=&gt; int, 对象的类
+type(1)  #=&gt; int
+int.__base__  #=&gt; object, 类的基类
+int.__bases__  #=&gt; (object,), 类的基类元组</code></pre>
+<p>Ruby:</p>
+<pre><code class="rb">1.class  #=&gt; Fixnum, 对象的类
+Fixnum.superclass  #=&gt; Integer, 类的超类
+Fixnum.ancestors  #=&gt; [Fixnum, Integer, Numeric, Comparable, Object, Kernel, BasicObject], 类的祖先链</code></pre>
+<p>所谓祖先链, 即类, 类的超类, 类的超类的超类, ...一直到最初始的类, 即<code>BasicObject</code>. 其实, 在1.9之前, 所有类都是继承自<code>Object</code>, 后来又在前面加入了<code>BasicObject</code>, 个人猜测是为了所谓洁净室技术吧.</p>
+<p>原文提到, 不断地调用<code>.__class__</code>属性, 最终会到达<code>type</code>类型 ,Ruby中对应的, 不断调用<code>.class</code>方法, 最终会到达<code>Class</code>类型. 原文中可以从<code>type</code>继承, 来创建元类. 但在Ruby中是不能创建<code>Class</code>的子类.</p>
+<p>原文提到的<code>__metaclass__</code>属性, 我思考了很久, 基本确认Ruby中没有相似的概念. 就举的将属性名大写的例子而言, 应该是在用<code>class</code>定义类时, 会自动调用这个属性(所引用的函数对象). 初步看, 有种钩子方法的感觉. 就是"定义类"这个事件发生时, 会自动触发执行<code>__metaclass__</code>属性.</p>
+<p>Ruby也有一些钩子方法:</p>
+<ul>
+<li><p><code>included</code>表示模块被包含时执行,</p></li>
+<li><p><code>extended</code>表示模块被后扩展时执行,</p></li>
+<li><p><code>prepended</code>表示模块被前扩展时执行,</p></li>
+<li><p><code>inherited</code>表示类被继承时执行,</p></li>
+<li><p><code>method_missing</code>表示对象调用不存在的方法时执行.</p></li>
+</ul>
+<p>但目前没找到当定义类时被执行的钩子方法. 所以像原文的大写属性名的操作, 还真不知道如何进行. 但事实上,Ruby的对应属性的标识符有严格的规定, 不可能大写首字母. 如类变量<code>@@var</code>, 实例变量<code>@var</code>, 方法名<code>two_method</code>.</p>
+<p>但如果实现不了这个, 总觉得Ruby有种被比下去的感觉, 虽然大写所有属性首字母的操作似乎没有意义.</p>
+<pre><code class="rb">class N
+  def hello; "hello"; end
+  instance_methods(false).each {|x| alias_method x.capitalize, x; remove_method x}
+end
+N.new.Hello  #=&gt; "hello"
+N.new.hello  #=&gt; 方法未定义</code></pre>
+<p>这是大写所有实例方法名的首字母, 核心的思想是, 为原方法建立新的别名, 再删掉原方法. 同Python一样,Ruby的类是在执行代码.</p>
+<pre><code class="ruby">class N; puts "hello"; end  #=&gt; "hello"</code></pre>
+<p>Ruby:</p>
+<pre><code class="rb">class N
+  def self.world; "world"; end
+  class &lt;&lt; self
+    instance_methods(false).each {|x| alias_method x.capitalize, x; remove_method x}
+  end
+end
+N.World  #=&gt; "world"
+N.world  #=&gt; 方法未定义</code></pre>
+<p>这是大写所有的类方法名的首字母.</p>
+<pre><code class="rb">class N
+  @name = "lzp"
+  instance_variables.each {|x| instance_variable_set("@"+x.to_s[/\w+/].capitalize, @name); @name = nil}
+end
+N.class_eval {@Name}  #=&gt; "lzp"
+N.class_eval {@name}  #=&gt; nil</code></pre>
+<p>这是大写所有的类的实例变量. </p>
+<p>由于Ruby的实例变量默认是不能从外部访问的, 不得不使用<code>.class_eval</code>来打开类的上下文.</p>
+<p>不存在如何大写所有实例变量的代码, 因此在类实例化前, 实例对象的实例变量是不存在的.</p>
+<p>好吧, 我承认, 这实现的很别扭. 在同一操作的表述上, 不同语言有不同的书面写法, 也自然有简单有繁杂.</p>
+<h2>函数式特性</h2>
+<p>谈点别的, 有关函数式特性, 使用<code>map/filter/reduce</code>.</p>
+<p>Python:</p>
+<pre><code class="py">a = ["he", "hk", "ok"]
+list(map(lambda x: x*2, a))  #=&gt;["hehe", "hkhk", "okok"]
+list(filter(lambda x: x.startswith("h"), a))  #=&gt; ["he", "hk"]
+import functiontools.reduce
+reduce(lambda x,y: x+":"+y, a)  #=&gt; "he:hk:ok"</code></pre>
+<p>用上述函数来替换原文中的语句:</p>
+<pre><code class="py">dict(map(lambda i: (i[0].upper(), i[1]), filter(lambda i: not i[0].startswith("__"), future_class_attr.items())))</code></pre>
+<p>好吧, 我承认我的Python技术真不高, 如果真写成一行, 完全看不懂了, 原文作者那样写更清晰简洁易懂, 当然更主要的是, 用<code>map/filter</code>会引入新的难点, 容易偏离主题. </p>
+<p>希望有高手能告诉我, 将一个类的所有非"__"的属性的键变为大写如何以更函数式的方式表达出来.</p>
+<p>Ruby:</p>
+<pre><code class="rb">a = ["he", "hk", "ok"]
+a.map {|x| x*2}  #=&gt; ["hehe", "hkhk", "okok"]
+a.select {|x| x.start_with? "h"}  #=&gt; ["he", "hk"]
+a.reject {|x| x.start_with? "h"}  #=&gt; ["ok"]
+a.reduce {|sum, x| sum + ":" + x}  #=&gt; "he:hk:ok"</code></pre>
+<p>同样的, 用上述来替换原文的代码.</p>
+<pre><code class="rb">future_class_attr.reject {|k,v| k.start_with? "__"}.map {|k,v| k.upcase}</code></pre>
+<p>Python3.x删除了<code>reduce</code>函数, 推荐使用<code>for</code>循环, 也可以使用<code>funtools.reduce</code>. 这跟Ruby完全不同,Ruby提倡使用<code>each</code>, <code>map</code>等迭代, 而<code>for</code>在底层也是在调用<code>each</code>.</p>
+<h2>一切皆对象.</h2>
+<p>Python和Ruby都号称一切皆对象, 但很明显两个的对象概念并不完全对等.</p>
+<pre><code>Py: 1.__class__  #=&gt; 语法错误
+Py: a = 1; a.__class__  #=&gt; int
+Rb: 1.class  #=&gt; Fixnum
+Py: 1.real  #=&gt; 语法错误
+Py: b = 1; b.real  #=&gt; 1
+Rb: 1.real  #=&gt; 1
+Py: "lzp".upper()  #=&gt;"LZP", 但在ipython中不补全方法
+Py: s = "lzp"; s.upper()  #补全
+Rb: "lzp".upcase  #=&gt; "LZP", 补全</code></pre>
+<p>以上说明, 对对象和对象的引用调用方法是有区别的, 具体什么原理以及详细的区别, 我说明不了.</p>
+<pre><code class="py">def hello(name): return "hello" + name
+hello.__class__  #=&gt; function</code></pre>
+<p><code>Ruby</code>的方法不是对象, 不能赋值, 不能为参传递.</p>
+<pre><code class="rb">def hello(name); "hello" + name; end
+hello.class  #=&gt; 参数错误
+new_hello = hello  #=&gt; 参数错误
+def echo(o); o(); end
+echo(hello)  #=&gt; 参数错误</code></pre>
+<p>你是不是觉得问题挺大的, 这几种对象的特征竟然都不满足. 但这些其实是一个错误, 前文有提到, 对于Ruby的方法调用, 在不引起歧义的情况下, <code>()</code>是可以省略. 在这里, 所有出现<code>hello</code>的位置都默认你在调用方法, 但方法定义有参数, 你不传递参数, 所以错误是同一个, 少参数.</p>
+<p>函数作为对象最终用处都是被调用, 因此, 只从表面来看, <code>Ruby</code>中通过<code>def</code>定义的方法不是对象. 但本质上, 在Ruby中, 出现方法名的地方全被视为对方法的调用, 也就是说, <code>hello</code>是方法调用, 而不是方法引用, 并不表征方法本身. 那么如何获取方法本身的对象呢?</p>
+<pre><code class="rb">new_hello = method :hello
+new_hello.call("lzp")  #=&gt; "hellolzp"
+new_hello.("lzp")  #=&gt; "hellolzp"
+new_hello["lzp"]  #=&gt; "hellolzp"
+new_hello.class  #=&gt; Method
+new_2_hello = new_hello</code></pre>
+<p>注意, 在这里可以看出, 在绝大部分语言中, <code>()</code>都是函数调用的标志. 但在Ruby中, <code>()</code>只是在有歧义情况下, 区分哪个参数是哪个函数的. 因此, 当函数作为对象时, 不得不创建新的表示调用的标志, 在这里是<code>.call</code>, <code>[]</code>, <code>.()</code>.</p>
+<p>函数并不是唯一的可调用对象.</p>
+<pre><code class="rb">hello = lambda {|name| "hello" + name}
+hello = -&gt;(name) {"hello" + name}
+hello = proc {|name| "hello" + name}
+hello = Proc.new {|name| "hello" + name}</code></pre>
+<h2>后记</h2>
+<p>事实上, <code>Class.new</code> 属于 Ruby 元编程的一部分, 但 Ruby 的元编程就像普通编程一样, 没有任何神秘复杂的语法. 这里真的只是冰山一角.</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000005606426"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="理解Ruby中的类"
+ data-url="https://segmentfault.com/a/1190000005606426" data-shorturl="http://sfau.lt/b5xGEo"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000005606426"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">2 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000005606426"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">5</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000005606426" data-user-id="" data-author-id="1030000004363226 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000005606426/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181120.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181120.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542685949000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _lB0nQ = 'W6'//'W6'
++'S'//'S'
++'a'//'dx'
++/* 'a'//'a' */''+//'5'
+'76'+//'l3I'
+'147'+//'T'
+'a9b'+'b'//'2Fd'
++//'2r'
+'d'+'pf'//'pf'
++'5'//'5'
++''///*'rg'*/'rg'
++//'FE'
+'3b5'+'GLY'//'GLY'
++'Sp'//'Sp'
++//'e0'
+'ac'+//'qS'
+'1c'+//'y'
+'y'+''///*'g'*/'g'
++/* 'hFO'//'hFO' */''+'I'//'I'
++//'dk6'
+'dk6'+'b'//'8HI'
++'3'//'l'
++//'XCG'
+'5'+//'6'
+'62'+'235'//'Qqq'
++'94'//'SM'
++//'A'
+'fc'+'EF'//'EF'
++/* 'J'//'J' */''+'8d'//'a'
+, _pQgXr2 = [[0,2],[0,1],[11,13],[11,12],[14,17],[14,16],[18,19],[18,19],[18,21],[30,32]];
+
+    for (var i = 0; i < _pQgXr2.length; i ++) {
+        _lB0nQ = _lB0nQ.substring(0, _pQgXr2[i][0]) + _lB0nQ.substring(_pQgXr2[i][1]);
+    }
+
+    return _lB0nQ;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u7406\u89e3Ruby\u4e2d\u7684\u7c7b","desc":"\u6e90\u8d77\u4e8ePython\u5f00\u53d1\u8005'\u516c\u4f17\u53f7\u8f6c\u8f7d\u7684\u6df1\u523b\u7406\u89e3Python\u4e2d\u7684\u5143\u7c7b\u4e00\u6587, \u56de\u5fc6\u7740\u81ea\u5df1\u770b\u8fc7\u7684 Ruby\u5143\u7f16\u7a0b \u4e00\u4e66, \u53c2\u7167\u5199\u4e2a\u76f8\u5e94\u7684Ruby\u7248.","link":"https:\/\/segmentfault.com\/a\/1190000005606426","imgUrl":"https:\/\/avatar-static.segmentfault.com\/210\/932\/2109324280-574d7eb29b779_huge256"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542685950,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

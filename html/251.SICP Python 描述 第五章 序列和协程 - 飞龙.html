@@ -1,0 +1,1333 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>SICP Python 描述 第五章 序列和协程 - 飞龙 - SegmentFault 思否</title><meta name="description" content="在这一章中，我们通过开发新的工具来处理有序数据，继续讨论真实世界中的应用。在第二张中，我们介绍了序列接口，在 Python 内置的数据类型例如tuple和list中实现。序列支持两个操作：获取长度和由下标访问元素。..."/><meta name="keywords" content="sicp,python"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=sicp,python'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000006576587" class="hidden" />
+
+<div class="wrap" data-blogid="1200000000628170">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/flygon">飞龙</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="飞龙"
+                                         data-userslug="wizardforcel"
+                                         data-useravatar="https://avatar-static.segmentfault.com/167/345/167345817-57ccc1a927f88_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/wizardforcel">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/167/345/167345817-57ccc1a927f88_big64" alt="飞龙">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/wizardforcel" class="mr5 "><strong>飞龙</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">5.4k</span>
+
+                                                                                                发布于
+                                                <a href="/blog/flygon">飞龙</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000000628170">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2016-08-16 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000006576587">
+                                            <a href="/a/1190000006576587"> SICP Python 描述 第五章 序列和协程</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/sicp/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="sicp"
+                                                                                data-id="1040000000784880">
+                                                                                                                      sicp
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                730 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 56 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000006576587" data-license="sa">
+                    
+<h1>第五章 序列和协程</h1>
+<blockquote>
+<p>来源：<a href="http://www-inst.eecs.berkeley.edu/~cs61a/sp12/book/streams.html" rel="nofollow noreferrer">Chapter 5: Sequences and Coroutines</a></p>
+<p>译者：<a href="https://github.com/wizardforcel" rel="nofollow noreferrer">飞龙</a></p>
+<p>协议：<a href="http://creativecommons.org/licenses/by-nc-sa/4.0/" rel="nofollow noreferrer">CC BY-NC-SA 4.0</a></p>
+</blockquote>
+<h2>5.1 引言</h2>
+<p>在这一章中，我们通过开发新的工具来处理有序数据，继续讨论真实世界中的应用。在第二张中，我们介绍了序列接口，在 Python 内置的数据类型例如<code>tuple</code>和<code>list</code>中实现。序列支持两个操作：获取长度和由下标访问元素。第三章中，我们开发了序列接口的用户定义实现，用于表示递归列表的<code>Rlist</code>类。序列类型具有高效的表现力，并且可以让我们高效访问大量有序数据集。</p>
+<p>但是，使用序列抽象表示有序数据有两个重要限制。第一个是长度为<code>n</code>的序列的要占据比例为<code>n</code>的内存总数。于是，序列越长，表示它所占的内存空间就越大。</p>
+<p>第二个限制是，序列只能表示已知且长度有限的数据集。许多我们想要表示的有序集合并没有定义好的长度，甚至有些是无限的。两个无限序列的数学示例是正整数和斐波那契数。无限长度的有序数据集也出现在其它计算领域，例如，所有推特状态的序列每秒都在增长，所以并没有固定的长度。与之类似，经过基站发送出的电话呼叫序列，由计算机用户发出的鼠标动作序列，以及飞机上的传感器产生的加速度测量值序列，都在世界演化过程中无限扩展。</p>
+<p>在这一章中，我们介绍了新的构造方式用于处理有序数据，它为容纳未知或无限长度的集合而设计，但仅仅使用有限的内存。我们也会讨论这些工具如何用于一种叫做协程的程序结构，来创建高效、模块化的数据处理流水线。</p>
+<h2>5.2 隐式序列</h2>
+<p>序列可以使用一种程序结构来表示，它不将每个元素显式储存在内存中，这是高效处理有序数据的核心概念。为了将这个概念用于实践，我们需要构造对象来提供序列中所有元素的访问，但是不要事先把所有元素计算出来并储存。</p>
+<p>这个概念的一个简单示例就是第二章出现的<code>range</code>序列类型。<code>range</code>表示连续有界的整数序列。但是，它的每个元素并不显式在内存中表示，当元素从<code>range</code>中获取时，才被计算出来。所以，我们可以表示非常大的整数范围。只有范围的结束位置才被储存为<code>range</code>对象的一部分，元素都被凭空计算出来。</p>
+<pre><code class="py">&gt;&gt;&gt; r = range(10000, 1000000000)
+&gt;&gt;&gt; r[45006230]
+45016230</code></pre>
+<p>这个例子中，当构造范围示例时，并不是这个范围内的所有 999,990,000 个整数都被储存。反之，范围对象将第一个元素 10,000 与下标相加 45,006,230 来产生第 45,016,230 个元素。计算所求的元素值并不从现有的表示中获取，这是惰性计算的一个例子。计算机科学将惰性作为一种重要的计算工具加以赞扬。</p>
+<p>迭代器是提供底层有序数据集的有序访问的对象。迭代器在许多编程语言中都是内建对象，包括 Python。迭代器抽象拥有两个组成部分：一种获取底层元素序列的下一个元素的机制，以及一种标识元素序列已经到达末尾，没有更多剩余元素的机制。在带有内建对象系统的编程语言中，这个抽象通常相当于可以由类实现的特定接口。Python 的迭代器接口会在下一节中描述。</p>
+<p>迭代器的实用性来源于一个事实，底层数据序列并不能显式在内存中表达。迭代器提供了一种机制，可以依次计算序列中的每个值，但是所有元素不需要连续储存。反之，当下个元素从迭代器获取的时候，这个元素会按照请求计算，而不是从现有的内存来源中获取。</p>
+<p>范围可以惰性计算序列中的元素，因为序列的表示是统一的，并且任何元素都可以轻易从范围的起始和结束位置计算出来。迭代器支持更广泛的底层有序数据集的惰性生成，因为它们不需要提供底层序列任意元素的访问途径。反之，它们仅仅需要按照顺序，在每次其它元素被请求的时候，计算出序列的下一个元素。虽然不像序列可访问任意元素那样灵活（叫做随机访问），有序数据序列的顺序访问对于数据处理应用来说已经足够了。</p>
+<h3>5.2.1 Python 迭代器</h3>
+<p>Python 迭代器接口包含两个消息。<code>__next__</code>消息向迭代器获取所表示的底层序列的下一个元素。为了对<code>__next__</code>方法调用做出回应，迭代器可以执行任何计算来获取或计算底层数据序列的下一个元素。<code>__next__</code>的调用让迭代器产生变化：它们向前移动迭代器的位置。所以多次调用<code>__next__</code>会有序返回底层序列的元素。在<code>__next__</code>的调用过程中，Python 通过<code>StopIteration</code>异常，来表示底层数据序列已经到达末尾。</p>
+<p>下面的<code>Letters</code>类迭代了从<code>a</code>到<code>d</code>字母的底层序列。成员变量<code>current</code>储存了序列中的当前字母。<code>__next__</code>方法返回这个字母，并且使用它来计算<code>current</code>的新值。</p>
+<pre><code class="py">&gt;&gt;&gt; class Letters(object):
+        def __init__(self):
+            self.current = 'a'
+        def __next__(self):
+            if self.current &gt; 'd':
+                raise StopIteration
+            result = self.current
+            self.current = chr(ord(result)+1)
+            return result
+        def __iter__(self):
+            return self</code></pre>
+<p><code>__iter__</code>消息是 Python 迭代器所需的第二个消息。它只是简单返回迭代器，它对于提供迭代器和序列的通用接口很有用，在下一节会描述。</p>
+<p>使用这个类，我们就可以访问序列中的字母：</p>
+<pre><code class="py">&gt;&gt;&gt; letters = Letters()
+&gt;&gt;&gt; letters.__next__()
+'a'
+&gt;&gt;&gt; letters.__next__()
+'b'
+&gt;&gt;&gt; letters.__next__()
+'c'
+&gt;&gt;&gt; letters.__next__()
+'d'
+&gt;&gt;&gt; letters.__next__()
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "&lt;stdin&gt;", line 12, in next
+StopIteration</code></pre>
+<p><code>Letters</code>示例只能迭代一次。一旦<code>__next__()</code>方法产生了<code>StopIteration</code>异常，它就从此之后一直这样了。除非创建新的实例，否则没有办法来重置它。</p>
+<p>迭代器也允许我们表示无限序列，通过实现永远不会产生<code>StopIteration</code>异常的<code>__next__</code>方法。例如，下面展示的<code>Positives</code>类迭代了正整数的无限序列：</p>
+<pre><code class="py">&gt;&gt;&gt; class Positives(object):
+        def __init__(self):
+            self.current = 0;
+        def __next__(self):
+            result = self.current
+            self.current += 1
+            return result
+        def __iter__(self):
+            return self</code></pre>
+<h3>5.2.2 <code>for</code>语句</h3>
+<p>Python 中，序列可以通过实现<code>__iter__</code>消息用于迭代。如果一个对象表示有序数据，它可以在<code>for</code>语句中用作可迭代对象，通过回应<code>__iter__</code>消息来返回迭代器。这个迭代器应拥有<code>__next__()</code>方法，依次返回序列中的每个元素，最后到达序列末尾时产生<code>StopIteration</code>异常。</p>
+<pre><code class="py">&gt;&gt;&gt; counts = [1, 2, 3]
+&gt;&gt;&gt; for item in counts:
+        print(item)
+1
+2
+3</code></pre>
+<p>在上面的实例中，<code>counts</code>列表返回了迭代器，作为<code>__iter__()</code>方法调用的回应。<code>for</code>语句之后反复调用迭代器的<code>__next__()</code>方法，并且每次都将返回值赋给<code>item</code>。这个过程一直持续，直到迭代器产生了<code>StopIteration</code>异常，这时<code>for</code>语句就终止了。</p>
+<p>使用我们关于迭代器的知识，我们可以拿<code>while</code>、赋值和<code>try</code>语句实现<code>for</code>语句的求值规则：</p>
+<pre><code class="py">&gt;&gt;&gt; i = counts.__iter__()
+&gt;&gt;&gt; try:
+        while True:
+            item = i.__next__()
+            print(item)
+    except StopIteration:
+        pass
+1
+2
+3</code></pre>
+<p>在上面，调用<code>counts</code>的<code>__iter__</code>方法所返回的迭代器绑定到了名称<code>i</code>上面，便于依次获取每个元素。<code>StopIteration</code>异常的处理子句不做任何事情，但是这个异常的处理提供了退出<code>while</code>循环的控制机制。</p>
+<h3>5.2.3 生成器和<code>yield</code>语句</h3>
+<p>上面的<code>Letters</code>和<code>Positives</code>对象需要我们引入一种新的字段，<code>self.current</code>，来跟踪序列的处理过程。在上面所示的简单序列中，这可以轻易实现。但对于复杂序列，<code>__next__()</code>很难在计算中节省空间。生成器允许我们通过利用 Python 解释器的特性定义更复杂的迭代。</p>
+<p>生成器是由一类特殊函数，叫做生成器函数返回的迭代器。生成器函数不同于普通的函数，因为它不在函数体中包含<code>return</code>语句，而是使用<code>yield</code>语句来返回序列中的元素。</p>
+<p>生成器不使用任何对象属性来跟踪序列的处理过程。它们控制生成器函数的执行，每次<code>__next__</code>方法调用时，它们执行到下一个<code>yield</code>语句。<code>Letters</code>迭代可以使用生成器函数实现得更加简洁。</p>
+<pre><code class="py">&gt;&gt;&gt; def letters_generator():
+        current = 'a'
+        while current &lt;= 'd':
+            yield current
+            current = chr(ord(current)+1)
+&gt;&gt;&gt; for letter in letters_generator():
+        print(letter)
+a
+b
+c
+d</code></pre>
+<p>即使我们永不显式定义<code>__iter__()</code>或<code>__next__()</code>方法，Python 会理解当我们使用<code>yield</code>语句时，我们打算定义生成器函数。调用时，生成器函数并不返回特定的产出值，而是返回一个生成器（一种迭代器），它自己就可以返回产出的值。生成器对象拥有<code>__iter__</code>和<code>__next__</code>方法，每个对<code>__next__</code>的调用都会从上次停留的地方继续执行生成器函数，直到另一个<code>yield</code>语句执行的地方。</p>
+<p><code>__next__</code>第一次调用时，程序从<code>letters_generator</code>的函数体一直执行到进入<code>yield</code>语句。之后，它暂停并返回<code>current</code>值。<code>yield</code>语句并不破坏新创建的环境，而是为之后的使用保留了它。当<code>__next__</code>再次调用时，执行在它停留的地方恢复。<code>letters_generator</code>作用域中<code>current</code>和任何所绑定名称的值都会在随后的<code>__next__</code>调用中保留。</p>
+<p>我们可以通过手动调用<code>__next__()</code>来遍历生成器：</p>
+<pre><code class="py">&gt;&gt;&gt; letters = letters_generator()
+&gt;&gt;&gt; type(letters)
+&lt;class 'generator'&gt;
+&gt;&gt;&gt; letters.__next__()
+'a'
+&gt;&gt;&gt; letters.__next__()
+'b'
+&gt;&gt;&gt; letters.__next__()
+'c'
+&gt;&gt;&gt; letters.__next__()
+'d'
+&gt;&gt;&gt; letters.__next__()
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+StopIteration</code></pre>
+<p>在第一次<code>__next__()</code>调用之前，生成器并不会开始执行任何生成器函数体中的语句。</p>
+<h3>5.2.4 可迭代对象</h3>
+<p>Python 中，迭代只会遍历一次底层序列的元素。在遍历之后，迭代器在<code>__next__()</code>调用时会产生<code>StopIteration</code>异常。许多应用需要迭代多次元素。例如，我们需要对一个列表迭代多次来枚举所有的元素偶对：</p>
+<pre><code class="py">&gt;&gt;&gt; def all_pairs(s):
+        for item1 in s:
+            for item2 in s:
+                yield (item1, item2)
+&gt;&gt;&gt; list(all_pairs([1, 2, 3]))
+[(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1), (3, 2), (3, 3)]</code></pre>
+<p>序列本身不是迭代器，但是它是可迭代对象。Python 的可迭代接口只包含一个消息，<code>__iter__</code>，返回一个迭代器。Python 中内建的序列类型在<code>__iter__</code>方法调用时，返回迭代器的新实例。如果一个可迭代对象在每次调用<code>__iter__</code>时返回了迭代器的新实例，那么它就能被迭代多次。</p>
+<p>新的可迭代类可以通过实现可迭代接口来定义。例如，下面的可迭代对象<code>LetterIterable</code>类在每次调用<code>__iter__</code>时返回新的迭代器来迭代字母。</p>
+<pre><code class="py">&gt;&gt;&gt; class LetterIterable(object):
+        def __iter__(self):
+            current = 'a'
+            while current &lt;= 'd':
+                yield current
+                current = chr(ord(current)+1)</code></pre>
+<p><code>__iter__</code>方法是个生成器函数，它返回一个生成器对象，产出从<code>'a'</code>到<code>'d'</code>的字母。</p>
+<p><code>Letters</code>迭代器对象在单次迭代之后就被“用完”了，但是<code>LetterIterable</code>对象可被迭代多次。所以，<code>LetterIterable</code>示例可以用于<code>all_pairs</code>的参数。</p>
+<pre><code class="py">&gt;&gt;&gt; letters = LetterIterable()
+&gt;&gt;&gt; all_pairs(letters).__next__()
+('a', 'a')</code></pre>
+<h3>5.2.5 流</h3>
+<p>流提供了一种隐式表示有序数据的最终方式。流是惰性计算的递归列表。就像第三章的<code>Rlist</code>类那样，<code>Stream</code>实例可以响应对其第一个元素和剩余部分的获取请求。同样，<code>Stream</code>的剩余部分还是<code>Stream</code>。然而不像<code>RList</code>，流的剩余部分只在查找时被计算，而不是事先存储。也就是说流的剩余部分是惰性计算的。</p>
+<p>为了完成这个惰性求值，流会储存计算剩余部分的函数。无论这个函数在什么时候调用，它的返回值都作为流的一部分，储存在叫做<code>_rest</code>的属性中。下划线表示它不应直接访问。可访问的属性<code>rest</code>是个方法，它返回流的剩余部分，并在必要时计算它。使用这个设计，流可以储存计算剩余部分的方式，而不用总是显式储存它们。</p>
+<pre><code class="py">&gt;&gt;&gt; class Stream(object):
+        """A lazily computed recursive list."""
+        def __init__(self, first, compute_rest, empty=False):
+            self.first = first
+            self._compute_rest = compute_rest
+            self.empty = empty
+            self._rest = None
+            self._computed = False
+        @property
+        def rest(self):
+            """Return the rest of the stream, computing it if necessary."""
+            assert not self.empty, 'Empty streams have no rest.'
+            if not self._computed:
+                self._rest = self._compute_rest()
+                self._computed = True
+            return self._rest
+        def __repr__(self):
+            if self.empty:
+                return '&lt;empty stream&gt;'
+            return 'Stream({0}, &lt;compute_rest&gt;)'.format(repr(self.first))
+&gt;&gt;&gt; Stream.empty = Stream(None, None, True)</code></pre>
+<p>递归列表可使用嵌套表达式来定义。例如，我们可以创建<code>RList</code>，来表达<code>1</code>和<code>5</code>的序列，像下面这样：</p>
+<pre><code class="py">&gt;&gt;&gt; r = Rlist(1, Rlist(2+3, Rlist.empty))</code></pre>
+<p>与之类似，我们可以创建一个<code>Stream</code>来表示相同序列。<code>Stream</code>在请求剩余部分之前，并不会实际计算下一个元素<code>5</code>。</p>
+<pre><code class="py">&gt;&gt;&gt; s = Stream(1, lambda: Stream(2+3, lambda: Stream.empty))</code></pre>
+<p>这里，<code>1</code>是流的第一个元素，后面的<code>lambda</code>表达式是用于计算流的剩余部分的函数。被计算的流的第二个元素又是一个返回空流的函数。</p>
+<p>访问递归列表<code>r</code>和流<code>s</code>中的元素拥有相似的过程。但是，<code>5</code>储存在了<code>r</code>之中，而对于<code>s</code>来说，它在首次被请求时通过加法来按要求计算。</p>
+<pre><code class="py">&gt;&gt;&gt; r.first
+1
+&gt;&gt;&gt; s.first
+1
+&gt;&gt;&gt; r.rest.first
+5
+&gt;&gt;&gt; s.rest.first
+5
+&gt;&gt;&gt; r.rest
+Rlist(5)
+&gt;&gt;&gt; s.rest
+Stream(5, &lt;compute_rest&gt;)</code></pre>
+<p>当<code>make_integer_stream</code>首次被调用时，它返回了一个流，流的<code>first</code>是序列中第一个整数（默认为<code>1</code>）。但是，<code>make_integer_stream</code>实际是递归的，因为这个流的<code>compute_rest</code>以自增的参数再次调用了<code>make_integer_stream</code>。这会让<code>make_integer_stream</code>变成递归的，同时也是惰性的。</p>
+<pre><code class="py">&gt;&gt;&gt; ints.first
+1
+&gt;&gt;&gt; ints.rest.first
+2
+&gt;&gt;&gt; ints.rest.rest
+Stream(3, &lt;compute_rest&gt;)</code></pre>
+<p>无论何时请求整数流的<code>rest</code>，都仅仅递归调用<code>make_integer_stream</code>。</p>
+<p>操作序列的相同高阶函数 -- <code>map</code>和<code>filter</code> -- 同样可应用于流，虽然它们的实现必须修改来惰性调用它们的参数函数。<code>map_stream</code>在一个流上映射函数，这会产生一个新的流。局部定义的<code>compute_rest</code>函数确保了无论什么时候<code>rest</code>被计算出来，这个函数都会在流的剩余部分上映射。</p>
+<pre><code class="py">&gt;&gt;&gt; def map_stream(fn, s):
+        if s.empty:
+            return s
+        def compute_rest():
+            return map_stream(fn, s.rest)
+        return Stream(fn(s.first), compute_rest)</code></pre>
+<p>流可以通过定义<code>compute_rest</code>函数来过滤，这个函数在流的剩余部分上调用过滤器函数。如果过滤器函数拒绝了流的第一个元素，剩余部分会立即计算出来。因为<code>filter_stream</code>是递归的，剩余部分可能会多次计算直到找到了有效的<code>first</code>元素。</p>
+<pre><code class="py">&gt;&gt;&gt; def filter_stream(fn, s):
+        if s.empty:
+            return s
+        def compute_rest():
+            return filter_stream(fn, s.rest)
+        if fn(s.first):
+            return Stream(s.first, compute_rest)
+        return compute_rest()</code></pre>
+<p><code>map_stream</code>和<code>filter_stream</code>展示了流式处理的常见模式：无论流的剩余部分何时被计算，局部定义的<code>compute_rest</code>函数都会对流的剩余部分递归调用某个处理函数。</p>
+<p>为了观察流的内容，我们需要将其截断为有限长度，并转换为 Python <code>list</code>。</p>
+<pre><code class="py">&gt;&gt;&gt; def truncate_stream(s, k):
+        if s.empty or k == 0:
+            return Stream.empty
+        def compute_rest():
+            return truncate_stream(s.rest, k-1)
+        return Stream(s.first, compute_rest)
+&gt;&gt;&gt; def stream_to_list(s):
+        r = []
+        while not s.empty:
+            r.append(s.first)
+            s = s.rest
+        return r</code></pre>
+<p>这些便利的函数允许我们验证<code>map_stream</code>的实现，使用一个非常简单的例子，从<code>3</code>到<code>7</code>的整数平方。</p>
+<pre><code class="py">&gt;&gt;&gt; s = make_integer_stream(3)
+&gt;&gt;&gt; s
+Stream(3, &lt;compute_rest&gt;)
+&gt;&gt;&gt; m = map_stream(lambda x: x*x, s)
+&gt;&gt;&gt; m
+Stream(9, &lt;compute_rest&gt;)
+&gt;&gt;&gt; stream_to_list(truncate_stream(m, 5))
+[9, 16, 25, 36, 49]</code></pre>
+<p>我们可以使用我们的<code>filter_stream</code>函数来定义素数流，使用埃拉托斯特尼筛法（sieve of Eratosthenes），它对整数流进行过滤，移除第一个元素的所有倍数数值。通过成功过滤出每个素数，所有合数都从流中移除了。</p>
+<pre><code class="py">&gt;&gt;&gt; def primes(pos_stream):
+        def not_divible(x):
+            return x % pos_stream.first != 0
+        def compute_rest():
+            return primes(filter_stream(not_divible, pos_stream.rest))
+        return Stream(pos_stream.first, compute_rest)</code></pre>
+<p>通过截断<code>primes</code>流，我们可以枚举素数的任意前缀：</p>
+<pre><code class="py">&gt;&gt;&gt; p1 = primes(make_integer_stream(2))
+&gt;&gt;&gt; stream_to_list(truncate_stream(p1, 7))
+[2, 3, 5, 7, 11, 13, 17]</code></pre>
+<p>流和迭代器不同，因为它们可以多次传递给纯函数，并且每次都产生相同的值。素数流并没有在转换为列表之后“用完”。也就是说，在将流的前缀转换为列表之后，<code>p1</code>的第一个元素仍旧是<code>2</code>。</p>
+<pre><code class="py">&gt;&gt;&gt; p1.first
+2</code></pre>
+<p>就像递归列表提供了序列抽象的简单实现，流提供了简单、函数式的递归数据结构，它通过高阶函数的使用实现了惰性求值。</p>
+<h2>5.3 协程</h2>
+<p>这篇文章的大部分专注于将复杂程序解构为小型、模块化组件的技巧。当一个带有复杂行为的函数逻辑划分为几个独立的、本身为函数的步骤时，这些函数叫做辅助函数或者子过程。子过程由主函数调用，主函数负责协调子函数的使用。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000006760518" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<p>这一节中，我们使用协程，引入了一种不同的方式来解构复杂的计算。它是一种针对有序数据的任务处理方式。就像子过程那样，协程会计算复杂计算的一小步。但是，在使用协程时，没有主函数来协调结果。反之，协程会自发链接到一起来组成流水线。可能有一些协程消耗输入数据，并把它发送到其它协程。也可能有一些协程，每个都对发送给它的数据执行简单的处理步骤。最后可能有另外一些协程输出最终结果。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000006760519" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<p>协程和子过程的差异是概念上的：子过程在主函数中位于下级，但是协程都是平等的，它们协作组成流水线，不带有任何上级函数来负责以特定顺序调用它们。</p>
+<p>这一节中，我们会学到 Python 如何通过<code>yield</code>和<code>send()</code>语句来支持协程的构建。之后，我们会看到协程在流水线中的不同作用，以及协程如何支持多任务。</p>
+<h3>5.3.1 Python 协程</h3>
+<p>在之前一节中，我们介绍了生成器函数，它使用<code>yield</code>来返回一个值。Python 的生成器函数也可以使用<code>(yield)</code>语句来接受一个值。生成器对象上有两个额外的方法：<code>send()</code>和<code>close()</code>，创建了一个模型使对象可以消耗或产出值。定义了这些对象的生成器函数叫做协程。</p>
+<p>协程可以通过<code>(yield)</code>语句来消耗值，向像下面这样：</p>
+<pre><code class="py">value = (yield)</code></pre>
+<p>使用这个语法，在带参数调用对象的<code>send</code>方法之前，执行流会停留在这条语句上。</p>
+<pre><code class="py">coroutine.send(data)</code></pre>
+<p>之后，执行会恢复，<code>value</code>会被赋为<code>data</code>的值。为了发射计算终止的信号，我们需要使用<code>close()</code>方法来关闭协程。这会在协程内部产生<code>GeneratorExit</code>异常，它可以由<code>try/except</code>子句来捕获。</p>
+<p>下面的例子展示了这些概念。它是一个协程，用于打印匹配所提供的模式串的字符串。</p>
+<pre><code class="py">&gt;&gt;&gt; def match(pattern):
+        print('Looking for ' + pattern)
+        try:
+            while True:
+                s = (yield)
+                if pattern in s:
+                    print(s)
+        except GeneratorExit:
+            print("=== Done ===")</code></pre>
+<p>我们可以使用一个模式串来初始化它，之后调用<code>__next__()</code>来开始执行：</p>
+<pre><code class="py">&gt;&gt;&gt; m = match("Jabberwock")
+&gt;&gt;&gt; m.__next__()
+Looking for Jabberwock</code></pre>
+<p>对<code>__next__()</code>的调用会执行函数体，所以<code>"Looking for jabberwock"</code>会被打印。语句会一直持续执行，直到遇到<code>line = (yield)</code>语句。之后，执行会暂停，并且等待一个发送给<code>m</code>的值。我们可以使用<code>send</code>来将值发送给它。</p>
+<pre><code class="py">&gt;&gt;&gt; m.send("the Jabberwock with eyes of flame")
+the Jabberwock with eyes of flame
+&gt;&gt;&gt; m.send("came whiffling through the tulgey wood")
+&gt;&gt;&gt; m.send("and burbled as it came")
+&gt;&gt;&gt; m.close()
+=== Done ===</code></pre>
+<p>当我们以一个值调用<code>m.send</code>时，协程<code>m</code>内部的求值会在<code>line = (yield)</code>语句处恢复，这里会把发送的值赋给<code>line</code>变量。<code>m</code>中的语句会继续求值，如果匹配的话会打印出那一行，并继续执行循环，直到再次进入<code>line = (yield)</code>。之后，<code>m</code>中的求值会暂停，并在<code>m.send</code>调用后恢复。</p>
+<p>我们可以将使用<code>send()</code>和<code>yield</code>的函数链到一起来完成复杂的行为。例如，下面的函数将名为<code>text</code>的字符串分割为单词，并把每个单词发送给另一个协程。</p>
+<p>每个单词都发送给了绑定到<code>next_coroutine</code>的协程，使<code>next_coroutine</code>开始执行，而且这个函数暂停并等待。它在<code>next_coroutine</code>暂停之前会一直等待，随后这个函数恢复执行，发送下一个单词或执行完毕。</p>
+<p>如果我们将上面定义的<code>match</code>和这个函数链到一起，我们就可以创建出一个程序，只打印出匹配特定单词的单词。</p>
+<pre><code class="py">&gt;&gt;&gt; text = 'Commending spending is offending to people pending lending!'
+&gt;&gt;&gt; matcher = match('ending')
+&gt;&gt;&gt; matcher.__next__()
+Looking for ending
+&gt;&gt;&gt; read(text, matcher)
+Commending
+spending
+offending
+pending
+lending!
+=== Done ===</code></pre>
+<p><code>read</code>函数向协程<code>matcher</code>发送每个单词，协程打印出任何匹配<code>pattern</code>的输入。在<code>matcher</code>协程中，<code>s = (yield)</code>一行等待每个发送进来的单词，并且在执行到这一行之后将控制流交还给<code>read</code>。</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000006760520" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<h3>5.3.2 生产、过滤和消耗</h3>
+<p>协程基于如何使用<code>yield</code>和<code>send()</code>而具有不同的作用：</p>
+<p><span class="img-wrap"><img src="https://segmentfault.com/img/remote/1460000006760521" src="https://static.segmentfault.com/v-5bebf0aa/global/img/squares.svg" alt="" title=""></span></p>
+<ul>
+<li><p><strong>生产者</strong>创建序列中的物品，并使用<code>send()</code>，而不是<code>(yield)</code>。</p></li>
+<li><p><strong>过滤器</strong>使用<code>(yield)</code>来消耗物品并将结果使用<code>send()</code>发送给下一个步骤。</p></li>
+<li><p><strong>消费者</strong>使用<code>(yield)</code>来消耗物品，但是从不发送。</p></li>
+</ul>
+<p>上面的<code>read</code>函数是一个生产者的例子。它不使用<code>(yield)</code>，但是使用<code>send</code>来生产数据。函数<code>match</code>是个消费者的例子。它不使用<code>send</code>发送任何东西，但是使用<code>(yield)</code>来消耗数据。我们可以将<code>match</code>拆分为过滤器和消费者。过滤器是一个协程，只发送与它的模式相匹配的字符串。</p>
+<pre><code class="py">&gt;&gt;&gt; def match_filter(pattern, next_coroutine):
+        print('Looking for ' + pattern)
+        try:
+            while True:
+                s = (yield)
+                if pattern in s:
+                    next_coroutine.send(s)
+        except GeneratorExit:
+            next_coroutine.close()</code></pre>
+<p>消费者是一个函数，只打印出发送给它的行：</p>
+<pre><code class="py">&gt;&gt;&gt; def print_consumer():
+        print('Preparing to print')
+        try:
+            while True:
+                line = (yield)
+                print(line)
+        except GeneratorExit:
+            print("=== Done ===")</code></pre>
+<p>当过滤器或消费者被构建时，必须调用它的<code>__next__</code>方法来开始执行：</p>
+<pre><code class="py">&gt;&gt;&gt; printer = print_consumer()
+&gt;&gt;&gt; printer.__next__()
+Preparing to print
+&gt;&gt;&gt; matcher = match_filter('pend', printer)
+&gt;&gt;&gt; matcher.__next__()
+Looking for pend
+&gt;&gt;&gt; read(text, matcher)
+spending
+pending
+=== Done ===</code></pre>
+<p>即使名称<code>filter</code>暗示移除元素，过滤器也可以转换元素。下面的函数是个转换元素的过滤器的示例。它消耗字符串并发送一个字典，包含了每个不同的字母在字符串中的出现次数。</p>
+<pre><code class="py">&gt;&gt;&gt; def count_letters(next_coroutine):
+        try:
+            while True:
+                s = (yield)
+                counts = {letter:s.count(letter) for letter in set(s)}
+                next_coroutine.send(counts)
+        except GeneratorExit as e:
+            next_coroutine.close()</code></pre>
+<p>我们可以使用它来计算文本中最常出现的字母，并使用一个消费者，将字典合并来找出最常出现的键。</p>
+<pre><code class="py">&gt;&gt;&gt; def sum_dictionaries():
+        total = {}
+        try:
+            while True:
+                counts = (yield)
+                for letter, count in counts.items():
+                    total[letter] = count + total.get(letter, 0)
+        except GeneratorExit:
+            max_letter = max(total.items(), key=lambda t: t[1])[0]
+            print("Most frequent letter: " + max_letter)</code></pre>
+<p>为了在文件上运行这个流水线，我们必须首先按行读取文件。之后，将结果发送给<code>count_letters</code>，最后发送给<code>sum_dictionaries</code>。我们可以服用<code>read</code>协程来读取文件中的行。</p>
+<pre><code class="py">&gt;&gt;&gt; s = sum_dictionaries()
+&gt;&gt;&gt; s.__next__()
+&gt;&gt;&gt; c = count_letters(s)
+&gt;&gt;&gt; c.__next__()
+&gt;&gt;&gt; read(text, c)
+Most frequent letter: n</code></pre>
+<h3>5.3.3 多任务</h3>
+<p>生产者或过滤器并不受限于唯一的下游。它可以拥有多个协程作为它的下游，并使用<code>send()</code>向它们发送数据。例如，下面是<code>read</code>的一个版本，向多个下游发送字符串中的单词：</p>
+<pre><code class="py">&gt;&gt;&gt; def read_to_many(text, coroutines):
+        for word in text.split():
+            for coroutine in coroutines:
+                coroutine.send(word)
+        for coroutine in coroutines:
+            coroutine.close()</code></pre>
+<p>我们可以使用它来检测多个单词中的相同文本：</p>
+<pre><code class="py">&gt;&gt;&gt; m = match("mend")
+&gt;&gt;&gt; m.__next__()
+Looking for mend
+&gt;&gt;&gt; p = match("pe")
+&gt;&gt;&gt; p.__next__()
+Looking for pe
+&gt;&gt;&gt; read_to_many(text, [m, p])
+Commending
+spending
+people
+pending
+=== Done ===
+=== Done ===</code></pre>
+<p>首先，<code>read_to_many</code>在<code>m</code>上调用了<code>send(word)</code>。这个协程正在等待循环中的<code>text = (yield)</code>，之后打印出所发现的匹配，并且等待下一个<code>send</code>。之后执行流返回到了<code>read_to_many</code>，它向<code>p</code>发送相同的行。所以，<code>text</code>中的单词会按照顺序打印出来。</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank"href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-cc.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000006576587"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="SICP Python 描述 第五章 序列和协程"
+ data-url="https://segmentfault.com/a/1190000006576587" data-shorturl="http://sfau.lt/b5BK19"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000006576587"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000006576587"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">4</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000006576587" data-user-id="" data-author-id="1030000000590972 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000006576587/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181120.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181120.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542684287000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _5hg747H = //'py7'
+'4'+//'8'
+'6d3'+'9f'//'MDV'
++'d'//'0'
++//'s'
+'e0'+'9'//'jV'
++'391'//'39'
++'d18'//'k'
++//'B'
+'b38'+//'hE'
+'8'+'d'//'gui'
++'42'//'E87'
++//'DKv'
+'DKv'+''///*'u'*/'u'
++'4'//'bfW'
++'3'//'U'
++'b5'//'WZm'
++//'sKb'
+'92d'+'5f'//'z'
+, _dkGLb = [[23,26]];
+
+    for (var i = 0; i < _dkGLb.length; i ++) {
+        _5hg747H = _5hg747H.substring(0, _dkGLb[i][0]) + _5hg747H.substring(_dkGLb[i][1]);
+    }
+
+    return _5hg747H;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"SICP Python \u63cf\u8ff0 \u7b2c\u4e94\u7ae0 \u5e8f\u5217\u548c\u534f\u7a0b","desc":"\u5728\u8fd9\u4e00\u7ae0\u4e2d\uff0c\u6211\u4eec\u901a\u8fc7\u5f00\u53d1\u65b0\u7684\u5de5\u5177\u6765\u5904\u7406\u6709\u5e8f\u6570\u636e\uff0c\u7ee7\u7eed\u8ba8\u8bba\u771f\u5b9e\u4e16\u754c\u4e2d\u7684\u5e94\u7528\u3002\u5728\u7b2c\u4e8c\u5f20\u4e2d\uff0c\u6211\u4eec\u4ecb\u7ecd\u4e86\u5e8f\u5217\u63a5\u53e3\uff0c\u5728 Python \u5185\u7f6e\u7684\u6570\u636e\u7c7b\u578b\u4f8b\u5982tuple\u548clist\u4e2d\u5b9e\u73b0\u3002\u5e8f\u5217\u652f\u6301\u4e24\u4e2a\u64cd\u4f5c\uff1a\u83b7\u53d6\u957f\u5ea6\u548c\u7531\u4e0b\u6807\u8bbf\u95ee\u5143\u7d20\u3002...","link":"https:\/\/segmentfault.com\/a\/1190000006576587","imgUrl":"https:\/\/segmentfault.com\/img\/remote\/1460000006760518"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542684287,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

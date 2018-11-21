@@ -1,0 +1,2136 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>爬虫性能：NodeJs  VS  Python - QueenKing - SegmentFault 思否</title><meta name="description" content="早就听说Nodejs的异步策略是多么的好，I/O是多么的牛逼......反正就是各种好。今天我就准备给nodejs和python来做个比较。能体现异步策略和I/O优势的项目，我觉得莫过于爬虫了。那么就以一个爬虫项目来一较高下吧。"/><meta name="keywords" content="多线程,node.js,python,网页爬虫"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=多线程,node.js,python,网页爬虫'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000006741610" class="hidden" />
+
+<div class="wrap" data-blogid="1200000004504113">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/mageek">QueenKing</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="MageekChiu"
+                                         data-userslug="mageek"
+                                         data-useravatar="https://avatar-static.segmentfault.com/325/956/3259568302-5b04da36c9226_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/mageek">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/325/956/3259568302-5b04da36c9226_big64" alt="MageekChiu">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/mageek" class="mr5 "><strong>MageekChiu</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">3.8k</span>
+
+                                                                                                发布于
+                                                <a href="/blog/mageek">QueenKing</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000004504113">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2016-08-28 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000006741610">
+                                            <a href="/a/1190000006741610"> 爬虫性能：NodeJs  VS  Python</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E5%A4%9A%E7%BA%BF%E7%A8%8B/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="多线程"
+                                                                                data-id="1040000000089896">
+                                                                                                                      多线程
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/node.js/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/740/312/74031254-1040000000089918_big64" data-placement="top"
+                                                                                data-original-title="node.js"
+                                                                                data-id="1040000000089918">
+                                                                                                                      node.js
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/%E7%BD%91%E9%A1%B5%E7%88%AC%E8%99%AB/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="网页爬虫"
+                                                                                data-id="1040000000090430">
+                                                                                                                      网页爬虫
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                6.5k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 61 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">0</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000006741610" data-license="nd">
+                    
+<h1>前言</h1>
+<p>早就听说Nodejs的异步策略是多么的好，I/O是多么的牛逼......反正就是各种好。今天我就准备给nodejs和python来做个比较。能体现异步策略和I/O优势的项目，我觉得莫过于爬虫了。那么就以一个爬虫项目来一较高下吧。</p>
+<h1>爬虫项目</h1>
+<p>众筹网-众筹中项目  <a href="http://www.zhongchou.com/browse/di" rel="nofollow noreferrer">http://www.zhongchou.com/brow...</a>，我们就以这个网站为例，我们爬取它所有目前正在众筹中的项目，获得每一个项目详情页的URL，存入txt文件中。</p>
+<h1>实战比较</h1>
+<h2>python原始版</h2>
+<pre><code># -*- coding:utf-8 -*-
+'''
+Created on 20160827
+@author: qiukang
+'''
+import requests,time
+from BeautifulSoup import BeautifulSoup    # HTML
+
+#请求头
+headers = {
+   'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+   'Accept-Encoding':'gzip, deflate, sdch',
+   'Accept-Language':'zh-CN,zh;q=0.8',
+   'Connection':'keep-alive',
+   'Host':'www.zhongchou.com',
+   'Upgrade-Insecure-Requests':1,
+   'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2593.0 Safari/537.36'
+}
+
+# 获得项目url列表
+def getItems(allpage):
+    no = 0
+    items = open('pystandard.txt','a')
+    for page in range(allpage):
+        if page==0:
+            url = 'http://www.zhongchou.com/browse/di'
+        else:
+            url = 'http://www.zhongchou.com/browse/di-p'+str(page+1)
+        # print url #①
+        r1 = requests.get(url,headers=headers)
+        html = r1.text.encode('utf8')
+        soup = BeautifulSoup(html);
+        lists = soup.findAll(attrs={"class":"ssCardItem"})
+        for i in range(len(lists)):
+            href = lists[i].a['href']
+            items.write(href+"\n")
+            no +=1
+    items.close()
+    return no
+    
+if __name__ == '__main__':
+    start = time.clock()
+    allpage = 30
+    no = getItems(allpage)
+    end = time.clock()
+    print('it takes %s Seconds to get %s items '%(end-start,no))
+</code></pre>
+<p>实验5次的结果：</p>
+<pre><code> it takes 48.1727159614 Seconds to get 720 items 
+ it takes 45.3397999415 Seconds to get 720 items  
+ it takes 44.4811429862 Seconds to get 720 items 
+ it takes 44.4619293082 Seconds to get 720 items
+ it takes 46.669706593 Seconds to get 720 items 
+</code></pre>
+<h2>python多线程版</h2>
+<pre><code># -*- coding:utf-8 -*-
+'''
+Created on 20160827
+@author: qiukang
+'''
+import requests,time,threading
+from BeautifulSoup import BeautifulSoup    # HTML
+
+#请求头
+headers = {
+   'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+   'Accept-Encoding':'gzip, deflate, sdch',
+   'Accept-Language':'zh-CN,zh;q=0.8',
+   'Connection':'keep-alive',
+   'Host':'www.zhongchou.com',
+   'Upgrade-Insecure-Requests':1,
+   'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2593.0 Safari/537.36'
+}
+
+items = open('pymulti.txt','a')
+no = 0
+lock = threading.Lock()
+
+# 获得项目url列表
+def getItems(urllist):
+    # print urllist  #①
+    global items,no,lock
+    for url in urllist:
+        r1 = requests.get(url,headers=headers)
+        html = r1.text.encode('utf8')
+        soup = BeautifulSoup(html);
+        lists = soup.findAll(attrs={"class":"ssCardItem"})
+        for i in range(len(lists)):
+            href = lists[i].a['href']
+            lock.acquire()
+            items.write(href+"\n")
+            no +=1
+            # print no
+            lock.release()
+    
+if __name__ == '__main__':
+    start = time.clock()
+    allpage = 30
+    allthread = 30
+    per = (int)(allpage/allthread)
+    urllist = []
+    ths = []
+    for page in range(allpage):
+        if page==0:
+            url = 'http://www.zhongchou.com/browse/di'
+        else:
+            url = 'http://www.zhongchou.com/browse/di-p'+str(page+1)
+        urllist.append(url)
+    for i in range(allthread):
+        # print urllist[i*(per):(i+1)*(per)]
+        th = threading.Thread(target = getItems,args= (urllist[i*(per):(i+1)*(per)],))
+        th.start()
+        th.join()
+    items.close()
+    end = time.clock()
+    print('it takes %s Seconds to get %s items '%(end-start,no))
+    </code></pre>
+<p>实验5次的结果：</p>
+<pre><code>it takes 45.5222291114 Seconds to get 720 items 
+it takes 46.7097831417 Seconds to get 720 items
+it takes 45.5334646156 Seconds to get 720 items 
+it takes 48.0242797553 Seconds to get 720 items
+it takes 44.804855018 Seconds to get 720 items  
+</code></pre>
+<p>这个多线程并没有优势，经过 #① 的注释与否发现，这个所谓的多线程也是按照单线程运行的。</p>
+<h2>python改进</h2>
+<h3>单线程</h3>
+<p>首先我们把解析html的步骤改进一下，分析发现</p>
+<pre><code>lists = soup.findAll('a',attrs={"class":"siteCardICH3"})</code></pre>
+<p>比</p>
+<pre><code>lists = soup.findAll(attrs={"class":"ssCardItem"})</code></pre>
+<p>更好，因为它是直接找 <code>a</code> ，而不是先找 <code>div</code> 再找 <code>div</code> 下的 <code>a</code><br>改进后实验5次结果如下，可见有进步：</p>
+<pre><code>it takes 41.0018861912 Seconds to get 720 items 
+it takes 42.0260390497 Seconds to get 720 items
+it takes 42.249635988 Seconds to get 720 items 
+it takes 41.295524133 Seconds to get 720 items 
+it takes 42.9022894154 Seconds to get 720 items 
+</code></pre>
+<h3>多线程</h3>
+<p>修改 <code>getItems(urllist)</code> 为 <code>getItems(urllist，thno)</code><br>函数起止加入 <code>print thno," begin at",time.clock()</code> 和 <code>print thno," end at",time.clock()</code>。结果：</p>
+<pre><code>0  begin at 0.00100631078628
+0  end at 1.28625832936
+1  begin at 1.28703230691
+1  end at 2.61739476075
+2  begin at 2.61801291642
+2  end at 3.92514717937
+3  begin at 3.9255829208
+3  end at 5.38870235361
+4  begin at 5.38921134066
+4  end at 6.670658786
+5  begin at 6.67125734731
+5  end at 8.01520989534
+6  begin at 8.01566383155
+6  end at 9.42006780585
+7  begin at 9.42053340537
+7  end at 11.0386755513
+8  begin at 11.0391565464
+8  end at 12.421359168
+9  begin at 12.4218294329
+9  end at 13.9932716671
+10  begin at 13.9939957256
+10  end at 15.3535799145
+11  begin at 15.3540870354
+11  end at 16.6968289314
+12  begin at 16.6972665389
+12  end at 17.9798803157
+13  begin at 17.9804714125
+13  end at 19.326706238
+14  begin at 19.3271438455
+14  end at 20.8744308886
+15  begin at 20.8751017624
+15  end at 22.5306500245
+16  begin at 22.5311450156
+16  end at 23.7781693541
+17  begin at 23.7787245279
+17  end at 25.1775114499
+18  begin at 25.178350742
+18  end at 26.5497330734
+19  begin at 26.5501776789
+19  end at 27.970799259
+20  begin at 27.9712727895
+20  end at 29.4595075375
+21  begin at 29.4599959972
+21  end at 30.9507299602
+22  begin at 30.9513989679
+22  end at 32.2762763982
+23  begin at 32.2767182045
+23  end at 33.6476256057
+24  begin at 33.648137392
+24  end at 35.1100517711
+25  begin at 35.1104907783
+25  end at 36.462657099
+26  begin at 36.4632234696
+26  end at 37.7908515759
+27  begin at 37.7912845182
+27  end at 39.4359928956
+28  begin at 39.436448698
+28  end at 40.9955021593
+29  begin at 40.9960871912
+29  end at 42.6425665264
+it takes 42.6435882327 Seconds to get 720 items 
+
+</code></pre>
+<p>可见这些线程是真的没有并发执行，而是顺序执行的，并没有达到多线程的目的。问题在哪里呢？原来<br>我的循环中</p>
+<pre><code>th.start()
+th.join()</code></pre>
+<p>两行代码是紧接着的，所以新的线程会等待上一个线程执行完毕才会start，修改为</p>
+<pre><code>for i in range(allthread):
+    # print urllist[i*(per):(i+1)*(per)]
+    th = threading.Thread(target = getItems,args= (urllist[i*(per):(i+1)*(per)],i))
+    ths.append(th)
+for th in ths:
+    th.start()
+for th in ths:
+    th.join()</code></pre>
+<p>结果：</p>
+<pre><code>0  begin at 0.0010814225325
+1  begin at 0.00135201143191
+2  begin at 0.00191744892518
+3  begin at 0.0021311208492
+4  begin at 0.00247495536449
+5  begin at 0.0027334144167
+6  begin at 0.00320601192551
+7  begin at 0.00379011072218
+8  begin at 0.00425431064445
+9  begin at 0.00511692939449
+10  begin at 0.0132038052264
+11  begin at 0.0165926979253
+12  begin at 0.0170886220634
+13  begin at 0.0174665134574
+14  begin at 0.018348726576
+15  begin at 0.0189780790334
+16  begin at 0.0201896641572
+17  begin at 0.0220576606283
+18  begin at 0.0231484138125
+19  begin at 0.0238804034387
+20  begin at 0.0273901280772
+21  begin at 0.0300363009005
+22  begin at 0.0362878375422
+23  begin at 0.0395512329756
+24  begin at 0.0431556637289
+25  begin at 0.0459581249682
+26  begin at 0.0482254733323
+27  begin at 0.0535430117384
+28  begin at 0.0584971212607
+29  begin at 0.0598136762161
+16  end at 65.2657542222
+24  end at 66.2951247811
+21  end at 66.3849747583
+4  end at 66.6230160119
+5  end at 67.5501632164
+29  end at 67.7516992283
+23  end at 68.6985322418
+7  end at 69.1060433231
+22  end at 69.2743398214
+2  end at 69.5523713152
+14  end at 69.6454986837
+15  end at 69.8333400981
+12  end at 69.9508018062
+10  end at 70.2860348602
+26  end at 70.3670659719
+13  end at 70.3847232972
+27  end at 70.3941635841
+11  end at 70.5132838156
+1  end at 70.7272351926
+0  end at 70.9115253609
+6  end at 71.0876563409
+8  end at 71.112480539825
+  end at 71.1145248855
+3  end at 71.4606034226
+19  end at 71.6103622486
+18  end at 71.6674453096
+20  end at 71.725601862
+17  end at 71.7778992318
+9  end at 71.7847479301
+28  end at 71.7921004837
+it takes 71.7931912368 Seconds to get 720 items 
+</code></pre>
+<h3>反思</h3>
+<p>上面的的多线是并发了，可是比单线程运行时间长了太多......我还没找出来原因，猜想是不是beautifulsoup不支持多线程？请各位多多指教。为了验证这个想法，我准备不用beautifulsoup,直接使用字符串查找。首先还是从单线程的修改：</p>
+<pre><code># -*- coding:utf-8 -*-
+'''
+Created on 20160827
+@author: qiukang
+'''
+import requests,time
+from BeautifulSoup import BeautifulSoup    # HTML
+
+#请求头
+headers = {
+   'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+   'Accept-Encoding':'gzip, deflate, sdch',
+   'Accept-Language':'zh-CN,zh;q=0.8',
+   'Connection':'keep-alive',
+   'Host':'www.zhongchou.com',
+   'Upgrade-Insecure-Requests':'1',
+   'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2593.0 Safari/537.36'
+}
+
+# 获得项目url列表
+def getItems(allpage):
+    no = 0
+    data = set()
+    for page in range(allpage):
+        if page==0:
+            url = 'http://www.zhongchou.com/browse/di'
+        else:
+            url = 'http://www.zhongchou.com/browse/di-p'+str(page+1)
+        # print url #①
+        r1 = requests.get(url,headers=headers)
+        html = r1.text.encode('utf8')
+        start = 5000    
+        while  True:     
+            index = html.find("deal-show", start)   
+            if index == -1:     
+                break    
+            # print "http://www.zhongchou.com/deal-show/"+html[index+10:index+19]+"\n"
+            # time.sleep(100)
+            data.add("http://www.zhongchou.com/deal-show/"+html[index+10:index+19]+"\n")    
+            start = index  + 1000 
+    items = open('pystandard.txt','a')
+    items.write("".join(data))
+    items.close()
+    return len(data)
+    
+if __name__ == '__main__':
+    start = time.clock()
+    allpage = 30
+    no = getItems(allpage)
+    end = time.clock()
+    print('it takes %s Seconds to get %s items '%(end-start,no))</code></pre>
+<p>实验3次，结果：</p>
+<pre><code>it takes 11.6800132309 Seconds to get 720 items
+it takes 11.3621804427 Seconds to get 720 items
+it takes 11.6811991567 Seconds to get 720 items  </code></pre>
+<p>然后对多线程进行修改：</p>
+<pre><code># -*- coding:utf-8 -*-
+'''
+Created on 20160827
+@author: qiukang
+'''
+import requests,time,threading
+from BeautifulSoup import BeautifulSoup    # HTML
+
+#请求头
+header = {
+   'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+   'Accept-Encoding':'gzip, deflate, sdch',
+   'Accept-Language':'zh-CN,zh;q=0.8',
+   'Connection':'keep-alive',
+   'Host':'www.zhongchou.com',
+   'Upgrade-Insecure-Requests':'1',
+   'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2593.0 Safari/537.36'
+}
+
+data = set()
+no = 0
+lock = threading.Lock()
+
+# 获得项目url列表 
+def getItems(urllist,thno):
+    # print urllist
+    # print thno," begin at",time.clock()
+    global no,lock,data
+    for url in urllist:
+        r1 = requests.get(url,headers=header)
+        html = r1.text.encode('utf8')
+        start = 5000    
+        while  True:     
+            index = html.find("deal-show", start)   
+            if index == -1:     
+                break
+            lock.acquire()
+            data.add("http://www.zhongchou.com/deal-show/"+html[index+10:index+19]+"\n")    
+            start = index  + 1000 
+            lock.release()
+        
+    # print thno," end at",time.clock()
+    
+if __name__ == '__main__':
+    start = time.clock()
+    allpage = 30  #页数
+    allthread = 10 #线程数
+    per = (int)(allpage/allthread)
+    urllist = []
+    ths = []
+    for page in range(allpage):
+        if page==0:
+            url = 'http://www.zhongchou.com/browse/di'
+        else:
+            url = 'http://www.zhongchou.com/browse/di-p'+str(page+1)
+        urllist.append(url)
+    for i in range(allthread):
+        # print urllist[i*(per):(i+1)*(per)]
+        low = i*allpage/allthread#注意写法
+        high = (i+1)*allpage/allthread
+        # print low,' ',high
+        th = threading.Thread(target = getItems,args= (urllist[low:high],i))
+        ths.append(th)
+    for th in ths:
+        th.start()
+    for th in ths:
+        th.join()
+    items = open('pymulti.txt','a')
+    items.write("".join(data))
+    items.close()
+    end = time.clock()
+    print('it takes %s Seconds to get %s items '%(end-start,len(data)))</code></pre>
+<p>实验3次，结果：</p>
+<pre><code>it takes 1.4781525123 Seconds to get 720 items 
+it takes 1.44905954029 Seconds to get 720 items
+it takes 1.49297891786 Seconds to get 720 items
+</code></pre>
+<p>可见多线程确实比单线程快好多倍。对于简单的爬取任务而言，用字符串的内置方法比用beautifulsoup解析html快很多。</p>
+<h2>NodeJs</h2>
+<pre><code>// npm install request -g #貌似不行，要进入代码所在目录：npm install --save request
+// npm install cheerio -g  #npm install --save cheerio
+
+var request = require("request");
+var cheerio = require('cheerio');
+var fs = require('fs');
+
+var t1 = new Date().getTime();
+var allpage = 30;
+var urllist = new Array()  
+var urldata = "";
+var mark = 0;
+var no = 0;
+for (var i=0; i&lt;allpage; i++) {
+    if (i==0) 
+        urllist[i] = 'http://www.zhongchou.com/browse/di'
+    else
+        urllist[i] = 'http://www.zhongchou.com/browse/di-p'+(i+1).toString();
+    request(urllist[i],function(error,resp,body){
+        if (!error &amp;&amp; resp.statusCode==200) {
+            getUrl(body);
+        }
+    });
+} 
+
+function getUrl(data) {
+    var $ = cheerio.load(data);  //cheerio解析data
+    var href = $("a.siteCardICH3").toArray();
+    for (var i = href.length - 1; i &gt;= 0; i--) {
+        // console.log(href[i].attribs["href"]);
+        urldata += (href[i].attribs["href"]+"\n");
+        no += 1;
+    }    
+    mark += 1;
+    if (mark==allpage) {
+        // console.log(urldata);
+        fs.writeFile('./nodestandard.txt',urldata,function(err){
+                    if(err) throw err;
+        });
+        var t2 = new Date().getTime();
+        console.log("it takes " + ((t2-t1)/1000).toString() + " Seconds to get " + no.toString() + " items");
+    }  
+}
+</code></pre>
+<p>实验5次的结果：</p>
+<pre><code>it takes 3.949 Seconds to get 720 items
+it takes 3.642 Seconds to get 720 items
+it takes 3.641 Seconds to get 720 items
+it takes 3.938 Seconds to get 720 items
+it takes 3.783 Seconds to get 720 items
+</code></pre>
+<p>可见同样是用解析html的方法，nodejs速度完虐python。字符串查找呢？</p>
+<pre><code>var request = require("request");
+var cheerio = require('cheerio');
+var fs = require('fs');
+
+var t1 = new Date().getTime();
+var allpage = 30;
+var urllist = new Array()  ;
+var urldata = new Array();
+var mark = 0;
+var no = 0;
+for (var i=0; i&lt;allpage; i++) {
+    if (i==0) 
+        urllist[i] = 'http://www.zhongchou.com/browse/di'
+    else
+        urllist[i] = 'http://www.zhongchou.com/browse/di-p'+(i+1).toString();
+    // console.log(urllist[i]);
+    request(urllist[i],function(error,resp,body){
+        if (!error &amp;&amp; resp.statusCode==200) {
+            getUrl(body);
+        }
+    });
+} 
+
+function getUrl(data) {
+    mark += 1;
+    var start = 5000
+    while (true) {
+        var index1 = data.indexOf("deal-show", start);
+        if (index1 == -1)     
+            break;
+        var url = "http://www.zhongchou.com/deal-show/"+data.substring(index1+10,index1+19)+"\n";
+        // console.log(url);
+        if (urldata.indexOf(url)==-1) {
+            urldata.push(url);
+        }
+        start = index1 + 1000;
+    }
+    if (mark==allpage) {//所有页面执行完毕
+        // console.log(urldata);
+        no = urldata.length;
+        fs.writeFile('./nodestandard.txt',urldata.join(""),function(err){
+                    if(err) throw err;
+        });
+        var t2 = new Date().getTime();
+        console.log("it takes " + ((t2-t1)/1000).toString() + " Seconds to get " + no.toString() + " items");
+    }  
+}</code></pre>
+<p>实验5次的结果：</p>
+<pre><code>it takes 3.695 Seconds to get 720 items
+it takes 3.781 Seconds to get 720 items
+it takes 3.94 Seconds to get 720 items
+it takes 3.705 Seconds to get 720 items
+it takes 3.601 Seconds to get 720 items</code></pre>
+<p>可见和解析起来的时间是差不多的。</p>
+<h1>综上</h1>
+<p>由我自己了解的知识和本实验而言，我的结论是：python用上多线程下载速度能够比过nodejs，但是解析网页这种事python没有nodejs快，毕竟js原生就是为了写网页，而且复杂的爬虫总不能都用字符串去找吧。</p>
+<h1>2016.9.13-补充</h1>
+<ol>
+<li><p>评论中提到的time.time()，感谢老司机指出我的错误,我在python多线程，字符串查找版本中使用了，实验3次过后依然是快于nodejs版本的平均用时2.3S，不知道是不是您和我的网络环境不一样导致？我准备换个教室试试......至于有没有误导人，我想读者会自己去尝试，得出自己的结论。</p></li>
+<li><p>Python的确有异步（twisted），nodejs也的确有多进程（child_process），我想追求极致的性能比较还需要对这两种语言有更深入的研究，这个我目前也是半知不解，我会尽快花时间了解，争取实现比较（这里不是追求编程方法的比较，就是单纯的想比较在同一台机器同一个网络下，两种语言能做到的极致。道阻且长啊。）</p></li>
+<li><p>还有解析方法，我这里用的是python自带的解析，<a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/#" rel="nofollow noreferrer">官网</a>说lxml的确比自带的快，但是我这里换了过后多线程依然没有体现出来优势，所以我还是很疑惑，是不是beautifulsoup不支持多线程？，我在官网没找到相关文档，请各位指教。另外<code>from BeautifulSoup import BeautifulSoup</code>的确是比<code>from bs4 import BeautifulSoup</code> 慢多了，这是BeautifulSoup的版本原因，感谢评论者指出。</p></li>
+</ol>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://segmentfault.com/tos#sec-licence-4">保留所有权利</a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000006741610"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="爬虫性能：NodeJs  VS  Python"
+ data-url="https://segmentfault.com/a/1190000006741610" data-shorturl="http://sfau.lt/b5CrXO"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000006741610"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">0 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000006741610"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">20</span></button><br><button type="button" data-id="1190000006741610"
+                                        class="btn btn-danger btn-lg mt15 article__reward-btn">
+                                    赞赏支持
+                                </button></div><div class="mt30 mb30 text-center article__reward-info"><span class="mr10">如果觉得我的文章对你有用，请随意赞赏</span></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000006741610" data-user-id="" data-author-id="1030000000671583 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">11 条评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+                <div class="comments-item" data-id="1050000006751625">
+            <div class="pull-left">
+                <a href="/u/ucdok" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/124/343/1243437834-5434e1360cc79_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006751625" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/ucdok">老雷</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年08月29日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>请注意：</p>
+<ul>
+<li><p><strong>time.clock() - On Unix, return the current processor time as a floating point number expressed in seconds. </strong></p></li>
+<li><p><strong>time.time() - Return the time in seconds since the epoch as a floating point number. </strong></p></li>
+</ul>
+<p>只有<code>time.time()</code>才相当于Node.js的<code>new Date().getTime()</code>。</p>
+</div>
+
+                <form action="/api/comment/1050000006751625/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >请注意：
+
++ **time.clock() - On Unix, return the current processor time as a floating point number expressed in seconds. **
++ **time.time() - Return the time in seconds since the epoch as a floating point number. **
+
+只有`time.time()`才相当于Node.js的`new Date().getTime()`。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value">+1</span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006791131">
+            <div class="pull-left">
+                <a href="/u/shuaibi" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/291/005/2910052940-561dec9f8f6aa_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006791131" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/shuaibi">听说名字叫逗比的都是帅逼</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月01日</span>
+                </div>
+
+                <div class="fmt mb10"><p>写的很好.mark一下 不过我的疑问就是为什么要用beautifulsoup呢? 我了解的这个包是用纯python写的 所以效率低. 为什么不试试pyQuery呢</p></div>
+
+                <form action="/api/comment/1050000006791131/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >写的很好.mark一下 不过我的疑问就是为什么要用beautifulsoup呢? 我了解的这个包是用纯python写的 所以效率低. 为什么不试试pyQuery呢</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006791828">
+            <div class="pull-left">
+                <a href="/u/joesonw" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006791828" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/joesonw">joesonw</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月01日</span>
+                </div>
+
+                <div class="fmt mb10"><p>你正好说反了吧, 上传下载nodejs比python快, 因为异步io并发. 解析的话nodejs cpu运算是单线程, 所以慢.</p></div>
+
+                <form action="/api/comment/1050000006791828/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >你正好说反了吧, 上传下载nodejs比python快, 因为异步io并发. 解析的话nodejs cpu运算是单线程, 所以慢. </textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006807294">
+            <div class="pull-left">
+                <a href="/u/mr_zys" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/695/854/695854232-56cc85d141d3a_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006807294" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/mr_zys">孤独的自我</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月03日</span>
+                </div>
+
+                <div class="fmt mb10"><p>异步io并不只有nodejs有，python也有。用python的多线程来进行对比不公平，应该使用<code>gevent</code>、<code>twisted</code>或者<code>asyncio</code>来对比啊。至于html页面解析，的确有很多方案，有快的也有慢的，不过这不是爬虫瓶颈所在。</p></div>
+
+                <form action="/api/comment/1050000006807294/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >异步io并不只有nodejs有，python也有。用python的多线程来进行对比不公平，应该使用`gevent`、`twisted`或者`asyncio`来对比啊。至于html页面解析，的确有很多方案，有快的也有慢的，不过这不是爬虫瓶颈所在。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006807332">
+            <div class="pull-left">
+                <a href="/u/mr_zys" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/695/854/695854232-56cc85d141d3a_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006807332" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/mr_zys">孤独的自我</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月03日</span>
+                </div>
+
+                <div class="fmt mb10"><p>可以自己搭建一个web服务，然后测试的量上升到1k或者1w，这样结果才能明显。</p></div>
+
+                <form action="/api/comment/1050000006807332/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >可以自己搭建一个web服务，然后测试的量上升到1k或者1w，这样结果才能明显。</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006809234">
+            <div class="pull-left">
+                <a href="/u/tooter" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006809234" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/tooter">笠翁对韵</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月03日</span>
+                </div>
+
+                <div class="fmt mb10"><p>楼主，你的BeautifulSoup使用的html parser是默认的，非常慢，直接改为lxml就快了好几倍。什么都不修改就比nodejs快。这句改了soup = BeautifulSoup(html,"lxml");结果立马变成2s</p></div>
+
+                <form action="/api/comment/1050000006809234/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >楼主，你的BeautifulSoup使用的html parser是默认的，非常慢，直接改为lxml就快了好几倍。什么都不修改就比nodejs快。这句改了soup = BeautifulSoup(html,&quot;lxml&quot;);结果立马变成2s</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006809715">
+            <div class="pull-left">
+                <a href="/u/mageek" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/325/956/3259568302-5b04da36c9226_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006809715" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/mageek">MageekChiu</a></strong>
+                    <span class="comments-isAuthor ">作者</span>
+                    <span class="comments-date">  ·  2016年09月03日</span>
+                </div>
+
+                <div class="fmt mb10"><p>感谢上面各位指导，小弟受益匪浅~</p></div>
+
+                <form action="/api/comment/1050000006809715/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >感谢上面各位指导，小弟受益匪浅~</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006814768">
+            <div class="pull-left">
+                <a href="/u/x1ang_li" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006814768" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/x1ang_li">x1ang_li</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月04日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>感谢楼主贡献的好分享。</p>
+<p>重新用python测试了一下楼主的实验。</p>
+<p>首先“from BeautifulSoup import BeautifulSoup”应为“from bs4 import BeautifulSoup”，不知道楼主是不是用的“pip install beautifulsoup4”来安装的beautifulsoup？</p>
+<p>其次，在import bs4的基础上，单线程的python版本——即没有更正th.join()时的版本——全部执行时间为大约十几秒到20秒区间。而更正了th.join()的执行后大概需要2~3秒。</p>
+<p>在重复字符串查找时，更正了两处，一是将“low = i * allpage / allthread”中的单除法改为双除法“//”，这是Python中针对整数地板除的特殊语法（针对变量high和per的赋值类似）。另外是将.encode('utf8')去掉。</p>
+<p>得到的结果是：单线程字符串查找的时间与单线程bs4的时间基本一致；多线程字符串查找的时间与多线程bs4的时间类似</p>
+<p>结论：</p>
+<ol>
+<li><p>bs4能很好地兼容多线程</p></li>
+<li><p>在轻量极的任务中，bs4并没有显示拖垮性能。主要的瓶颈还是在网络IO上</p></li>
+</ol>
+<p>由于时间有限，没有来得及测试node.js。别的coder可以补充</p>
+</div>
+
+                <form action="/api/comment/1050000006814768/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >感谢楼主贡献的好分享。
+
+重新用python测试了一下楼主的实验。
+
+首先“from BeautifulSoup import BeautifulSoup”应为“from bs4 import BeautifulSoup”，不知道楼主是不是用的“pip install beautifulsoup4”来安装的beautifulsoup？
+
+其次，在import bs4的基础上，单线程的python版本——即没有更正th.join()时的版本——全部执行时间为大约十几秒到20秒区间。而更正了th.join()的执行后大概需要2~3秒。
+
+在重复字符串查找时，更正了两处，一是将“low = i * allpage / allthread”中的单除法改为双除法“//”，这是Python中针对整数地板除的特殊语法（针对变量high和per的赋值类似）。另外是将.encode(&#039;utf8&#039;)去掉。
+
+得到的结果是：单线程字符串查找的时间与单线程bs4的时间基本一致；多线程字符串查找的时间与多线程bs4的时间类似
+
+结论：
+1. bs4能很好地兼容多线程
+2. 在轻量极的任务中，bs4并没有显示拖垮性能。主要的瓶颈还是在网络IO上
+
+由于时间有限，没有来得及测试node.js。别的coder可以补充</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006856532">
+            <div class="pull-left">
+                <a href="/u/ucdok" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/124/343/1243437834-5434e1360cc79_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006856532" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/ucdok">老雷</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月08日</span>
+                </div>
+
+                <div class="fmt mb10"><p>其实我想说的是，楼主用来计算python所消耗的时间的方法是不对的，实际上的结果是Node.js比Python稍快，也就是说<strong>多线程的Python比Node.js快这个结论是错误的</strong>，但是为啥楼主没有意识到呢，请认真修改一下文章，<strong>不要再继续误导人了</strong></p></div>
+
+                <form action="/api/comment/1050000006856532/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >其实我想说的是，楼主用来计算python所消耗的时间的方法是不对的，实际上的结果是Node.js比Python稍快，也就是说**多线程的Python比Node.js快这个结论是错误的**，但是为啥楼主没有意识到呢，请认真修改一下文章，**不要再继续误导人了**</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000006953972">
+            <div class="pull-left">
+                <a href="/u/ucdok" target="_blank"><img class="avatar-32 " src="https://avatar-static.segmentfault.com/124/343/1243437834-5434e1360cc79_big64" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000006953972" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/ucdok">老雷</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年09月20日</span>
+                </div>
+
+                <div class="fmt mb10">
+<p>以下是Python和Node.js各连续执行5次的结果：</p>
+<pre><code>Python的结果：
+it takes 1.7603020668 Seconds to get 720 items
+it takes 1.20437693596 Seconds to get 720 items
+it takes 1.19046401978 Seconds to get 720 items
+it takes 1.72252607346 Seconds to get 720 items
+it takes 1.11065006256 Seconds to get 720 items
+
+Node.js的结果：
+it takes 1.098 Seconds to get 720 items
+it takes 1.754 Seconds to get 720 items
+it takes 1.138 Seconds to get 720 items
+it takes 1.062 Seconds to get 720 items
+it takes 1.417 Seconds to get 720 items</code></pre>
+<p>从结果中可以看出时间波动很大，所以主要的差异还是来自于网络的波动，而不是<strong>单线程与多线程</strong>谁快的问题。</p>
+<p>另外要说明的一点是，Node.js的单线程只是其JS引擎是使用单线程执行的，并不是说其IO操作是单线程的。一般只有在大量CPU运算的情况下，Node.js的单线程特性才会处于劣势（毕竟多线程可以用多个CPU运算），但是在IO操作下，无论多线程还是单线程往往都差异不大，因为真正慢的是IO，而不是编程语言。</p>
+<p>本次测试环境：</p>
+<ul>
+<li><p>Python 2.7.12</p></li>
+<li><p>Node v6.6.0</p></li>
+</ul>
+</div>
+
+                <form action="/api/comment/1050000006953972/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >以下是Python和Node.js各连续执行5次的结果：
+
+```
+Python的结果：
+it takes 1.7603020668 Seconds to get 720 items
+it takes 1.20437693596 Seconds to get 720 items
+it takes 1.19046401978 Seconds to get 720 items
+it takes 1.72252607346 Seconds to get 720 items
+it takes 1.11065006256 Seconds to get 720 items
+
+Node.js的结果：
+it takes 1.098 Seconds to get 720 items
+it takes 1.754 Seconds to get 720 items
+it takes 1.138 Seconds to get 720 items
+it takes 1.062 Seconds to get 720 items
+it takes 1.417 Seconds to get 720 items
+```
+
+从结果中可以看出时间波动很大，所以主要的差异还是来自于网络的波动，而不是**单线程与多线程**谁快的问题。
+
+另外要说明的一点是，Node.js的单线程只是其JS引擎是使用单线程执行的，并不是说其IO操作是单线程的。一般只有在大量CPU运算的情况下，Node.js的单线程特性才会处于劣势（毕竟多线程可以用多个CPU运算），但是在IO操作下，无论多线程还是单线程往往都差异不大，因为真正慢的是IO，而不是编程语言。
+
+本次测试环境：
+
++ Python 2.7.12
++ Node v6.6.0
+</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+                <div class="comments-item" data-id="1050000007083495">
+            <div class="pull-left">
+                <a href="/u/x1ang_li" target="_blank"><img class="avatar-32 " src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-64.png" alt=""></a>
+            </div>
+            <div class="comments-content">
+                <div class="comment-trigger">
+                    <div class="pull-right comment-option">
+                                                <a href="#911" class="ml10" data-toggle="modal" data-target="#911" data-action="report" data-action-text="举报" data-module="comment" data-id="1050000007083495" data-typetext="评论" data-placement="top" title="举报"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></a>
+                                            </div>
+                    <strong><a target="_blank" href="/u/x1ang_li">x1ang_li</a></strong>
+                    <span class="comments-isAuthor hide"></span>
+                    <span class="comments-date">  ·  2016年10月06日</span>
+                </div>
+
+                <div class="fmt mb10"><p>是的，我的测验结果与你的基本一致。主要瓶颈是IO</p></div>
+
+                <form action="/api/comment/1050000007083495/edit">
+                    <div class="form-group">
+                        <textarea class="editTextarea mono form-control mb10 hidden" rows="1" name="text" style="height: 28px; overflow: hidden; word-wrap: break-word;" >是的，我的测验结果与你的基本一致。主要瓶颈是IO</textarea>
+                    </div>
+                </form>
+
+                <p class="comment-ops not-reply">
+                    <span class="comments-zan ">
+                        <i class="fa fa-thumbs-up mr4" aria-hidden="true"></i>
+                        <span class="comments-zan-text">赞</span>
+                        <span class="comments-zan-value"></span>
+                    </span>
+                    
+                    <span class="ml15 comments-reply-btn">回复</span>
+
+                    <span class="pull-right editBtns hidden">
+                      <button class="btn btn-link btn-xs cancel" type="button">取消</button>
+                      <button class="btn btn-primary btn-xs edit ml10" type="button">保存</button>
+                    </span>
+                </p>
+
+                <div class="reply-list reply-list--empty">
+
+                    
+                    <div class="reply-item reply-item--ops" data-obj="obj">
+                        <a class="reply-inner-btn" href="javascript:;">添加回复</a>
+                        
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000006741610/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181120.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181120.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542683927000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _ykcPGE = '1'//'4k'
++'c9'//'l5'
++//'YGW'
+'9a'+'7'//'Re'
++//'Gm'
+'08'+'25'//'2'
++'ZI'//'ZI'
++'4'//'qm'
++'864'//'8R'
++//'v'
+'5'+'58'//'g'
++'a'//'u2'
++//'tNG'
+'45'+//'p'
+'75c'+//'mH'
+'8aa'+'1f'//'p'
++'2'//'XA9'
++//'Pv'
+'c'+'xAA'//'xAA'
++//'uB0'
+'f'+//'I6'
+'I6'+/* '6vP'//'6vP' */''+//'iP'
+'3', _OtV = [[10,12],[30,33],[31,33]];
+
+    for (var i = 0; i < _OtV.length; i ++) {
+        _ykcPGE = _ykcPGE.substring(0, _OtV[i][0]) + _ykcPGE.substring(_OtV[i][1]);
+    }
+
+    return _ykcPGE;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u722c\u866b\u6027\u80fd\uff1aNodeJs  VS  Python","desc":"\u65e9\u5c31\u542c\u8bf4Nodejs\u7684\u5f02\u6b65\u7b56\u7565\u662f\u591a\u4e48\u7684\u597d\uff0cI\/O\u662f\u591a\u4e48\u7684\u725b\u903c......\u53cd\u6b63\u5c31\u662f\u5404\u79cd\u597d\u3002\u4eca\u5929\u6211\u5c31\u51c6\u5907\u7ed9nodejs\u548cpython\u6765\u505a\u4e2a\u6bd4\u8f83\u3002\u80fd\u4f53\u73b0\u5f02\u6b65\u7b56\u7565\u548cI\/O\u4f18\u52bf\u7684\u9879\u76ee\uff0c\u6211\u89c9\u5f97\u83ab\u8fc7\u4e8e\u722c\u866b\u4e86\u3002\u90a3\u4e48\u5c31\u4ee5\u4e00\u4e2a\u722c\u866b\u9879\u76ee\u6765\u4e00\u8f83\u9ad8\u4e0b\u5427\u3002","link":"https:\/\/segmentfault.com\/a\/1190000006741610","imgUrl":"https:\/\/avatar-static.segmentfault.com\/325\/956\/3259568302-5b04da36c9226_huge256"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542683927,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+

@@ -1,0 +1,1400 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>通过demo学习OpenStack开发所需的基础知识 -- API服务(3) - Coffee, Coke and Code - SegmentFault 思否</title><meta name="description" content="上一篇文章我们了解了一个巨啰嗦的框架：Paste + PasteDeploy + Routes + WebOb。后来OpenStack社区的人受不了这么啰嗦的代码了，决定换一个框架，他们最终选中了Pecan。Pecan框架相比上一篇文章的啰嗦框架有如下..."/><meta name="keywords" content="python,openstack"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon.png"/><meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/global.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/blog/css/blog.css"/><link rel="stylesheet" href="https://static.segmentfault.com/v-5bebf0aa/global/css/responsive.css"/><script type='text/javascript' src='https://sponsor.segmentfault.com/spcjs.php?id=1&block=1&repu=0&tag=python,openstack'></script></head><!-- 推荐引擎 --><script charset="utf-8" id="ParadigmSDK" src="https://nbrecsys.4paradigm.com/sdk/js/ParadigmSDK_v2.js" data="216" defSI="594"></script><script>
+    ParadigmSDK.init("46e957bd9dea4acdaa15b4b64aff728f");
+    ParadigmSDK.trackDetailPageShow();
+</script><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" src="https://static.segmentfault.com/v-5bebf0aa/global/img/touch-icon-512.png"><div id="gridMapHoverBox" style="position:absolute; border: 1px solid #009a61; z-index:99; font-size: 10px; background:#fff"></div><div class="global-nav sf-header sf-header--index"><div class="bottom-nav visible-xs visible-sm "><div class="opts"><a class="opts-group " href="/"><i class="fa fa-home" aria-hidden="true"></i><span>首页</span></a><a class="opts-group " href="/questions"><i class="fa fa-comments" aria-hidden="true"></i><span>问答</span></a><a class="opts-group active" href="/blogs"><i class="fa fa-pencil-square" aria-hidden="true"></i><span>专栏</span></a><a class="opts-group " href="/lives"><i class="fa fa-play-circle" aria-hidden="true"></i><span>讲堂</span></a><div class="opts-group"><div class="btn-group dropup"><i class="fa fa-bars dropdown hoverDropdown" data-toggle="dropdown" aria-hidden="true"><span>更多</span></i><ul class="dropdown-menu"><li><a href="/jobs">职位</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/badges">徽章</a></li></ul></div></div></div></div><nav class="container nav"><div class="visible-xs visible-sm header-response"><a href="/search" style="display:block"><i class="fa fa-search" aria-hidden="true"></i></a><div class="sf-header__logo sf-header__logo--response"><h1><a href="/" style="height:24px; background-size: auto 24px;"></a></h1></div><a href="/user/login" class="pull-right login-btn"><i class="fa fa-user" aria-hidden="true"></i></a></div><script>
+mobileScroll(
+    function(direction) { 
+        try {
+            if (direction === 'down') {
+                document.querySelector('.bottom-nav').classList.add('hidden')
+            } else {
+                document.querySelector('.bottom-nav').classList.remove('hidden')
+            }
+        } catch(err) {}
+    }
+);    
+function mobileScroll( fn ) {
+    var beforeScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+        fn = fn || function() {};
+    window.addEventListener("scroll", function() {
+        var afterScrollTop = document.documentElement.scrollTop || document.body.scrollTop,
+            delta = afterScrollTop - beforeScrollTop;
+        if( delta === 0 ) return false;
+        fn( delta > 0 ? "down" : "up" );
+        beforeScrollTop = afterScrollTop;
+    }, false);
+}
+</script><div class="row hidden-xs hidden-sm"><div class="col-sm-8 col-md-9 col-lg-9"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item"><a href="/" class="">首页</a></li><li class="menu__item"><a href="/questions" class="">问答</a></li><li class="menu__item"><a href="/blogs" class="active-nav">专栏</a></li><li class="menu__item"><a href="/lives" class="">讲堂</a></li><li class="menu__item menu__item--more dropdown"><a href="##" class="dropdown-toggle dropdownBtn" data-toggle="dropdown">
+                                        发现<i class="fa fa-caret-down" style="font-size: 14px;margin-left: 5px;" aria-hidden="true"></i></a><div class="dropdown-block hidden"><ul class="dropdown-content-menu"><li><a href="/groups">圈子</a></li><li><a href="/events">活动</a></li><li><a href="/tags">标签</a></li><li><a href="/jobs">找工作</a></li><li><a href="/users">排行榜</a></li><li><a href="/badges">徽章</a></li><li><a href="/notes">笔记</a></li><li><a href="https://docs.segmentfault.com" target="_blank">开发手册<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li><li><a href="https://business.segmentfault.com/ads?utm_source=sf-header" target="_blank">广告投放<i style="line-height: 20px;font-size: 12px;color: #F5A623;" class="ml10 fa fa-external-link-square"></i></a></li></ul></div></li><li class="menu__item visible-sm-inline-block"><a href="/search"><span class="glyphicon glyphicon-search" style="vertical-align: middle;"></span></a></li></ul><form action="/search" class="header-search  hidden-sm hidden-xs pull-right" ><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text"  placeholder="搜索问题或关键字" class="form-control" value="" /></form></div></div><div class="col-sm-4 col-md-3 col-lg-3 text-right"><ul class="opts list-inline hidden-xs"><li class="opts__item"><a href="/user/login" class="SFRegister btn-signin" style="margin-bottom:2px;">立即登录</a><a href="/user/register" class="SFLogin ml10 btn-signup"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">免费注册</a></li></ul></div></div></nav></div>
+    
+<input id="articleId" value="1190000003810294" class="hidden" />
+
+<div class="wrap" data-blogid="1200000000470447">
+    <div class="container mt15" style="position:relative">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+                                <ol class="breadcrumb mb15">
+                    <li><a href="/blogs">专栏</a></li>
+                                        <li><a href="/blog/diabloneo">Coffee, Coke and Code</a></li>
+                                        <li class="active">文章详情</li>
+                </ol>
+                                <div class="post-topheader custom- pt0">
+                    <div class="mb20">
+                        <div class="block-for-right-border">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 col-xs-12">
+                                
+
+                                    <div class="post-topheader__info" data-username="diabloneo"
+                                         data-userslug="diabloneo"
+                                         data-useravatar="https://avatar-static.segmentfault.com/135/653/1356532926-54ca4a0552d5e_big64">
+
+
+                                        <div class="article__author clearfix">
+                                            <div class="article__authorleft">
+                                                <a href="/u/diabloneo">
+                                                    <img class="avatar-40" src="https://avatar-static.segmentfault.com/135/653/1356532926-54ca4a0552d5e_big64" alt="diabloneo">
+                                                </a>
+                                            </div>
+                                            <div class="article__authorright">
+                                                <div class="article__authormeta">
+                                                <a href="/u/diabloneo" class="mr5 "><strong>diabloneo</strong></a>
+
+                                                                                                <img src="https://static.segmentfault.com/v-5bebf0aa/global/img/rp.svg" class="mr5"><span style="color:#BF7158" class="mr10">1.2k</span>
+
+                                                                                                发布于
+                                                <a href="/blog/diabloneo">Coffee, Coke and Code</a>
+                                                
+                                                
+                                                <span class="hidden-xs">
+                                                                                                                                                          <button type="button"
+                                                               class="btn btn-xs btn-success follow-article ml10"
+                                                               data-do="follow"
+                                                               data-type="blog"
+                                                               data-id="1200000000470447">关注专栏
+                                                       </button>
+                                                                                                                                                   </span>
+                                                </div>
+                                                
+                                                <span style="display: block">
+                                                    2015-09-30 发布
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <h1 class="h1 post-topheader__info--title" id="articleTitle" data-id="1190000003810294">
+                                            <a href="/a/1190000003810294"> 通过demo学习OpenStack开发所需的基础知识 -- API服务(3)</a>
+                                        </h1>
+
+                                        <div class="content__tech hidden-xs">
+                                            <a href="" class="blog-type-common blog-type-0-before" target="_blank" data-content="
+                                                                                        翻译自 
+                                                                                        "></a>
+                                            
+                                            <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/python/blogs" data-toggle="popover"
+                                                                                data-img="https://avatar-static.segmentfault.com/378/252/3782524817-1040000000089534_big64" data-placement="top"
+                                                                                data-original-title="python"
+                                                                                data-id="1040000000089534">
+                                                                                                                    <img src="https://avatar-static.segmentfault.com/252/177/2521771040-54cb53b372821_small">
+                                                                                                                      python
+                                                        </a>
+                                                    </li>
+                                                                                                    <li class="tagPopup mb5">
+                                                        <a class="tag" href="/t/openstack/blogs" data-toggle="popover"
+                                                                                data-img="" data-placement="top"
+                                                                                data-original-title="openstack"
+                                                                                data-id="1040000000172915">
+                                                                                                                      openstack
+                                                        </a>
+                                                    </li>
+                                                                                            </ul>
+
+                                            <span>
+                                                8.2k 次阅读
+                                                &nbsp;&middot;&nbsp;
+                                                读完需要 52 分钟 
+                                                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end .post-topheader -->
+
+                <div class="visible-lg">
+                    <div class="side-widget">
+                        <div class="stream__item-zan btn btn-default mt0 mb15 ml0 mr0 pt0 pb0 pl0 pr0 " id="side-widget-votes-btn">
+                            <span class="stream__item-zan-icon"></span>
+                            <span class="stream__item-zan-number" id="side-widget-votes-num">3</span>
+                        </div>
+
+                        <i class="fa fa-bookmark item " id="side-widget-bookmarks-btn"></i>
+                        <i class="fa fa-weibo item"></i>
+                        <i class="fa fa-weixin item" data-toggle="popover" data-placement="right"></i>
+                        <i class="fa fa-twitter item"></i>
+                        <i class="fa fa-facebook item"></i>
+                        <i class="fa fa-arrow-up item hidden"></i>
+                    </div>
+                </div>
+
+                
+                <div class="article fmt article__content" data-id="1190000003810294" data-license="sa">
+                    
+<p>上一篇文章我们了解了一个巨啰嗦的框架：Paste + PasteDeploy + Routes + WebOb。后来OpenStack社区的人受不了这么啰嗦的代码了，决定换一个框架，他们最终选中了<strong>Pecan</strong>。Pecan框架相比上一篇文章的啰嗦框架有如下好处：</p>
+<ul>
+<li><p>不用自己写WSGI application了</p></li>
+<li><p>请求路由很容易就可以实现了</p></li>
+</ul>
+<p>总的来说，用上Pecan框架以后，很多重复的代码不用写了，开发人员可以专注于业务，也就是实现每个API的功能。</p>
+<h1>Pecan</h1>
+<p>Pecan框架的目标是实现一个采用对象分发方式进行URL路由的轻量级Web框架。它非常专注于自己的目标，它的大部分功能都和URL路由以及请求和响应的处理相关，而不去实现模板、安全以及数据库层，这些东西都可以通过其他的库来实现。关于Pecan的更多信息，可以查看文档：<a href="https://pecan.readthedocs.org/en/latest/index.html" rel="nofollow noreferrer"></a><a href="https://pecan.readthedocs.org/en/latest/index.html" rel="nofollow noreferrer">https://pecan.readthedocs.org/en/latest/index.html</a>。本文以OpenStack的magnum项目为例来说明Pecan项目在实际中的应用，但是本文不会详细讲解Pecan的各个方面，一些细节请读者阅读Pecan的文档。</p>
+<h2>项目中的代码结构</h2>
+<p>使用Pecan框架时，OpenStack项目一般会把API服务的实现都放在一个<strong>api</strong>目录下，比如magnum项目是这样的：</p>
+<pre><code>➜ ~/openstack/env/p/magnum git:(master) $ tree magnum/api
+magnum/api
+├── app.py
+├── auth.py
+├── config.py
+├── controllers
+│   ├── base.py
+│   ├── __init__.py
+│   ├── link.py
+│   ├── root.py
+│   └── v1
+│       ├── base.py
+│       ├── baymodel.py
+│       ├── bay.py
+│       ├── certificate.py
+│       ├── collection.py
+│       ├── container.py
+│       ├── __init__.py
+│       ├── magnum_services.py
+│       ├── node.py
+│       ├── pod.py
+│       ├── replicationcontroller.py
+│       ├── service.py
+│       ├── types.py
+│       ├── utils.py
+│       └── x509keypair.py
+├── expose.py
+├── hooks.py
+├── __init__.py
+├── middleware
+│   ├── auth_token.py
+│   ├── __init__.py
+│   └── parsable_error.py
+├── servicegroup.py
+└── validation.py</code></pre>
+<p>你也可以在Ceilometer项目中看到类似的结构。介绍一下几个主要的文件，这样你以后看到一个使用Pecan的OpenStack项目时就会比较容易找到入口。</p>
+<ul>
+<li><p>app.py  一般包含了Pecan应用的入口，包含应用初始化代码</p></li>
+<li><p>config.py  包含Pecan的应用配置，会被app.py使用</p></li>
+<li><p>controllers/  这个目录会包含所有的控制器，也就是API具体逻辑的地方</p></li>
+<li><p>controllers/root.py  这个包含根路径对应的控制器</p></li>
+<li><p>controllers/v1/   这个目录对应v1版本的API的控制器。如果有多个版本的API，你一般能看到v2等目录。</p></li>
+</ul>
+<h2>代码变少了：application的配置</h2>
+<p>Pecan的配置很容易，通过一个Python源码式的配置文件就可以完成基本的配置。这个配置的主要目的是指定应用程序的root，然后用于生成WSGI application。我们来看Magnum项目的例子。Magnum项目有个API服务是用Pecan实现的，在<em>magnum/api/config.py</em>文件中可以找到这个文件，主要内容如下：</p>
+<pre><code>app = {
+    'root': 'magnum.api.controllers.root.RootController',
+    'modules': ['magnum.api'],
+    'debug': False,
+    'hooks': [
+        hooks.ContextHook(),
+        hooks.RPCHook(),
+        hooks.NoExceptionTracebackHook(),
+    ],
+    'acl_public_routes': [
+        '/'
+    ],
+}</code></pre>
+<p>上面这个<strong>app</strong>对象就是Pecan的配置，每个Pecan应用都需要有这么一个名为app的配置。app配置中最主要的就是<strong>root</strong>的值，这个值表示了应用程序的入口，也就是从哪个地方开始解析HTTP的根path：<strong>/</strong>。<strong>hooks</strong>对应的配置是一些Pecan的hook，作用类似于WSGI Middleware。</p>
+<p>有了app配置后，就可以让Pecan生成一个WSGI application。在Magnum项目中，<em>magnum/api/app.py</em>文件就是生成WSGI application的地方，我们来看一下这个的主要内容：</p>
+<pre><code>def get_pecan_config():
+    # Set up the pecan configuration
+    filename = api_config.__file__.replace('.pyc', '.py')
+    return pecan.configuration.conf_from_file(filename)
+
+
+def setup_app(config=None):
+    if not config:
+        config = get_pecan_config()
+
+    app_conf = dict(config.app)
+
+    app = pecan.make_app(
+        app_conf.pop('root'),
+        logging=getattr(config, 'logging', {}),
+        wrap_app=middleware.ParsableErrorMiddleware,
+        **app_conf
+    )
+
+    return auth.install(app, CONF, config.app.acl_public_routes)</code></pre>
+<p><code>get_pecan_config()</code>方法读取我们上面提到的config.py文件，然后返回一个<strong>pecan.configuration.Config</strong>对象。<code>setup_app()</code>函数首先调用<code>get_pecan_config()</code>函数获取application的配置，然后调用<code>pecan.make_app()</code>函数创建了一个WSGI application，最后调用了 <code>auth.install()</code>函数（也就是magnum.api.auth.install()函数）为刚刚生成的WSGI application加上Keystone的认证中间件（确保所有的请求都会通过Keystone认证）。</p>
+<p>到这边为止，一个Pecan的WSGI application就已经准备好了，只要调用这个<code>setup_app()</code>函数就能获得。至于如何部署这个WSGI application，请参考<a href="http://segmentfault.com/a/1190000003069785">WSGI简介</a>这篇文章。</p>
+<p>从Magnum这个实际的例子可以看出，使用了Pecan之后，我们不再需要自己写那些冗余的WSGI application代码了，直接调用Pecan的<code>make_app()</code>函数就能完成这些工作。另外，对于之前使用PasteDeploy时用到的很多WSGI中间件，可以选择使用Pecan的hooks机制来实现，也选择使用WSGI中间件的方式来实现。在Magnum的API服务就同时使用了这两种方式。其实，Pecan还可以和PasteDeploy一起使用，Ceilometer项目就是这么做的，大家可以看看。</p>
+<h2>确定路由变得容易了：对象分发式的路由</h2>
+<p>Pecan不仅缩减了生成WSGI application的代码，而且也让开发人员更容易的指定一个application的路由。Pecan采用了一种对象分发风格（<strong>object-dispatch style</strong>）的路由模式。我们直接通过例子来解释这种路由模式，还是以Magnum项目为例。</p>
+<p>上面提到了，Magnum的API服务的root是<strong>magnum.api.controllers.root.RootController</strong>。这里的RootController的是一个类，我们来看它的代码：</p>
+<pre><code>class RootController(rest.RestController):
+
+    _versions = ['v1']
+    """All supported API versions"""
+
+    _default_version = 'v1'
+    """The default API version"""
+
+    v1 = v1.Controller()
+
+    @expose.expose(Root)
+    def get(self):
+        # NOTE: The reason why convert() it's being called for every
+        #       request is because we need to get the host url from
+        #       the request object to make the links.
+        return Root.convert()
+
+    @pecan.expose()
+    def _route(self, args):
+        """Overrides the default routing behavior.
+
+        It redirects the request to the default version of the magnum API
+        if the version number is not specified in the url.
+        """
+
+        if args[0] and args[0] not in self._versions:
+            args = [self._default_version] + args
+        return super(RootController, self)._route(args)</code></pre>
+<p>别看这个类这么长，我来解释一下你就懂了。首先，你可以先忽略掉<code>_route()</code>函数，这个函数是用来覆盖Pecan的默认路由实现的，在这里去掉它不妨碍我们理解Pecan（这里的<code>_route()</code>函数的作用把所有请求重定向到默认的API版本去）。去掉<code>_route()</code>和其他的东西后，整个类就变成这么短：</p>
+<pre><code>class RootController(rest.RestController):
+    v1 = v1.Controller()
+
+    @expose.expose(Root)
+    def get(self):
+        return Root.convert()</code></pre>
+<ul>
+<li><p>首先，你要记住，这个<em>RootController</em>对应的是URL中根路径，也就是path中最左边的<strong>/</strong>。</p></li>
+<li><p><em>RootController</em>继承自<em>rest.RestController</em>，是Pecan实现的RESTful控制器。这里的<code>get()</code>函数表示，当访问的是<em>GET /</em>时，由该函数处理。<code>get()</code>函数会返回一个WSME对象，表示一个形式化的HTTP Response，这个下面再讲。<code>get()</code>函数上面的<code>expose</code>装饰器是Pecan实现路由控制的一个方式，被expose的函数才会被路由处理。</p></li>
+<li><p>这里的<code>v1 = v1.Controller()</code>表示，当访问的是<em>GET /v1</em>或者<em>GET /v1/...</em>时，请求由一个<code>v1.Controller</code>实例来处理。</p></li>
+</ul>
+<p>为了加深大家的理解，我们再来看下<code>v1.Controller</code>的实现：</p>
+<pre><code>class Controller(rest.RestController):
+    """Version 1 API controller root."""
+
+    bays = bay.BaysController()
+    baymodels = baymodel.BayModelsController()
+    containers = container.ContainersController()
+    nodes = node.NodesController()
+    pods = pod.PodsController()
+    rcs = rc.ReplicationControllersController()
+    services = service.ServicesController()
+    x509keypairs = x509keypair.X509KeyPairController()
+    certificates = certificate.CertificateController()
+
+    @expose.expose(V1)
+    def get(self):
+        return V1.convert()
+
+    ...</code></pre>
+<p>上面这个Controller也是继承自<em>rest.RestController</em>。所以它的<em>get</em>函数表示，当访问的是<em>GET /v1</em>的时候，要做的处理。然后，它还有很多类属性，这些属性分别表示不同URL路径的控制器：</p>
+<ul>
+<li><p>/v1/bays 由bays处理</p></li>
+<li><p>/v1/baymodels 由baymodels处理</p></li>
+<li><p>/v1/containers 由containers处理</p></li>
+</ul>
+<p>其他的都是类似的。我们再继续看<code>bay.BaysController</code>的代码：</p>
+<pre><code>class BaysController(rest.RestController):
+    """REST controller for Bays."""
+    def __init__(self):
+        super(BaysController, self).__init__()
+
+    _custom_actions = {
+        'detail': ['GET'],
+    }
+
+    def get_all(...):
+    
+    def detail(...):
+    
+    def get_one(...):
+    
+    def post(...):
+    
+    def patch(...):
+
+    def delete(...):</code></pre>
+<p>这个controller中只有函数，没有任何类属性，而且没有实现任何特殊方法，所以<em>/v1/bays</em>开头的URL处理都在这个controller中终结。这个类会处理如下请求：</p>
+<ul>
+<li><p>GET /v1/bays</p></li>
+<li><p>GET /v1/bays/{UUID}</p></li>
+<li><p>POST /v1/bays</p></li>
+<li><p>PATCH /v1/bays/{UUID}</p></li>
+<li><p>DELETE /v1/bays/{UUID}</p></li>
+<li><p>GET /v1/bays/detail/{UUID}</p></li>
+</ul>
+<p>看了上面的3个controller之后，你应该能大概明白Pecan是如何对URL进行路由的。这种路由方式就是对象分发：<strong>根据类属性，包括数据属性和方法属性来决定如何路由一个HTTP请求</strong>。Pecan的文档中对请求的路由有专门的描述，要想掌握Pecan的路由还是要完整的看一下官方文档。</p>
+<h2>内置RESTful支持</h2>
+<p>我们上面举例的controller都是继承自<code>pecan.rest.RestController</code>，这种controller称为<strong>RESTful controller</strong>，专门用于实现RESTful API的，因此在OpenStack中使用特别多。Pecan还支持普通的controller，称为<strong>Generic controller</strong>。Generic controller继承自object对象，默认没有实现对RESTful请求的方法。简单的说，RESTful controller帮我们规定好了<code>get_one()</code>, <code>get_all()</code>, <code>get()</code>, <code>post()</code>等方法对应的HTTP请求，而Generic controller则没有。关于这两种controller的区别，可以看官方文档<a href="https://pecan.readthedocs.org/en/latest/rest.html" rel="nofollow noreferrer">Writing RESTful Web Services with Generic Controllers</a>，有很清楚的示例。</p>
+<p>对于RestController中没有预先定义好的方法，我们可以通过控制器的<code>_custom_actions</code>属性来指定其能处理的方法。</p>
+<pre><code>class RootController(rest.RestController):
+    _custom_actions = {
+        'test': ['GET'],
+    }
+
+    @expose()
+    def test(self):
+        return 'hello'</code></pre>
+<p>上面这个控制器是一个根控制器，指定了/test路径支持GET方法，效果如下：</p>
+<pre><code> $ curl http://localhost:8080/test
+hello% </code></pre>
+<h2>那么HTTP请求和HTTP响应呢？</h2>
+<p>上面讲了这么多，我们都没有说明在Pecan中如何处理请求和如何返回响应。这个将在下一章中说明，同时我们会引入一个新的库<strong>WSME</strong>。</p>
+<h1>WSME</h1>
+<h2>Pecan对请求和响应的处理</h2>
+<p>在开始提到WSME之前，我们先来看下Pecan自己对HTTP请求和响应的处理。这样你能更好的理解为什么会再引入一个WSME库。</p>
+<p>Pecan框架为每个线程维护了单独的请求和响应对象，你可以直接在请求处理函数中访问。<strong>pecan.request</strong>和<strong>pecan.response</strong>分别代表当前需要处理的请求和响应对象。你可以直接操作这两个对象，比如指定响应的状态码，就像下面这个例子一样（例子来自官方文档）：</p>
+<pre><code>@pecan.expose()
+def login(self):
+    assert pecan.request.path == '/login'
+    username = pecan.request.POST.get('username')
+    password = pecan.request.POST.get('password')
+
+    pecan.response.status = 403
+    pecan.response.text = 'Bad Login!'</code></pre>
+<p>这个例子演示了访问POST请求的参数以及返回403。你也可以重新构造一个<code>pecan.Response</code>对象作为返回值（例子来自官方文档）：</p>
+<pre><code>from pecan import expose, Response
+
+class RootController(object):
+
+    @expose()
+    def hello(self):
+        return Response('Hello, World!', 202)</code></pre>
+<p>另外，HTTP请求的参数也会可以作为控制器方法的参数，还是来看几个官方文档的例子：</p>
+<pre><code>class RootController(object):
+    @expose()
+    def index(self, arg):
+        return arg
+
+    @expose()
+    def kwargs(self, **kwargs):
+        return str(kwargs)</code></pre>
+<p>这个控制器中的方法直接返回了参数，演示了对GET请求参数的处理，效果是这样的：</p>
+<pre><code>$ curl http://localhost:8080/?arg=foo
+foo
+$ curl http://localhost:8080/kwargs?a=1&amp;b=2&amp;c=3
+{u'a': u'1', u'c': u'3', u'b': u'2'}</code></pre>
+<p>有时候，参数也可能是URL的一部分，比如最后的一段path作为参数，就像下面这样：</p>
+<pre><code>class RootController(object):
+    @expose()
+    def args(self, *args):
+        return ','.join(args)</code></pre>
+<p>效果是这样的：</p>
+<pre><code>$ curl http://localhost:8080/args/one/two/three
+one,two,three</code></pre>
+<p>另外，我们还要看一下POST方法的参数如何处理（例子来自官方文档）：</p>
+<pre><code>class RootController(object):
+    @expose()
+    def index(self, arg):
+        return arg</code></pre>
+<p>效果如下，就是把HTTP body解析成了控制器方法的参数：</p>
+<pre><code>$ curl -X POST "http://localhost:8080/" -H "Content-Type: application/x-www-form-urlencoded" -d "arg=foo"
+foo</code></pre>
+<h2>返回JSON还是HTML？</h2>
+<p>如果你不是明确的返回一个Response对象，那么Pecan中方法的返回内容类型就是由<code>expose()</code>装饰器决定的。默认情况下，控制器的方法返回的content-type是HTML。</p>
+<pre><code>class RootController(rest.RestController):
+    _custom_actions = {
+        'test': ['GET'],
+    }
+
+    @expose()
+    def test(self):
+        return 'hello'</code></pre>
+<p>效果如下：</p>
+<pre><code> $ curl -v http://localhost:8080/test
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+&gt; GET /test HTTP/1.1
+&gt; User-Agent: curl/7.38.0
+&gt; Host: localhost:8080
+&gt; Accept: */*
+&gt;
+* HTTP 1.0, assume close after body
+&lt; HTTP/1.0 200 OK
+&lt; Date: Tue, 15 Sep 2015 14:31:28 GMT
+&lt; Server: WSGIServer/0.1 Python/2.7.9
+&lt; Content-Length: 5
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Closing connection 0
+hello% </code></pre>
+<p>也可以让它返回JSON：</p>
+<pre><code>class RootController(rest.RestController):
+    _custom_actions = {
+        'test': ['GET'],
+    }
+
+    @expose('json')
+    def test(self):
+        return 'hello'</code></pre>
+<p>效果如下：</p>
+<pre><code> curl -v http://localhost:8080/test
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+&gt; GET /test HTTP/1.1
+&gt; User-Agent: curl/7.38.0
+&gt; Host: localhost:8080
+&gt; Accept: */*
+&gt;
+* HTTP 1.0, assume close after body
+&lt; HTTP/1.0 200 OK
+&lt; Date: Tue, 15 Sep 2015 14:33:27 GMT
+&lt; Server: WSGIServer/0.1 Python/2.7.9
+&lt; Content-Length: 18
+&lt; Content-Type: application/json; charset=UTF-8
+&lt;
+* Closing connection 0
+{"hello": "world"}% </code></pre>
+<p>甚至，你还可以让一个控制器方法根据URL path的来决定是返回HTML还是JSON：</p>
+<pre><code>class RootController(rest.RestController):
+    _custom_actions = {
+        'test': ['GET'],
+    }
+
+    @expose()
+    @expose('json')
+    def test(self):
+        return json.dumps({'hello': 'world'})</code></pre>
+<p>返回JSON：</p>
+<pre><code> $ curl -v http://localhost:8080/test.json
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+&gt; GET /test.json HTTP/1.1
+&gt; User-Agent: curl/7.38.0
+&gt; Host: localhost:8080
+&gt; Accept: */*
+&gt;
+* HTTP 1.0, assume close after body
+&lt; HTTP/1.0 200 OK
+&lt; Date: Wed, 16 Sep 2015 14:26:27 GMT
+&lt; Server: WSGIServer/0.1 Python/2.7.9
+&lt; Content-Length: 24
+&lt; Content-Type: application/json; charset=UTF-8
+&lt;
+* Closing connection 0
+"{\"hello\": \"world\"}"% </code></pre>
+<p>返回HTML：</p>
+<pre><code> $ curl -v http://localhost:8080/test.html
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+&gt; GET /test.html HTTP/1.1
+&gt; User-Agent: curl/7.38.0
+&gt; Host: localhost:8080
+&gt; Accept: */*
+&gt;
+* HTTP 1.0, assume close after body
+&lt; HTTP/1.0 200 OK
+&lt; Date: Wed, 16 Sep 2015 14:26:24 GMT
+&lt; Server: WSGIServer/0.1 Python/2.7.9
+&lt; Content-Length: 18
+&lt; Content-Type: text/html; charset=UTF-8
+&lt;
+* Closing connection 0
+{"hello": "world"}% </code></pre>
+<p>这里要注意一下：</p>
+<ol>
+<li><p>同一个字符串作为JSON返回和作为HTML返回是不一样的，仔细看一下HTTP响应的内容。</p></li>
+<li><p>我们的例子中在URL的最后加上了<strong>.html</strong>后缀或者<strong>.json</strong>后缀，请尝试一下不加后缀的化是返回什么？然后，调换一下两个<code>expose()</code>的顺序再试一下。</p></li>
+</ol>
+<p>从上面的例子可以看出，决定响应类型的主要是传递给<code>expose()</code>函数的参数，我们看下<code>expose()</code>函数的完整声明：</p>
+<pre><code>pecan.decorators.expose(template=None,
+                        content_type='text/html',
+                        generic=False)</code></pre>
+<ul>
+<li><p><strong>template</strong>参数用来指定返回值的模板，如果是'json'就会返回JSON内容，这里可以指定一个HTML文件，或者指定一个mako模板。</p></li>
+<li><p><strong>content_type</strong>指定响应的content-type，默认值是'text/html'。</p></li>
+<li><p><strong>generic</strong>参数表明该方法是一个“泛型”方法，可以指定多个不同的函数对应同一个路径的不同的HTTP方法。</p></li>
+</ul>
+<p>看过参数的解释后，你应该能大概了解<code>expose()</code>函数是如何控制HTTP响应的内容和类型的。</p>
+<h2>用WSME来做什么？</h2>
+<p>上面两节已经说明了Pecan可以比较好的处理HTTP请求中的参数以及控制HTTP返回值。那么为什么我们还需要WSME呢？因为Pecan在做下面这个事情的时候比较麻烦：<strong>请求参数和响应内容的类型检查</strong>（英文简称就是<strong>typing</strong>）。当然，做是可以做的，不过你需要自己访问pecan.request和pecan.response，然后检查指定的值的类型。WSME就是为解决这个问题而生的，而且适用场景就是RESTful API。</p>
+<h2>WSME简介</h2>
+<p>WSME的全称是<strong>Web Service Made Easy</strong>，是专门用于实现REST服务的typing库，让你不需要直接操作请求和响应，而且刚好和Pecan结合得非常好，所以OpenStack的很多项目都使用了Pecan + WSME的组合来实现API（好吧，我看过的项目，用了Pecan的都用了WSME）。WSME的理念是：在大部分情况下，Web服务的输入和输出对数据类型的要求都是严格的。所以它就专门解决了这个事情，然后把其他事情都交给其他框架去实现。因此，一般WSME都是和其他框架配合使用的，支持Pecan、Flask等。WSME的文档地址是<a href="http://wsme.readthedocs.org/en/latest/index.html" rel="nofollow noreferrer"></a><a href="http://wsme.readthedocs.org/en/latest/index.html" rel="nofollow noreferrer">http://wsme.readthedocs.org/en/latest/index.html</a>。</p>
+<h2>WSME的使用</h2>
+<p>用了WSME后的好处是什么呢？WSME会自动帮你检查HTTP请求和响应中的数据是否符合预先设定好的要求。WSME的主要方式是通过装饰器来控制controller方法的输入和输出。WSME中主要使用两个控制器：</p>
+<ul>
+<li><p><strong>@signature</strong>: 这个装饰器用来描述一个函数的输入和输出。</p></li>
+<li><p><strong>@wsexpose</strong>: 这个装饰器包含@signature的功能，同时会把函数的路由信息暴露给Web框架，效果就像Pecan的expose装饰器。</p></li>
+</ul>
+<p>这里我们结合Pecan来讲解WSME的使用。先来看一个原始类型的例子：</p>
+<pre><code>from wsmeext.pecan import wsexpose
+
+class RootController(rest.RestController):
+    _custom_actions = {
+        'test': ['GET'],
+    }
+
+    @wsexpose(int, int)
+    def test(self, number):
+        return number</code></pre>
+<p>如果不提供参数，访问会失败：</p>
+<pre><code>$ curl http://localhost:8080/test
+{"debuginfo": null, "faultcode": "Client", "faultstring": "Missing argument: \"number\""}% </code></pre>
+<p>如果提供的参数不是整型，访问也会失败：</p>
+<pre><code>$ curl http://localhost:8080/test\?number\=a
+{"debuginfo": null, "faultcode": "Client", "faultstring": "Invalid input for field/attribute number. Value: 'a'. unable to convert to int"}% </code></pre>
+<p>上面这些错误信息都是由WSME框架直接返回的，还没有执行到你写的方法。如果请求正确，那么会是这样的：</p>
+<pre><code>$ curl -v http://localhost:8080/test\?number\=1
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+&gt; GET /test?number=1 HTTP/1.1
+&gt; User-Agent: curl/7.38.0
+&gt; Host: localhost:8080
+&gt; Accept: */*
+&gt;
+* HTTP 1.0, assume close after body
+&lt; HTTP/1.0 200 OK
+&lt; Date: Wed, 16 Sep 2015 15:06:35 GMT
+&lt; Server: WSGIServer/0.1 Python/2.7.9
+&lt; Content-Length: 1
+&lt; Content-Type: application/json; charset=UTF-8
+&lt;
+* Closing connection 0
+1% </code></pre>
+<p>请注意返回的content-type,这里返回JSON是因为我们使用的<code>wsexpose</code>设置的返回类型是XML和JSON，并且JSON是默认值。上面这个例子就是WSME最简单的应用了。</p>
+<p>那么现在有下面这些问题需要思考一下：</p>
+<ul>
+<li><p>如果想用POST的方式来传递参数，要怎么做呢？提示：要阅读WSME中@signature装饰器的文档。</p></li>
+<li><p>如果我希望使用<em>/test/1</em>这种方式来传递参数要怎么做呢？提示：要阅读Pecan文档中关于路由的部分。</p></li>
+<li><p>WSME中支持对哪些类型的检查呢？WSME支持整型、浮点型、字符串、布尔型、日期时间等，甚至还支持用户自定义类型。提示：要阅读WSME文档中关于类型的部分。</p></li>
+<li><p>WSME支持数组类型么？支持。</p></li>
+</ul>
+<p>上面的问题其实也是很多人使用WSME的时候经常问的问题。我们将在下一篇文章中使用Pecan + WSME来继续开发我们的demo，并且用代码来回答上面所有的问题。</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+                    <ul class="article-operation list-inline pull-left mt15"><li><a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/"><img class="mb5" src="https://static.segmentfault.com/v-5bebf0aa/global/img/creativecommons-sa.svg" height="20"/></a></li><li class="dropdown js__content-ops hidden-xs" data-module="article"
+                                data-id="1190000003810294"
+                                data-typetext="文章"><a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></a><ul class="dropdown-menu dropdown-menu-left"><li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                        >举报</a></li></ul></li></ul>
+                    <div class="pull-right mt-10 hidden-xs">
+                        <div class="widget-share__full" data-text="通过demo学习OpenStack开发所需的基础知识 -- API服务(3)"
+ data-url="https://segmentfault.com/a/1190000003810294" data-shorturl="http://sfau.lt/b5p9ow"></div>
+
+
+                    </div>
+                </div>
+                <div class="mt10 text-center mb30"><button type="button" id="mainLike" data-id="1190000003810294"
+                                    class="btn btn-success btn-lg mr15 "><span id="mainLikeText">赞</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;
+                                <span id="mainLikeNum">3 </span></button><button type="button" id="mainBookmark" data-type="article" data-id="1190000003810294"
+                                    class="btn btn-default btn-lg "><span id="mainBookmarkText">收藏</span>&nbsp;&nbsp;<span class="seprator">|</span>&nbsp;&nbsp;<span id="mainBookmarkNum">25</span></button></div>                
+                                <script type='text/javascript'>
+                    OA_show(3);
+                </script>
+
+                <h4 class="pt20 mb15 mt0 border-top">你可能感兴趣的</h4>
+
+                
+                <div class="mb15 block">
+                    <script type='text/javascript'>
+                        OA_show(4);
+                    </script>
+                </div>
+
+                                <div id="paradigm-article-related"></div>
+
+                
+        <div class="comments--news comments--default comments--article 
+    " 
+    data-id="1190000003810294" data-user-id="" data-author-id="1030000000449803 "
+         data-is-admin="null" id="goToReplyArea">
+                    <div class="mb10 clearfix">
+                <strong class="comments-stat pull-left mr10">评论</strong>
+
+                                                    <div class="btn-group btn-group-xs pull-right comments-sort btn-group-menu" role="menu">
+                        <a href="javascript:;" 
+                           class="btn btn-default active" data-sort="default">默认排序</a>
+                        <a href="javascript:;" 
+                           class="btn btn-default" data-sort="desc">时间排序</a>
+                    </div>
+                            </div>
+                <div class="comments-container">
+                                <div class="comments-list">
+            </div>
+    <div class="comments-loading hide">载入中...</div>
+        <div class="comments-more hide"><a href="javascript:;">显示更多评论</a></div>
+    
+
+                                    <div class="comments-box" id="goToReplyEditor">
+                <div class="pull-left">
+                    <img class="avatar-32 "
+                         src="https://static.segmentfault.com/v-5bebf0aa/global/img/user-128.png"
+                         alt=""/>
+                </div>
+                <div class="comments-box-content">
+                    <form action="/api/article/1190000003810294/comments/add">
+                        <div class="form-group mb0">
+                            <textarea name="text" rows="3" class="form-control"placeholder="文明社会，理性评论"></textarea>
+                            <div class="mt15 text-right">
+                                <button type="button" class="hide"></button>
+                                <button class=" btn btn-primary" type="button">发布评论</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+                                                        </div>
+    </div>
+
+
+                                    
+                
+                
+
+            </div><!-- /.main -->
+
+
+            <div class="col-md-3 side hidden-sm hidden-xs mt30">
+                                                
+                <div class="mb25 hidden-md hidden-sm hidden-xs">
+    <img src="https://static.segmentfault.com/sponsor/20181120.png" alt="Planets" usemap ="#gridsMap" width=255 height=136>
+    <map name="gridsMap" id="gridsMap"></map>
+    <div style="text-align: center;"><a style="text-align:center; color:#9E9E9E; font-size:12px" href="/sponsor">想在上方展示你的广告？</a></div>
+            <script async src="https://static.segmentfault.com/sponsor/20181120.js"></script>
+    </div>
+
+                                <style>
+                    .job-recommend-area a:not(:last-of-type) {margin-bottom:10px; display: block}
+                    .job-recommend-area a:hover {text-decoration: none;}
+                </style>
+                <div class="hidden-md">
+                    <div class="job-recommend">
+                      <h3 class="job-title">推广链接</h3>
+                      <div class="job-recommend-area">
+                                                <script type='text/javascript'>
+                            OA_show(7);
+                            OA_show(9);
+                            OA_show(10);
+                            OA_show(15);
+                            OA_show(16);
+                        </script>
+                      </div>
+                    </div>
+                    <style>
+                    .job-recommend {margin-bottom: 30px;}
+                    .job-title {
+                        font-size: 14px;
+                        color: #017E66;
+                        font-weight: 500;
+                        background: #BFE6D7;
+                        margin: 0;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        text-align: center;
+                    }
+                    .job-recommend-area {
+                      padding: 13px;
+                      border: 3px solid #EBF7F3;
+                      border-top: none;
+                    }
+                    </style>
+                    
+                                    </div>
+
+                                
+                <div class="hidden-md ad-should-be-fixed">
+                    <div class="mb25 block">
+                        <script type='text/javascript'>
+                            OA_show(1);
+                        </script>
+                    </div>
+                </div>
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body" style="overflow:scroll">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal widget-seo" id="seo" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="seoForm">
+                    <!-- 后台返回信息 -->
+                    <p class="alert alert-warning" data-model="returnMsg"></p>
+                    <div data-role="base">
+                        <div class="form-group">
+                            <label>SEO标题：</label><textarea style="min-height: 35px; width: 100%; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="title" class="form-control" rows="1" placeholder="请输入SEO标题"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO描述：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="desc" class="form-control" rows="1" placeholder="请输入SEO描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>SEO keywords：</label><textarea style="min-height: 35px; max-height: 132px; overflow: hidden; overflow-wrap: break-word; height: 32px;" name="keywords" class="form-control" rows="1" placeholder="请输入SEO keywords"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+                <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+    <div id="loginBanner"  class="hidden-sm hidden-xs loginBanner">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-7">
+                <h1 class="title">在 SegmentFault，学习技能、解决问题</h1>
+                <p class="desc">每个月，我们帮助 1000 万的开发者解决各种各样的技术问题。并助力他们在技术能力、职业生涯、影响力上获得提升。</p>
+            </div>
+            <div class="col-lg-3 col-lg-offset-3 col-md-4 col-md-offset-1">
+                <form class="register-form clearfix" action="/api/user/phone/register">
+
+                    
+                    <a href="/user/register" class="SFLogin btn btn-lg btn-primary mr15">免费注册</a>
+                    <a href="/user/login" class="SFRegister btn btn-lg btn-primary">立即登录</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>产品</dt>
+                
+                <dd><a href="/questions/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门问答">热门问答</a></dd>
+                <dd><a href="/blogs/hottest?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门专栏">热门专栏</a></dd>
+                <dd><a href="/lives?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=热门讲堂">热门讲堂</a></dd>
+                <dd><a href="/events?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=最新活动">最新活动</a></dd>
+                <dd><a href="/groups?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=圈子">圈子</a></dd>
+                <dd><a href="/jobs?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=找工作">找工作</a></dd>
+                <dd><a href="/app?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=product&utm_content=footer-links-hottest-questions&utm_term=app">移动客户端</a></dd>
+                
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>资源</dt>
+                <dd><a href="/weekly?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-weekly&utm_term=每周精选">每周精选</a></dd>
+                <dd><a href="/users?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-users&utm_term=用户排行榜">用户排行榜</a></dd>
+                <dd><a href="/badges?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-badges&utm_term=徽章">徽章</a></dd>
+                <dd><a href="/faq?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-faq&utm_term=帮助中心">帮助中心</a></dd>
+                <dd><a href="/repu?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-repu&utm_term=声望与权限">声望与权限</a></dd>
+                <dd><a href="/community?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-community&utm_term=社区服务中心">社区服务中心</a></dd>
+                <dd><a href="https://docs.segmentfault.com?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=resource&utm_content=footer-links-docs&utm_term=开发手册">开发手册</a></dd>
+
+   
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>商务</dt>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-rencai&utm_term=人才服务" target="_blank">人才服务</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-qiyeneixun&utm_term=企业服务" target="_blank">企业培训</a></dd>
+                <dd><a href="https://business.segmentfault.com/services?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-services-huodongcehua&utm_term=活动策划" target="_blank">活动策划</a></dd>
+                <dd><a href="https://business.segmentfault.com/ads?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-ads&utm_term=广告投放" target="_blank">广告投放</a></dd>
+                <dd><a href="https://business.segmentfault.com/bc?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-bc&utm_term=区块链解决方案" target="_blank">区块链解决方案</a></dd>
+                <dd><a href="https://business.segmentfault.com/contact?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=business&utm_content=footer-links-contact&utm_term=合作联系" target="_blank">合作联系</a></dd>
+            </dl>
+            
+            <dl class="col-sm-2 site-link">
+                <dt>关于</dt>
+                <dd><a href="https://about.segmentfault.com/?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-index&utm_term=关于我们">关于我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/careers.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-careers&utm_term=加入我们">加入我们</a></dd>
+                <dd><a href="https://about.segmentfault.com/contact.html?utm_source=sf-footer&utm_medium=footer-nav&utm_campaign=about&utm_content=about-contact&utm_term=联系我们">联系我们</a></dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link">
+                <dt>关注</dt>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                <dd>
+                    <ul class="sn-inline">
+                        <li>
+                            <a class="entypo-wechart icon-sn-weixin weixin-popover-qrcode" data-toggle="popover" data-placement="top"  data-content="">微信</a>
+                        </li>
+                        <li>
+                            <a href="http://weibo.com/segmentfault" target="_blank" class="entypo-weibo icon-sn-weibo" >新浪微博</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/SegmentFault" target="_blank" class="entypo-facebook icon-sn-github">Github</a>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/segment_fault" target="_blank" class="entypo-twitter icon-sn-twitter">Twitter</a>
+                        </li>
+                    </ul>
+                </dd>
+            </dl>
+
+            <dl class="col-sm-2 site-link" id="license">
+                <dt>条款</dt>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">内容许可</a></dd>
+                <dd>
+                    <a href="/app" class="clearfix mt10 block"><img src="https://static.segmentfault.com/v-5bebf0aa/page/img/app/appQrcode.png" class="app-qrcode"></a>
+                    <div class="app-download-desc">
+                        <p>扫一扫下载 App</p>
+                    </div>
+                    
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2018 SegmentFault. 当前呈现版本 17.06.16<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+            <span class="ml5">杭州堆栈科技有限公司版权所有</span>
+            <P class="mt30">CDN 存储服务由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 赞助提供 </p>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+</div>
+
+    <script id="loginModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/login" method="POST" role="form" class="mt15">
+                <div class="form-group hidden">
+                                        <input type="text" class="form-control" name="remember" value="1"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" name="username" tabindex="1" required placeholder="11 位手机号 或 Email"
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="control-label">密码</label><span class="pull-right"><a
+                                href="/user/forgot" tabindex="4">忘记密码</a></span>
+                    <input type="password" class="form-control" name="password" tabindex="2" required placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <a
+                            
+                                                    href="/user/phoneLogin"
+                            class="phoneLogin"
+                                            >手机验证码登录</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+    <script id="registerModal" type="text/template">
+    <div class="row bg-white login-modal">
+        <div class="col-md-12 login-wrap">
+            
+            <form action="/api/user/register" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="name" class="control-label">你的名字</label>
+                    <input type="text" class="form-control" name="name" required placeholder="真实姓名或常用昵称">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mail" class="control-label">手机号 或 Email</label>
+                    <input type="text" class="form-control" id="login-name" name="mail" required placeholder="11 位手机号 或 Email">
+                </div>
+                
+                <input type="text" class="hidden" name="register_type" value="mail">
+
+                <div class="form-group">
+                    <div class="phone-register-only hidden">
+                        <div class="captchaInput mb10">
+                            <input type="text" class="form-control" name="cap" placeholder="右侧的验证码" style="width:50%; display: inline; margin-right: 15px;">
+                            <span class="mt10">
+                                <a id="loginReloadCaptcha" href="javascript:void(0)">
+                                <img src="/user/captcha?w=135&h=34" class="cap" width="135" height="34"/></a>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input name="code" type="text" class="form-control js-user-login__phone-code-value" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default js-user-login__phone-vaild-btn" style="width:96px;" type="button">
+                                获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="control-label">密码</label>
+                    <input type="password" class="form-control" name="password" required placeholder="不少于 6 位的密码">
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pl20 pr20 pull-right"
+                            onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册
+                    </button>
+                </div>
+                                <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFRegister
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    已有账号登录
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>            </form>
+        </div>
+    </div>
+</script>
+    <script id="phoneLoginModal" type="text/template">
+
+    <div class="row bg-white login-modal phonelogin-modal">
+        <div class="col-md-12 login-wrap">
+            <form action="/api/user/phonelogin" method="POST" role="form" class="mt15">
+                <div class="form-group">
+                    <label for="phone" class="control-label required">手机号</label>
+                    <input type="text" class="form-control phonelogin--phone" name="phone" tabindex="1" required placeholder="11 位手机号"
+                           autocomplete="off">
+                    <span class="help-block"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="authCode" class="control-label required">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bindphone--code" name="authCode" placeholder="短信验证码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                        </span>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+
+                <div class="form-group">
+                    <a 
+                                                            href="/user/login"
+                                class="SFRegister"
+                                                >密码登录（手机号或 Email）</a>
+                </div>
+                <div class="form-group clearfix">
+                    <button type="submit" class="btn-block btn btn-primary pull-right pl20 pr20" tabindex="3"
+                            onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted text-center more-login-area">
+    <span class="more-login-words">更多登录方式</span>
+</div>
+<div class="widget-login mb15 text-center">
+    <a href="/user/oauth/google" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span
+                class="icon-sn-google"></span></a>
+    <a href="/user/oauth/github" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span
+                class="icon-sn-github"></span></a>
+    <a href="/user/oauth/weibo" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span
+                class="icon-sn-weibo"></span></a>
+    <a href="/user/oauth/qq" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-qq"></span></a>
+    <a href="/user/oauth/weixin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span
+                class="icon-sn-weixin"></span></a>
+    <a href="/user/oauth/linkedin" class=""
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "linkedin"});'><span
+                class="icon-sn-linkedin"></span></a>
+    <span id="loginShowMore" style="cursor: pointer" class="mb5"><span class="icon-sn-dotted"></span></span>
+    <a href="/user/oauth/twitter" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span
+                class="icon-sn-twitter"></span></a>
+    <a href="/user/oauth/facebook" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span
+                class="icon-sn-facebook"></span></a>
+    <a href="/user/oauth/douban" class=" hidden"
+       onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span
+                class="icon-sn-douban"></span></a>
+</div>
+<div class="form-group clearfix">
+    <a class="btn-block btn btn-default pull-right pl20 pr20 
+                        SFLogin
+             "
+
+            
+        onclick='ga("send", "event", "email login button", "clicked", "login modal");'>
+                    注册新账号
+            </a>
+</div>
+<p class="text-muted text-center mb15">登录即表示你同意网站的<a href="/tos" target="_blank">《服务条款》</a></p>        </div>
+    </div>
+</script>
+<script id="bindPhoneModal" type="text/template">
+    <div class="bg-white bindphone-model">
+        <div class="alert alert-warning" role="alert">
+            为了保证账号安全，请先绑定手机
+        </div>
+        <div>
+            <form class="form-horizontal form__bindphone-apply" style="background-color:#fff;padding:0;">
+                <div class="form-group ">
+                    <label for="phoneNumber" class="col-sm-3 control-label required" >手机号码</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control bindphone--phone" id="phoneNumber" name="phone" placeholder="仅只支持大陆手机号">
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="form-group">
+                    <label for="authCode" class="col-sm-3 control-label required">验证码</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control bindphone--code" name="code" placeholder="短信验证码">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default user-bind__phone-vaild-btn" type="button">获取验证码</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</script>
+
+
+<script>
+    window.serverTime = 1542690240000;
+</script>
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://static.segmentfault.com/v-5bebf0aa"
+        };
+        w.SF.token = (function () {
+    var _g7o = '985'//'9'
++''///*'v'*/'v'
++//'ZY'
+'ZY'+'f6'//'A'
++//'gr5'
+'49'+/* 'z'//'z' */''+//'0TW'
+'0TW'+//'X'
+'X'+//'M'
+'704'+'c'//'EE'
++//'y'
+'2'+//'8f'
+'5'+//'X'
+'79'+//'pi9'
+'2'+//'P'
+'6'+//'l'
+'l'+'6'//'0Iz'
++//'R'
+'7'+//'q'
+'4'+//'6a'
+'6a'+//'ko'
+'ko'+//'5l'
+'c6f'+/* 'Yb'//'Yb' */''+//'M'
+'M'+//'oO'
+'ac1'+''///*'29k'*/'29k'
++/* '7'//'7' */''+//'Cn'
+'Cn'+//'9J'
+'8e0'+//'a'
+'a'+'2'//'h'
++'b'//'Zq8'
++//'B'
+'B'+//'oX'
+'oX'+//'Lyr'
+'Lyr'+'yv'//'yv'
++/* 'E'//'E' */''+//'zJw'
+'zJw'+//'aO'
+'7', _l2d = [[3,5],[7,10],[7,8],[17,18],[20,22],[20,22],[23,24],[26,28],[29,30],[31,32],[31,33],[31,34],[31,33],[31,34]];
+
+    for (var i = 0; i < _l2d.length; i ++) {
+        _g7o = _g7o.substring(0, _l2d[i][0]) + _g7o.substring(_l2d[i][1]);
+    }
+
+    return _g7o;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+
+        var ddosMode = false;
+    
+        (function (currentUrl) {
+        if (typeof URL != 'undefined') {
+            var baseUrl = new URL('https://segmentfault.com');
+
+            if (baseUrl.protocol != currentUrl.protocol
+                || baseUrl.host != currentUrl.host) {
+                window.location.href = baseUrl.protocol + '//' + baseUrl.host
+                    + currentUrl.pathname + currentUrl.search + currentUrl.hash;
+            }
+        }
+    })(window.location);
+    </script>
+
+             <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/3rd/assets.js"></script>
+                 
+        <script crossorigin src="https://static.segmentfault.com/v-5bebf0aa/blog/script/post.min.js"></script>
+            
+
+<script>
+if (!!navigator.userAgent.match(/MicroMessenger/i)) {
+    require.config({
+        paths: { weixin_jsapi: '//res.wx.qq.com/open/js/jweixin-1.2.0' }
+    });
+
+    require(['weixin_jsapi'], function (wx) {
+        var share = {"title":"\u901a\u8fc7demo\u5b66\u4e60OpenStack\u5f00\u53d1\u6240\u9700\u7684\u57fa\u7840\u77e5\u8bc6 -- API\u670d\u52a1(3)","desc":"\u4e0a\u4e00\u7bc7\u6587\u7ae0\u6211\u4eec\u4e86\u89e3\u4e86\u4e00\u4e2a\u5de8\u5570\u55e6\u7684\u6846\u67b6\uff1aPaste + PasteDeploy + Routes + WebOb\u3002\u540e\u6765OpenStack\u793e\u533a\u7684\u4eba\u53d7\u4e0d\u4e86\u8fd9\u4e48\u5570\u55e6\u7684\u4ee3\u7801\u4e86\uff0c\u51b3\u5b9a\u6362\u4e00\u4e2a\u6846\u67b6\uff0c\u4ed6\u4eec\u6700\u7ec8\u9009\u4e2d\u4e86Pecan\u3002Pecan\u6846\u67b6\u76f8\u6bd4\u4e0a\u4e00\u7bc7\u6587\u7ae0\u7684\u5570\u55e6\u6846\u67b6\u6709\u5982\u4e0b...","link":"https:\/\/segmentfault.com\/a\/1190000003810294","imgUrl":"https:\/\/avatar-static.segmentfault.com\/135\/653\/1356532926-54ca4a0552d5e_huge256"};
+        share.title += ' - SegmentFault 思否';
+
+        $.getJSON('/api/util/weixin/jsapi', function (o) {
+            methods = o.data.jsApiList.slice();
+
+            wx.config(o.data);
+            wx.error(console.error);
+            wx.ready(function () {
+                methods.forEach(function (method) {
+                    wx[method](share);
+                });
+            });
+        });
+    });
+}
+</script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+                
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1542690240,
+        'allowLinker'
+    : true });
+    ga('require', 'linker');
+    ga('linker:autoLink', ['docs.segmentfault.com'] );
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+</body>
+</html>
+
